@@ -70,7 +70,7 @@ public class Main extends Application {
         gameRoot.getChildren().add(hud);
         return gameScene;
     }
-
+    // KFK
     private static Button getStartButton() {
         Button startButton = new Button("Start Game");
         startButton.setPrefWidth(300);  // Preferred width
