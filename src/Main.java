@@ -10,7 +10,7 @@ public class Main extends Application {
     private final int WIDTH = 1920;
     private final int HEIGHT = 1080;
 
-
+//EREN VURAL
 
     @Override
     public void start(Stage primaryStage) {
