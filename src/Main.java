@@ -34,6 +34,7 @@ public class Main extends Application {
         startButton.setOnAction(e -> {
             primaryStage.setScene(gameScene);
         });
+        primaryStage.setFullScreen(true);
 
     }
 
