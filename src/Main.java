@@ -3,19 +3,19 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import javafx.scene.layout.StackPane;
 // NO SCENE BUILDER!
 
 public class Main extends Application {
-    private final int WIDTH = 1920;
-    private final int HEIGHT = 1080;
+    private final int WIDTH = 1080;
+    private final int HEIGHT = 720;
 
 
 
     @Override
     public void start(Stage primaryStage) {
-    	Group node= new Group();
         Button startButton = getStartButton();
 
         StackPane root = new StackPane();
@@ -35,7 +35,8 @@ public class Main extends Application {
         startButton.setOnAction(e -> {
             primaryStage.setScene(gameScene);
         });
-
+      //primaryStage.setFullScreen(true);
+      	
     }
 
     private Scene getGameScene(StackPane gameRoot) {
