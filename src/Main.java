@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.control.Button;
@@ -10,11 +11,11 @@ public class Main extends Application {
     private final int WIDTH = 1920;
     private final int HEIGHT = 1080;
 
-//EREN
-    //DKSNAKLDMQWAD
+
 
     @Override
     public void start(Stage primaryStage) {
+    	Group node= new Group();
         Button startButton = getStartButton();
 
         StackPane root = new StackPane();
