@@ -1,7 +1,10 @@
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.control.Button;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.scene.layout.StackPane;
 // NO SCENE BUILDER!
@@ -9,6 +12,14 @@ import javafx.scene.layout.StackPane;
 public class Main extends Application {
     private final int WIDTH = 1920;
     private final int HEIGHT = 1080;
+
+    public int money = 100;
+    public int lives = 5;
+    public int nextWave = 0; // these variables are not at the right place imo.
+
+    private Label livesLabel = new Label("Lives: " + lives);
+    private Label moneyLabel = new Label("Money: $" + money);
+    private Label waveLabel = new Label("Next Wave: " + nextWave);
 
 
 
@@ -41,6 +52,22 @@ public class Main extends Application {
         gameRoot.setStyle("-fx-background-color: #d3cfc1;");
 
 
+        // Game area placeholder
+        StackPane gameArea = new StackPane(new Label("Game Area"));
+        gameArea.setStyle("-fx-background-color: d3cfc1;");
+
+        // Right panel (HUD)
+        VBox hud = new VBox(15); // 15px spacing
+        hud.setStyle("-fx-background-color: #d3cfc1; -fx-padding: 20px;");
+        hud.setPrefWidth(180);
+
+        // Style the labels
+        livesLabel.setStyle("-fx-font-size: 18px;");
+        moneyLabel.setStyle("-fx-font-size: 18px;");
+        waveLabel.setStyle("-fx-font-size: 18px;");
+
+        hud.getChildren().addAll(livesLabel, moneyLabel, waveLabel);
+        gameRoot.getChildren().add(hud);
         return gameScene;
     }
 
