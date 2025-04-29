@@ -1,6 +1,9 @@
 import java.util.ArrayList;
 
+import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -22,7 +25,7 @@ public class Main extends Application {
         Color.web("FFCF50"), Color.web("FBC518")
     };
     private static final Color PATH_COLOR = Color.web("FBEBE0");
-    private final ArrayList<FadeTransition> transitions = new ArrayList<>(); // <--- Eklendi
+    private final ArrayList<Animation> transitions = new ArrayList<>(); // 
 
 //F5ECD5 OLABİLİR
 //FBE4D6 OLABİLİR
@@ -45,7 +48,7 @@ public class Main extends Application {
 
         startButton.setOnAction(e -> { // butona basıldığı zaman bunları yap diyorsun
             primaryStage.setScene(gameScene);
-            transitions.forEach(FadeTransition::play); //her bir karenin görünme animasyonu tek tek play ile çağrıldı
+            transitions.forEach(Animation::play); //her bir karenin görünme animasyonu(opaklık küçülme) tek tek play ile çağrıldı
         });
     }
 
@@ -79,15 +82,30 @@ public class Main extends Application {
                 } else {
                     tile.setFill(YELLOW_TONES[(int)(Math.random() * YELLOW_TONES.length)]);
                 }
-                tile.setOpacity(0); //  Start with all rectangles not visible.For slowly show the rectangles animation 
+                tile.setOpacity(0); //  Start with all rectangles not visible.For slowly show the rectangles animation
+                
+                tile.setScaleX(0.1);  // Küçük başla
+                tile.setScaleY(0.1);      //gereksiz gibi duruyorlar..
+                
                 grid.add(tile, col, row);
 
-                // Fade Görünme animasyonu
+                // Fade Görünme animasyonu  OPAKLIK AYARI İÇİN
                 FadeTransition ft = new FadeTransition(Duration.millis(500), tile);
                 ft.setFromValue(0);
                 ft.setToValue(1);
-                ft.setDelay(Duration.millis((row * GRID_SIZE + col) * 50));
-                transitions.add(ft);// animasyonu listeye ekledik böylece direkt run yapınca çalışmamış oldu beklettik yani
+                
+                //Scale Görünme animasyonu BÜYÜME AYARI İÇİN
+                ScaleTransition st = new ScaleTransition(Duration.millis(500), tile);
+                st.setFromX(0.1);
+                st.setFromY(0.1);
+                st.setToX(1.0);
+                st.setToY(1.0);
+
+                // Paralel olarak fade + scale animasyonu birlikte çalışsın
+                ParallelTransition pt = new ParallelTransition(ft, st);
+                
+                pt.setDelay(Duration.millis((row * GRID_SIZE + col) * 50));
+                transitions.add(pt);// animasyonu listeye ekledik böylece direkt run yapınca çalışmamış oldu beklettik yani
             }// her bir karenin görünme animasyonu transitions listesine eklendi
         }
 
