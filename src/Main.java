@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -15,11 +17,13 @@ public class Main extends Application {
     private final int WIDTH = 1080;
     private final int HEIGHT = 720;
     private static final int GRID_SIZE = 10;
-    private static final int TILE_SIZE = 40;
+    private static final int TILE_SIZE = 45;
     private static final Color[] YELLOW_TONES = {
         Color.web("FFCF50"), Color.web("FBC518")
     };
     private static final Color PATH_COLOR = Color.web("FBEBE0");
+    private final ArrayList<FadeTransition> transitions = new ArrayList<>(); // <--- Eklendi
+
 //F5ECD5 OLABİLİR
 //FBE4D6 OLABİLİR
     @Override
@@ -39,8 +43,9 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        startButton.setOnAction(e -> {
+        startButton.setOnAction(e -> { // butona basıldığı zaman bunları yap diyorsun
             primaryStage.setScene(gameScene);
+            transitions.forEach(FadeTransition::play); //her bir karenin görünme animasyonu tek tek play ile çağrıldı
         });
     }
 
@@ -49,8 +54,8 @@ public class Main extends Application {
         gameRoot.setStyle("-fx-background-color: #FFF6DA;");//FFF6DA DOĞRU OLAN
 
         GridPane grid = new GridPane();
-        grid.setHgap(3);
-        grid.setVgap(3);
+        grid.setHgap(2.5);
+        grid.setVgap(2.5);
         grid.setAlignment(Pos.CENTER);
 
         // Gri yolun konumu (örnek olarak orta satır)
@@ -77,13 +82,13 @@ public class Main extends Application {
                 tile.setOpacity(0); //  Start with all rectangles not visible.For slowly show the rectangles animation 
                 grid.add(tile, col, row);
 
-                // Fade-in animasyonu
+                // Fade Görünme animasyonu
                 FadeTransition ft = new FadeTransition(Duration.millis(500), tile);
                 ft.setFromValue(0);
                 ft.setToValue(1);
                 ft.setDelay(Duration.millis((row * GRID_SIZE + col) * 50));
-                ft.play();
-            }
+                transitions.add(ft);// animasyonu listeye ekledik böylece direkt run yapınca çalışmamış oldu beklettik yani
+            }// her bir karenin görünme animasyonu transitions listesine eklendi
         }
 
         gameRoot.getChildren().add(grid);
