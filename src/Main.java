@@ -9,17 +9,19 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
 import javafx.util.Duration;
-
+//50 olan doğru olan
+// Color.web("FFCF50"), Color.web("FBC518")
 public class Main extends Application {
     private final int WIDTH = 1080;
     private final int HEIGHT = 720;
     private static final int GRID_SIZE = 10;
     private static final int TILE_SIZE = 40;
     private static final Color[] YELLOW_TONES = {
-        Color.web("#FFD700"), Color.web("#FFEA70")
+        Color.web("FFCF50"), Color.web("FBC518")
     };
-    private static final Color PATH_COLOR = Color.LIGHTGRAY;
-
+    private static final Color PATH_COLOR = Color.web("FBEBE0");
+//F5ECD5 OLABİLİR
+//FBE4D6 OLABİLİR
     @Override
     public void start(Stage primaryStage) {
         Button startButton = getStartButton();
@@ -30,7 +32,7 @@ public class Main extends Application {
         StackPane gameRoot = new StackPane();
         Scene gameScene = getGameScene(gameRoot);
 
-        root.setStyle("-fx-background-color: #d3cfc1;");
+        root.setStyle("-fx-background-color: #FFF6DA;");
         root.getChildren().add(startButton);
 
         primaryStage.setTitle("Tower Game");
@@ -44,7 +46,7 @@ public class Main extends Application {
 
     private Scene getGameScene(StackPane gameRoot) {
         Scene gameScene = new Scene(gameRoot, WIDTH, HEIGHT);
-        gameRoot.setStyle("-fx-background-color: #d3cfc1;");
+        gameRoot.setStyle("-fx-background-color: #FFF6DA;");//FFF6DA DOĞRU OLAN
 
         GridPane grid = new GridPane();
         grid.setHgap(3);
