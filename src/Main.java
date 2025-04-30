@@ -17,8 +17,8 @@ import javafx.util.Duration;
 //50 olan doğru olan
 // Color.web("FFCF50"), Color.web("FBC518")
 public class Main extends Application {
-    private final int WIDTH = 1080;
-    private final int HEIGHT = 720;
+    private final int WIDTH = 1920;
+    private final int HEIGHT = 1080;
     private static final int GRID_SIZE = 10;
     private static final int TILE_SIZE = 45;
     private static final Color[] YELLOW_TONES = {
@@ -104,7 +104,7 @@ public class Main extends Application {
                 // Paralel olarak fade + scale animasyonu birlikte çalışsın
                 ParallelTransition pt = new ParallelTransition(ft, st);
                 
-                pt.setDelay(Duration.millis((row * GRID_SIZE + col) * 50));
+                pt.setDelay(Duration.millis((row * GRID_SIZE + col) * 12));
                 transitions.add(pt);// animasyonu listeye ekledik böylece direkt run yapınca çalışmamış oldu beklettik yani
             }// her bir karenin görünme animasyonu transitions listesine eklendi
         }
