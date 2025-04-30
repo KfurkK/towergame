@@ -7,8 +7,12 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -18,19 +22,28 @@ import javafx.util.Duration;
 // Color.web("FFCF50"), Color.web("FBC518")
 public class Main extends Application {
     private final int WIDTH = 1920;
-    private final int HEIGHT = 1080;
+    private final int HEIGHT =1080;
     private static final int GRID_SIZE = 10;
     private static final int TILE_SIZE = 45;
     private static final Color[] YELLOW_TONES = {
         Color.web("FFCF50"), Color.web("FBC518")
     };
     private static final Color PATH_COLOR = Color.web("FBEBE0");
-    private final ArrayList<Animation> transitions = new ArrayList<>(); // 
+    private final ArrayList<Animation> transitions = new ArrayList<>(); 
+    
+    public int money = 100;
+    public int lives = 5;
+    public int nextWave = 0; // these variables are not at the right place imo.
+    
+    private Label livesLabel = new Label("Lives: " + lives);
+    private Label moneyLabel = new Label("Money: $" + money);
+    private Label waveLabel = new Label("Next Wave: " + nextWave);
 
 //F5ECD5 OLABİLİR
 //FBE4D6 OLABİLİR
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws Exception{
+    	
         Button startButton = getStartButton();
 
         StackPane root = new StackPane();
@@ -45,14 +58,16 @@ public class Main extends Application {
         primaryStage.setTitle("Tower Game");
         primaryStage.setScene(scene);
         primaryStage.show();
-
+        
         startButton.setOnAction(e -> { // butona basıldığı zaman bunları yap diyorsun
             primaryStage.setScene(gameScene);
-            transitions.forEach(Animation::play); //her bir karenin görünme animasyonu(opaklık küçülme) tek tek play ile çağrıldı
+            transitions.forEach(Animation::play);
+            //her bir karenin görünme animasyonu(opaklık küçülme) tek tek play ile çağrıldı
         });
     }
 
     private Scene getGameScene(StackPane gameRoot) {
+    	
         Scene gameScene = new Scene(gameRoot, WIDTH, HEIGHT);
         gameRoot.setStyle("-fx-background-color: #FFF6DA;");//FFF6DA DOĞRU OLAN
 
@@ -108,8 +123,44 @@ public class Main extends Application {
                 transitions.add(pt);// animasyonu listeye ekledik böylece direkt run yapınca çalışmamış oldu beklettik yani
             }// her bir karenin görünme animasyonu transitions listesine eklendi
         }
+        
+        VBox hud = new VBox(10);
+        hud.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
+        hud.setPrefWidth(240);
+        hud.setAlignment(Pos.CENTER);
+        
+        Button singleShot = new Button("Single Shot Tower - 50$");
+        Button laser = new Button("Laser Tower - 120$");
+        Button tripleShot = new Button("Triple Shot Tower - 150$");
+        Button missile = new Button("Missile Launcher Tower - 200$");
+        
+        for (Button b : new Button[]{singleShot, laser, tripleShot, missile}) {
+            b.setPrefWidth(150);
+            b.setPrefHeight(90);
+            b.setStyle(
+                "-fx-font-size: 16px;" +
+                "-fx-background-color: #FBD18B;" +
+                "-fx-border-radius: 12;" +
+                "-fx-background-radius: 12;" +
+                "-fx-text-fill: black;"
+            );
+        }//burayı değiştiririz belki forlu bu kısım nasıl yapılıyor bilmiyom
+        
+        livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
+        moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
+        waveLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
+        
 
-        gameRoot.getChildren().add(grid);
+        hud.getChildren().addAll(livesLabel, moneyLabel, waveLabel, singleShot, laser, tripleShot, missile);
+        
+        Pane overlay=new Pane();
+        
+        hud.setLayoutX(1520);
+        hud.setLayoutY(280);
+
+        overlay.getChildren().addAll(hud);//Tam olarak konumu ayarlamak için Pane ile setLayout kullandım
+        gameRoot.getChildren().add(grid);//
+        gameRoot.getChildren().add(overlay);//Başta StackPane aldığımız için bu şekilde yaptım
         return gameScene;
     }
 
@@ -127,7 +178,10 @@ public class Main extends Application {
         return startButton;
     }
 
+
     public static void main(String[] args) {
         launch(args);
     }
 }
+
+
