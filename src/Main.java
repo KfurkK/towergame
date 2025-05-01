@@ -191,10 +191,10 @@ public class Main extends Application {
         );
         return startButton;
     }
-
+//w
 
     public static void main(String[] args) throws FileNotFoundException{
-        readCoordinates("C:\\Users\\erenv\\OneDrive\\Desktop\\TermProject\\levels\\level4.txt");
+        readCoordinates("C:\\Users\\erenv\\OneDrive\\Desktop\\TermProject\\levels\\level3.txt");
         launch(args);
         
     }
