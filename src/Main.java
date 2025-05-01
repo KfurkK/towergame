@@ -97,7 +97,7 @@ public class Main extends Application {
             System.exit(1);
         }
         
-        for(int i=0;i<13;i++) {
+        for(int i=0;i<coordinates.size();i++) {
         isPath[coordinates.get(i)[0]][coordinates.get(i)[1]]=true;
         }
         
@@ -194,7 +194,7 @@ public class Main extends Application {
 
 
     public static void main(String[] args) throws FileNotFoundException{
-        readCoordinates("C:\\Users\\erenv\\OneDrive\\Desktop\\TermProject\\levels\\level2.txt");
+        readCoordinates("C:\\Users\\erenv\\OneDrive\\Desktop\\TermProject\\levels\\level4.txt");
         launch(args);
         
     }
