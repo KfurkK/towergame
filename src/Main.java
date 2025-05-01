@@ -33,7 +33,6 @@ public class Main extends Application {
     };
     private static final Color PATH_COLOR = Color.web("FBEBE0");
     private final ArrayList<Animation> transitions = new ArrayList<>(); 
-    private static ArrayList<int[]> coordinates = new ArrayList<>();
     
     public int money = 100;
     public int lives = 5;
@@ -70,8 +69,8 @@ public class Main extends Application {
         });
     }
 
-    private Scene getGameScene(StackPane gameRoot) {
-    	
+    private Scene getGameScene(StackPane gameRoot) throws FileNotFoundException {
+    	ArrayList<int[]> coordinates=tools.readCoordinates("C:\\Users\\erenv\\OneDrive\\Desktop\\TermProject\\levels\\level3.txt");
         Scene gameScene = new Scene(gameRoot, WIDTH, HEIGHT);
         gameRoot.setStyle("-fx-background-color: #FFF6DA;");//FFF6DA DOĞRU OLAN
 
@@ -141,7 +140,7 @@ public class Main extends Application {
         VBox hud = new VBox(10);
         hud.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
         hud.setPrefWidth(240);
-        hud.setAlignment(Pos.CENTER);
+       // hud.setAlignment(Pos.CENTER);
         
         Button singleShot = new Button("Single Shot Tower - 50$");
         Button laser = new Button("Laser Tower - 120$");
@@ -194,44 +193,8 @@ public class Main extends Application {
 
 
     public static void main(String[] args) throws FileNotFoundException{
-        readCoordinates("C:\\Users\\erenv\\OneDrive\\Desktop\\TermProject\\levels\\level3.txt");
         launch(args);
         
     }
-    
-    public static ArrayList<int[]> readCoordinates(String filePath) throws FileNotFoundException { // actual storage
-        boolean startReading = false;
-
-        try (Scanner scanner = new Scanner((new File(filePath))) ) {
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine().trim();
-
-                if (line.startsWith("HEIGHT:")) {
-                    // start reading
-                    startReading = true;
-                    continue;
-                }
-
-                if (line.equals("WAVE_DATA:")) {
-                    break;
-                }
-
-                if (startReading) {
-                    String[] parts = line.split(",");
-                    int x = Integer.parseInt(parts[0].trim());
-                    int y = Integer.parseInt(parts[1].trim());
-                    coordinates.add(new int[]{x, y});
-                }
-
-            }
-
-        }
-        for (int[] duo: coordinates) {
-            System.out.println("|" + duo[0] + "," + duo[1]);
-        }
-        return coordinates;
-    }
 }
-
-
-
+    
