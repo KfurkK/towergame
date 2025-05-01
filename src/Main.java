@@ -33,6 +33,7 @@ public class Main extends Application {
     };
     private static final Color PATH_COLOR = Color.web("FBEBE0");
     private final ArrayList<Animation> transitions = new ArrayList<>(); 
+    private static ArrayList<int[]> coordinates = new ArrayList<>();
     
     public int money = 100;
     public int lives = 5;
@@ -81,7 +82,7 @@ public class Main extends Application {
 
         // Gri yolun konumu (örnek olarak orta satır)
         boolean[][] isPath = new boolean[GRID_SIZE][GRID_SIZE];
-        for (int col = 0; col < 4; col++) {
+       /* for (int col = 0; col < 4; col++) {
             isPath[2][col] = true;
         }
         for (int row = 3; row < 6; row++) {
@@ -89,8 +90,18 @@ public class Main extends Application {
         }
         for (int col = 4; col < GRID_SIZE; col++) {
             isPath[5][col] = true;
+        }*/
+        
+        if (coordinates.isEmpty()) {
+            System.err.println("Hata: Koordinatlar yüklenemedi.");
+            System.exit(1);
         }
-
+        
+        for(int i=0;i<13;i++) {
+        isPath[coordinates.get(i)[0]][coordinates.get(i)[1]]=true;
+        }
+        
+        
         // Kareleri oluştur ve animasyon ekle
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
@@ -183,12 +194,12 @@ public class Main extends Application {
 
 
     public static void main(String[] args) throws FileNotFoundException{
+        readCoordinates("C:\\Users\\erenv\\OneDrive\\Desktop\\TermProject\\levels\\level2.txt");
         launch(args);
-        readCoordinates("C:/Users/kamil/IdeaProjects/towergame/src/levels/level1.txt");
+        
     }
     
-    public static ArrayList<int[]> readCoordinates(String filePath) throws FileNotFoundException {
-        ArrayList<int[]> coordinates = new ArrayList<>(); // actual storage
+    public static ArrayList<int[]> readCoordinates(String filePath) throws FileNotFoundException { // actual storage
         boolean startReading = false;
 
         try (Scanner scanner = new Scanner((new File(filePath))) ) {
@@ -215,9 +226,9 @@ public class Main extends Application {
             }
 
         }
-        //for (int[] duo: coordinates) {
-        //    System.out.println("|" + duo[0] + "," + duo[1]);
-        //}
+        for (int[] duo: coordinates) {
+            System.out.println("|" + duo[0] + "," + duo[1]);
+        }
         return coordinates;
     }
 }
