@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class tools {
 
     public static void main(String[] args) throws FileNotFoundException {
-        readCoordinates("C:/Users/kamil/IdeaProjects/towergame/src/levels/level1.txt");
+        readCoordinates("C:/Users/kamil/IdeaProjects/towergame/src/levels/level2.txt");
     }
 
     public static ArrayList<int[]> readCoordinates(String filePath) throws FileNotFoundException {
@@ -41,6 +41,7 @@ public class tools {
         //for (int[] duo: coordinates) {
         //    System.out.println("|" + duo[0] + "," + duo[1]);
         //}
+
         return coordinates;
     }
 }
