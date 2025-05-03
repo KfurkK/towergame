@@ -183,7 +183,7 @@ public class Enemy {
 
             // Random angle and distance
             double angle = Math.random() * 2 * Math.PI;
-            double distance = Math.random() * TILE_SIZE;
+            double distance = Math.random() * TILE_SIZE; // always inside the pixel (max:45px)
 
             // Create fade animation
             FadeTransition fade = new FadeTransition(Duration.millis(500), particle);
