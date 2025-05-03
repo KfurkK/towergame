@@ -30,7 +30,7 @@ public class Main extends Application {
     private final int WIDTH = 1920;
     private final int HEIGHT = 1080;
     private static final int GRID_SIZE = 10;
-    private static final int TILE_SIZE = 45;
+    private static final int SQUARE_SIZE = 45;
     private static final double SPACING = 2.5; // Grid spacing
     private static final Color[] YELLOW_TONES = {
             Color.web("FFCF50"), Color.web("FBC518")
@@ -71,10 +71,9 @@ public class Main extends Application {
             primaryStage.setScene(gameScene);
             transitions.forEach(Animation::play);
             
-            double maxDelay = (GRID_SIZE * GRID_SIZE * 12); // En geç başlayacak animasyonun gecikmesi (ms cinsinden)
-            Duration totalDelay = Duration.millis(maxDelay); // 2 saniye (2000 ms) eklenmiş toplam gecikme
+            double maxDelay = (1188); // En sağ alt karenin animasyonu bitirmesi için süre ms
 
-            Timeline delayTimeline = new Timeline(new KeyFrame(totalDelay, ev -> scheduleWaves()));
+            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> scheduleWaves()));
             delayTimeline.play();
 
             // Add a button to spawn an enemy after the game starts
@@ -149,7 +148,7 @@ public class Main extends Application {
         // Create and animate grid tiles
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
-                Rectangle tile = new Rectangle(TILE_SIZE, TILE_SIZE);
+                Rectangle tile = new Rectangle(SQUARE_SIZE, SQUARE_SIZE);
                 if (isPath[row][col]) {
                     tile.setFill(PATH_COLOR);
                 } else {
@@ -225,12 +224,23 @@ public class Main extends Application {
             spawnWave(5, 1.0);
         }));
 
-        Timeline startWave2 = new Timeline(new KeyFrame(Duration.seconds(2 + 5 * 1.0 + 5), e -> {
-            spawnWave(8, 0.5);
-        }));
+        Timeline startWave2 = new Timeline();
+        	
+        	startWave2.getKeyFrames().add(new KeyFrame(Duration.seconds(2+4*1.0+5),e -> {
+        		spawnWave(8,0.5);
+        	}));
+        Timeline startWave3= new Timeline();
+            startWave3.getKeyFrames().add(new KeyFrame(Duration.seconds((2+4*1.0+5)+7*0.5+5),e -> {
+            	spawnWave(12,0.3);
+            }));
+      
+        	
+       
+            
 
         startWave1.play();
         startWave2.play();
+        startWave3.play();
     }
 
     private void spawnWave(int enemyCount, double intervalSeconds) {
@@ -255,16 +265,16 @@ public class Main extends Application {
         double gridCenterY = gameOverlay.getScene().getHeight() / 2;
 
         // Calculate grid offset (to center it)
-        double gridWidth = (TILE_SIZE + SPACING) * GRID_SIZE - SPACING;
-        double gridHeight = (TILE_SIZE + SPACING) * GRID_SIZE - SPACING;
+        double gridWidth = (SQUARE_SIZE + SPACING) * GRID_SIZE - SPACING;
+        double gridHeight = (SQUARE_SIZE + SPACING) * GRID_SIZE - SPACING;
         double offsetX = gridCenterX - gridWidth / 2;
         double offsetY = gridCenterY - gridHeight / 2;
 
         // Create a circle at each path point
         for (int i = 0; i < pathCoordinates.size(); i++) {
             int[] point = pathCoordinates.get(i);
-            double x = offsetX + point[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
-            double y = offsetY + point[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
+            double x = offsetX + point[1] * (SQUARE_SIZE + SPACING) + SQUARE_SIZE / 2;
+            double y = offsetY + point[0] * (SQUARE_SIZE + SPACING) + SQUARE_SIZE / 2;
 
             Circle marker = new Circle(5);
             marker.setFill(i == 0 ? Color.GREEN : (i == pathCoordinates.size() - 1 ? Color.RED : Color.BLUE));
@@ -293,8 +303,13 @@ public class Main extends Application {
 
         // Test damage function - will damage the enemy after 3 seconds
         Timeline damageTimer = new Timeline(
-                new KeyFrame(Duration.seconds(3), e -> enemy.damage(30))
-        );
+                new KeyFrame(Duration.seconds(3), e -> {
+                	for(int i=0;i<enemies.size();i++) {
+                		if(enemies.get(i).isAlive())
+                enemy.damage(10);
+                	}
+                }
+                ));
         damageTimer.play();
 
         // Start enemy movement along the path
