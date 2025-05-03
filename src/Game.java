@@ -56,21 +56,8 @@ public class Game {
         missiles.add(m);
     }
 
-    public  void addMoney(int amount) {
-        money += amount;
-    }
+    
 
-    public  void removeLife() {
-        lives--;
-    }
-
-    public  int getMoney() {
-        return money;
-    }
-
-    public  int getLives() {
-        return lives;
-    }
 
     public void resetGame() {
         towers.clear();
