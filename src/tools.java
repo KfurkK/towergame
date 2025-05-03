@@ -44,5 +44,14 @@ public class tools {
 
         return coordinates;
     }
+
+    public static double[][] getWaveData(int level) {
+        if (level == 1) {
+            return new double[][]{{5, 1, 2}, {8, 0.5, 5}, {12, 0.3, 5}};
+        }
+
+        return new double[][] {{0, 0, 0}, {0,0,0}, {0,0,0}};
+    }
+
 }
 

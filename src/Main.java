@@ -50,6 +50,12 @@ public class Main extends Application {
     private static Label moneyLabel = new Label("Money: $" + money);
     private static Label debugLabel = new Label("Debug: No path loaded");
 
+    public Enemy currentEnemy = null;
+
+    // enemy count, second between enemies, seconds before start of the wave
+    private double[][] waveData = tools.getWaveData(1);
+
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         Button startButton = getStartButton();
@@ -84,7 +90,7 @@ public class Main extends Application {
             );
             spawnEnemyButton.setLayoutX(1520);
             spawnEnemyButton.setLayoutY(500);
-            spawnEnemyButton.setOnAction(we -> spawnEnemy());
+            spawnEnemyButton.setOnAction(event -> spawnEnemy());
             gameOverlay.getChildren().add(spawnEnemyButton);
 
             // Add a debug button to visualize path points
@@ -100,10 +106,45 @@ public class Main extends Application {
             );
             debugButton.setLayoutX(1520);
             debugButton.setLayoutY(550);
-            debugButton.setOnAction(we -> visualizePathPoints());
+            debugButton.setOnAction(we -> {
+                try {
+                    visualizePathPoints();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
             gameOverlay.getChildren().add(debugButton);
+
+            // Add a debug button to visualize path points
+            Button damageButton = new Button("Damage Enemy");
+            damageButton.setPrefWidth(150);
+            damageButton.setPrefHeight(40);
+            damageButton.setStyle(
+                    "-fx-font-size: 16px;" +
+                            "-fx-background-color: #FBD18B;" +
+                            "-fx-border-radius: 12;" +
+                            "-fx-background-radius: 12;" +
+                            "-fx-text-fill: black;"
+            );
+            damageButton.setLayoutX(120);
+            damageButton.setLayoutY(550);
+            damageButton.setOnAction(we -> {
+                // action taken to damage
+                damageEnemy();
+
+            });
+            gameOverlay.getChildren().add(damageButton);
         });
+
+
     }
+
+//
+
+
+
+
+
 
     private Scene getGameScene(StackPane gameRoot) throws FileNotFoundException {
         // Load path coordinates
@@ -221,9 +262,9 @@ public class Main extends Application {
     /**
      * Visualize path points for debugging
      */
-    private void visualizePathPoints() {
+    private void visualizePathPoints() throws Exception{
         if (pathCoordinates == null || pathCoordinates.isEmpty()) {
-            return;
+            throw new Exception("Got empty coordinates!");
         }
 
         // Get center position of the grid in the scene
@@ -263,18 +304,28 @@ public class Main extends Application {
     /**
      * Spawn a single enemy on the path
      */
+
     private void spawnEnemy() {
-        Enemy enemy = new Enemy(100, gameOverlay);
-        enemies.add(enemy);
+        currentEnemy = new Enemy(100, gameOverlay);
+        enemies.add(currentEnemy);
+
 
         // Test damage function - will damage the enemy after 3 seconds
-        Timeline damageTimer = new Timeline(
-                new KeyFrame(Duration.seconds(3), e -> enemy.damage(30))
-        );
-        damageTimer.play();
+
+        //Timeline damageTimer = new Timeline(
+        //        new KeyFrame(Duration.seconds(3), e -> enemy.damage(30))
+        //);
+        //damageTimer.play();
 
         // Start enemy movement along the path
-        enemy.moveAlongPath(pathCoordinates);
+        currentEnemy.moveAlongPath(pathCoordinates);
+
+    }
+
+    private void damageEnemy() {
+        if (currentEnemy.isAlive() && currentEnemy!= null) {
+            currentEnemy.damage(10);
+        }
     }
 
     /**
