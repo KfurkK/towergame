@@ -2,6 +2,7 @@ import java.util.List;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 public class Missile {
 	public double x, y;
@@ -10,6 +11,7 @@ public class Missile {
 	public int damage = 30;
 	public double effectRadius;
 	public boolean active = true;
+	public Circle shape;
 	
 	public Missile(double x, double y, Enemy target, int damage, double effectRadius) {
         this.x = x;
@@ -17,6 +19,11 @@ public class Missile {
         this.target = target;
         this.damage = damage;
         this.effectRadius = effectRadius;
+        shape = new Circle(7, Color.ORANGERED);
+        shape.setLayoutX(x);
+        shape.setLayoutY(y);
+
+        
     }
 	
 	public boolean isActive() {
@@ -35,12 +42,15 @@ public class Missile {
         if (enemyDistance < 5) {
             explode(enemies);
             active = false;
+            shape.setVisible(false);
             return;
         }
 
         
         x += dx / enemyDistance * speed;
         y += dy / enemyDistance * speed;
+        shape.setLayoutX(x);
+        shape.setLayoutY(y);
     }
 	
 	private void explode(List<Enemy> enemies) {
@@ -53,16 +63,12 @@ public class Missile {
             }
         }
 
-        // Burada animasyon başlatılabilir (20 parçacıklı patlama vs.)
-        // Patlama efektini Game sınıfı tetikleyebilir
+        
     }
-	  public void draw(GraphicsContext gc) {
-        if (!active) return;
-
-        gc.setFill(Color.DARKORANGE);
-        gc.fillOval(x - 6, y - 6, 12, 12); // Roket biraz büyük görünür
-    } 
-
+	 public Circle getNode() {
+	        return shape;
+	    }
+	  
 
 	
 	

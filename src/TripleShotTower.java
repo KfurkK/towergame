@@ -10,7 +10,7 @@ public class TripleShotTower extends Tower{
 	public int damage = 10;
 	
 	public TripleShotTower(double x , double y) {
-		super(x,y,100,150); // 150$
+		super(x,y,100,150, Color.DEEPSKYBLUE); // 150$
 	}
 	
 	 @Override
@@ -58,14 +58,6 @@ public class TripleShotTower extends Tower{
 		
 	
 	    
-	    @Override
-	    public void draw(GraphicsContext gc) {
-	        gc.setFill(Color.DARKVIOLET);
-	        gc.fillRect(x - 10, y - 10, 20, 20);
-	        if (selected) {
-	            gc.setStroke(Color.RED);
-	            gc.strokeOval(x - range, y - range, range * 2, range * 2);
-	        }
-	    } 
+	    
 
 }

@@ -8,7 +8,7 @@ public class SingleShotTower extends Tower{
     private long shootInterval = 1000;
     
     public SingleShotTower(double x , double y ) {
-    	super(x,y,100, 50); //100 range , 50$
+    	super(x,y,100, 50, Color.BLUE); //100 range , 50$
     	
     }
     public Enemy nearestEnemy(List<Enemy> enemies) {
@@ -37,16 +37,7 @@ public class SingleShotTower extends Tower{
             }
         }
     }
-    @Override
-    public void draw(GraphicsContext gc) {
-        gc.setFill(Color.BLUE); // kule rengi
-        gc.fillRect(x - 10, y - 10, 20, 20); // 20x20 kare kule
-
-        if (selected) {
-            gc.setStroke(Color.RED);
-            gc.strokeOval(x - range, y - range, range * 2, range * 2); // menzil çizimi
-        }
-    }
+    
 	
 	
 

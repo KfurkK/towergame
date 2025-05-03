@@ -10,7 +10,7 @@ public class LaserTower extends Tower{
 	Map<Enemy, Double> targetTimers = new HashMap<>();
 	 
 	public LaserTower(double x, double y) {
-		super(x,y,100,120);  // 120$
+		super(x,y,100,120, Color.RED);  // 120$
 	}
 	
 	  @Override
@@ -37,24 +37,5 @@ public class LaserTower extends Tower{
 	        }
 	    }
 
-	  @Override
-	    public void draw(GraphicsContext gc) {
-	        // Kuleyi çiz
-	        gc.setFill(Color.RED);
-	        gc.fillRect(x - 10, y - 10, 20, 20);
-
-	        // Menzil çizimi (seçiliyse)
-	        if (selected) {
-	            gc.setStroke(Color.RED);
-	            gc.strokeOval(x - range, y - range, range * 2, range * 2);
-	        }
-
-	        // Aktif lazer çizgileri
-	        gc.setStroke(Color.ORANGERED);
-	        for (Enemy e : targetTimers.keySet()) {
-	            if (e.isAlive() && isRange(e)) {
-	                gc.strokeLine(x, y, e.getX(), e.getY());
-	            }
-	        }
-	    }
+	  
 }

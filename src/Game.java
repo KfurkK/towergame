@@ -10,6 +10,8 @@ public class Game {
 	public static List<Bullet> bullets = new ArrayList<>();
     public static List<Missile> missiles = new ArrayList<>();
     
+    
+    
     private int money = 100;
     private int lives = 5;
     
@@ -24,15 +26,11 @@ public class Game {
             e.update();
         } */
 
-        // Mermileri güncelle
-        for (Bullet b : bullets) {
-            b.update();
-        }
+        for (Bullet b : bullets) b.update();
+        bullets.removeIf(b -> !b.isActive());
 
-        // Roketleri güncelle
-        for (Missile m : missiles) {
-            m.update(enemies);
-        }
+        for (Missile m : missiles) m.update(enemies);
+        missiles.removeIf(m -> !m.isActive());
 
         // Temizlik
         bullets.removeIf(b -> !b.isActive());
@@ -68,16 +66,7 @@ public class Game {
         lives = 5;
     }
     
-    public static void draw(GraphicsContext gc) {
-        for (Tower tower : towers)
-            tower.draw(gc);
-
-        for (Bullet b : bullets)
-            b.draw(gc);
-
-        for (Missile m : missiles)
-            m.draw(gc);
-    } 
+    
     
     
 

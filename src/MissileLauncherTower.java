@@ -12,7 +12,7 @@ public class MissileLauncherTower extends Tower{
 	    public double effectRadius = 50;
 	    
 	    public MissileLauncherTower(double x, double y) {
-	        super(x, y, 100, 200); // 200$
+	        super(x, y, 100, 200, Color.ORANGE); // 200$
 	    }
 	    
 	    
@@ -48,13 +48,6 @@ public class MissileLauncherTower extends Tower{
 	  
 	    
 	     
-	    public void draw(GraphicsContext gc) {
-	        gc.setFill(Color.DARKGRAY);
-	        gc.fillRect(x - 10, y - 10, 20, 20);
-	        if (selected) {
-	            gc.setStroke(Color.RED);
-	            gc.strokeOval(x - range, y - range, range * 2, range * 2);
-	        }
-	    }  
+	    
 
 }
