@@ -1,27 +1,32 @@
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javafx.scene.canvas.GraphicsContext;
 
 public class LaserTower extends Tower{
 	double damagePerSecond = 10.0;
-	// Map<Enemy, Double> targetTimers = new HashMap<>();
+	Map<Enemy, Double> targetTimers = new HashMap<>();
 	 
 	public LaserTower(double x, double y) {
 		super(x,y,100,120);  // 120$
 	}
 	
-	 /* @Override
+	  @Override
 	   public void update(List<Enemy> enemies) {
 	        long instanceTime = System.currentTimeMillis();
 
 	        for (Enemy e : enemies) {
 	            if (isRange(e) && e.isAlive()) {
-	                // Eğer daha önce hedeflenmemişse zaman başlat
-	                targetTimers.putIfAbsent(e, now * 1.0);
+	                
+	                targetTimers.putIfAbsent(e, instanceTime * 1.0);
 
 	                double lastHitTime = targetTimers.get(e);
 	                double elapsedSeconds = (instanceTime - lastHitTime) / 1000.0;
 
 	                // Zaman geçtiyse hasar ver
 	                if (elapsedSeconds >= 0.1) {
-	                    e.takeDamage(damagePerSecond * elapsedSeconds);
+	                    e.damage(damagePerSecond * elapsedSeconds);
 	                    targetTimers.put(e, instanceTime * 1.0);
 	                }
 	            } else {
@@ -29,7 +34,13 @@ public class LaserTower extends Tower{
 	                targetTimers.remove(e);
 	            }
 	        }
-	    } */
+	    }
+
+	@Override
+	public void draw(GraphicsContext gc) {
+		// TODO Auto-generated method stub
+		
+	} 
 	 
 	 
 	/* @Override

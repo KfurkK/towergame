@@ -1,5 +1,8 @@
+import java.util.List;
 
-public  class Tower {
+import javafx.scene.canvas.GraphicsContext;
+
+public abstract class Tower {
 	public double x, y; // Kule konumu
 	public double range; // Mesafe
 	public double price; // kule fiyatı
@@ -30,7 +33,7 @@ public  class Tower {
 	   
    }
    
-   //public abstract void update(List<Enemy> enemies); // her karede ne yapacak?
-   //public abstract void draw(GraphicsContext gc); //Kule çizimi
+   public abstract void update(List<Enemy> enemies); // her karede ne yapacak?
+   public abstract void draw(GraphicsContext gc); //Kule çizimi
    
 }

@@ -1,3 +1,6 @@
+import java.awt.Color;
+
+import javafx.scene.canvas.GraphicsContext;
 
 public class Bullet {
 	public double x,y;
@@ -29,7 +32,7 @@ public class Bullet {
 		}
         
         if (enemyDistance < 5) {
-            target.takeDamage(damage);
+            target.damage(damage);
             active = false;
             return;
         }
@@ -43,5 +46,5 @@ public class Bullet {
 
 	        gc.setFill(Color.BLACK);
 	        gc.fillOval(x - 3, y - 3, 6, 6); // Küçük bir daire olarak çizilir.
-	    } */
+	    }  */
 }

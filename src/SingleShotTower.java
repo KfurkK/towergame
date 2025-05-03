@@ -1,5 +1,7 @@
 import java.util.List;
 
+import javafx.scene.canvas.GraphicsContext;
+
 public class SingleShotTower extends Tower{
 	private long lastShotTime = 0;
     private long shootInterval = 1000;
@@ -28,12 +30,17 @@ public class SingleShotTower extends Tower{
             Enemy closest = nearestEnemy(enemies);
             if (closest != null && isRange(closest)) {
                 
-                Bullet b = new Bullet(x, y, closest); 
+                Bullet b = new Bullet(x, y, closest, 0); 
                 Game.addBullet(b); 
                 lastShotTime = instantTime;
             }
         }
     }
+	@Override
+	public void draw(GraphicsContext gc) {
+		// TODO Auto-generated method stub
+		
+	}
     
     /*public void draw() {      Kule tasarımı   
         );

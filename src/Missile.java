@@ -16,6 +16,11 @@ public class Missile {
         this.effectRadius = effectRadius;
     }
 	
+	public boolean isActive() {
+        return active;
+    }
+	
+	
 	public void update(List<Enemy> enemies) {
         if (!active || !target.isAlive()) return;
 
@@ -30,7 +35,7 @@ public class Missile {
             return;
         }
 
-        // Hedefe doğru yavaşça ilerle
+        
         x += dx / enemyDistance * speed;
         y += dy / enemyDistance * speed;
     }
@@ -40,7 +45,7 @@ public class Missile {
             if (e.isAlive()) {
                 double dist = Math.sqrt((e.getX() - x) * (e.getX() - x) + (e.getY() - y) * (e.getY() - y) );
                 if (dist <= effectRadius) {
-                    e.takeDamage(damage);
+                    e.damage(damage);
                 }
             }
         }
@@ -48,12 +53,12 @@ public class Missile {
         // Burada animasyon başlatılabilir (20 parçacıklı patlama vs.)
         // Patlama efektini Game sınıfı tetikleyebilir
     }
-	public void draw(GraphicsContext gc) {
+	 /* public void draw(GraphicsContext gc) {
         if (!active) return;
 
         gc.setFill(Color.DARKORANGE);
         gc.fillOval(x - 6, y - 6, 12, 12); // Roket biraz büyük görünür
-    }
+    } */
 
 
 	

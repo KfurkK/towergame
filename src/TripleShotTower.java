@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.scene.canvas.GraphicsContext;
+
 public class TripleShotTower extends Tower{
 	public long lastShotTime = 0;
 	public long shootInterval = 1200; 
@@ -50,6 +52,12 @@ public class TripleShotTower extends Tower{
 
 		    return result;
 		}
+
+	@Override
+	public void draw(GraphicsContext gc) {
+		// TODO Auto-generated method stub
+		
+	}
 	    
 	  /*  @Override
 	    public void draw(GraphicsContext gc) {
