@@ -21,6 +21,10 @@ public class Enemy {
     private final Rectangle healthBar;
     private final Pane gamePane;
 
+    public double X = 0;
+    public double Y = 0;
+
+
     // Constants
     private static final int TILE_SIZE = 45;
     private static final double SPACING = 2.5; // The grid's horizontal and vertical gap
@@ -44,8 +48,8 @@ public class Enemy {
         this.healthBar.setFill(Color.GREEN);
 
         // Position health bar above enemy
-        this.healthBar.setTranslateY(-TILE_SIZE / 2);
-        this.healthBar.setTranslateX(-TILE_SIZE / 2);
+        this.healthBar.setTranslateY(TILE_SIZE / 2);
+        this.healthBar.setTranslateX(TILE_SIZE / 2);
 
         // Add enemy and health bar to the game pane
         gamePane.getChildren().addAll(enemyCircle, healthBar);
@@ -75,10 +79,12 @@ public class Enemy {
         double startY = offsetY + firstPoint[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
 
         // Set initial positions
+        this.X = startX;
+        this.Y = startY;
         enemyCircle.setTranslateX(startX);
         enemyCircle.setTranslateY(startY);
-        healthBar.setTranslateX(startX - TILE_SIZE / 2);
-        healthBar.setTranslateY(startY - TILE_SIZE / 2);
+        //healthBar.setTranslateX((startX - TILE_SIZE / 2)+5);
+        //healthBar.setTranslateY((startY - TILE_SIZE / 2)+5);
 
         // Set the starting point of the path
         movementPath.getElements().add(new MoveTo(startX, startY));
@@ -123,7 +129,7 @@ public class Enemy {
      * Damage the enemy and update health bar
      * @param amount Amount of damage to deal
      */
-    public void damage(int amount) {
+    public void damage(double amount) {
         this.health -= amount;
 
         // Calculate health percentage
@@ -230,4 +236,14 @@ public class Enemy {
     public Circle getView() {
         return enemyCircle;
     }
+
+    // Circle getters for towers
+    public double getX() {
+        return X;
+    }
+
+    public double getY() {
+        return Y;
+    }
+
 }
