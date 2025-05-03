@@ -1,6 +1,7 @@
-import java.awt.Color;
+
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 public class Bullet {
 	public double x,y;
@@ -40,11 +41,11 @@ public class Bullet {
         y += dy / enemyDistance * speed;
         }
 	
-	/*  public void draw(GraphicsContext gc) {
+	  public void draw(GraphicsContext gc) {
 	        if (!active)
 	        return;
 
 	        gc.setFill(Color.BLACK);
 	        gc.fillOval(x - 3, y - 3, 6, 6); // Küçük bir daire olarak çizilir.
-	    }  */
+	    }  
 }

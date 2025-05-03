@@ -1,6 +1,7 @@
 import java.util.List;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 public class SingleShotTower extends Tower{
 	private long lastShotTime = 0;
@@ -36,21 +37,16 @@ public class SingleShotTower extends Tower{
             }
         }
     }
-	@Override
-	public void draw(GraphicsContext gc) {
-		// TODO Auto-generated method stub
-		
-	}
-    
-    /*public void draw() {      Kule tasarımı   
-        );
-        
-       
+    @Override
+    public void draw(GraphicsContext gc) {
+        gc.setFill(Color.BLUE); // kule rengi
+        gc.fillRect(x - 10, y - 10, 20, 20); // 20x20 kare kule
+
         if (selected) {
             gc.setStroke(Color.RED);
-            gc.strokeOval(x - range, y - range, range*2, range*2);
+            gc.strokeOval(x - range, y - range, range * 2, range * 2); // menzil çizimi
         }
-    }*/
+    }
 	
 	
 

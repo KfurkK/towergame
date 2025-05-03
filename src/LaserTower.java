@@ -3,6 +3,7 @@ import java.util.List;
 import java.util.Map;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 public class LaserTower extends Tower{
 	double damagePerSecond = 10.0;
@@ -36,19 +37,13 @@ public class LaserTower extends Tower{
 	        }
 	    }
 
-	@Override
-	public void draw(GraphicsContext gc) {
-		// TODO Auto-generated method stub
-		
-	} 
-	 
-	 
-	/* @Override
+	  @Override
 	    public void draw(GraphicsContext gc) {
+	        // Kuleyi çiz
 	        gc.setFill(Color.RED);
-	        gc.fillRect(x - 10, y - 10, 20, 20); // kuleyi çiz
+	        gc.fillRect(x - 10, y - 10, 20, 20);
 
-	        // Eğer seçiliyse menzili göster
+	        // Menzil çizimi (seçiliyse)
 	        if (selected) {
 	            gc.setStroke(Color.RED);
 	            gc.strokeOval(x - range, y - range, range * 2, range * 2);
@@ -61,7 +56,5 @@ public class LaserTower extends Tower{
 	                gc.strokeLine(x, y, e.getX(), e.getY());
 	            }
 	        }
-	    }	 */
-	
-
+	    }
 }

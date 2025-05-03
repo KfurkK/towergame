@@ -1,5 +1,8 @@
 import java.util.List;
 
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+
 public class Missile {
 	public double x, y;
 	public Enemy target;
@@ -53,12 +56,12 @@ public class Missile {
         // Burada animasyon başlatılabilir (20 parçacıklı patlama vs.)
         // Patlama efektini Game sınıfı tetikleyebilir
     }
-	 /* public void draw(GraphicsContext gc) {
+	  public void draw(GraphicsContext gc) {
         if (!active) return;
 
         gc.setFill(Color.DARKORANGE);
         gc.fillOval(x - 6, y - 6, 12, 12); // Roket biraz büyük görünür
-    } */
+    } 
 
 
 	

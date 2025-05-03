@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 public class TripleShotTower extends Tower{
 	public long lastShotTime = 0;
@@ -53,13 +54,11 @@ public class TripleShotTower extends Tower{
 		    return result;
 		}
 
-	@Override
-	public void draw(GraphicsContext gc) {
-		// TODO Auto-generated method stub
+	
 		
-	}
+	
 	    
-	  /*  @Override
+	    @Override
 	    public void draw(GraphicsContext gc) {
 	        gc.setFill(Color.DARKVIOLET);
 	        gc.fillRect(x - 10, y - 10, 20, 20);
@@ -67,6 +66,6 @@ public class TripleShotTower extends Tower{
 	            gc.setStroke(Color.RED);
 	            gc.strokeOval(x - range, y - range, range * 2, range * 2);
 	        }
-	    } */
+	    } 
 
 }

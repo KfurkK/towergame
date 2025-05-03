@@ -68,19 +68,16 @@ public class Game {
         lives = 5;
     }
     
-   /* public static void draw(GraphicsContext gc) {
+    public static void draw(GraphicsContext gc) {
         for (Tower tower : towers)
             tower.draw(gc);
-
-        for (Enemy e : enemies)
-            e.draw(gc);
 
         for (Bullet b : bullets)
             b.draw(gc);
 
         for (Missile m : missiles)
             m.draw(gc);
-    } */
+    } 
     
     
 
