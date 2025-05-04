@@ -82,7 +82,7 @@ public class Main extends Application {
 
             Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
                 addGameButtons();
-                scheduleWaves();
+                scheduleWaves(1);
             }));
             delayTimeline.play();
         });
@@ -117,24 +117,24 @@ public class Main extends Application {
     /**
      * Schedule enemy waves to spawn at specific intervals
      */
-    private void scheduleWaves() {
-        Timeline startWave1 = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
-            spawnWave(5, 1.0);
-        }));
+    private void scheduleWaves(int level) {
+        double[][] waveData = tools.getWaveData(level);
+        int waveCount = waveData.length;
+        int delay = 2;
+        for (double[] wave : waveData) {
+            int count = (int) wave[0];       // number of enemies
+            double spawnRate = wave[1];   // rate between each enemy
+            double buffer = wave[2];      // extra time before next wave
 
-        Timeline startWave2 = new Timeline();
-        startWave2.getKeyFrames().add(new KeyFrame(Duration.seconds(2+4*1.0+5), e -> {
-            spawnWave(8, 0.5);
-        }));
+            Timeline waveTimeline = new Timeline();
+            waveTimeline.getKeyFrames().add(new KeyFrame(Duration.seconds(delay), e -> {
+                spawnWave(count, spawnRate);
+            }));
+            waveTimeline.play();
 
-        Timeline startWave3 = new Timeline();
-        startWave3.getKeyFrames().add(new KeyFrame(Duration.seconds((2+4*1.0+5)+7*0.5+5), e -> {
-            spawnWave(12, 0.3);
-        }));
-
-        startWave1.play();
-        startWave2.play();
-        startWave3.play();
+            // Update delay for the next wave
+            delay += count * spawnRate + buffer;
+        }
     }
 
     /**
