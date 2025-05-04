@@ -14,7 +14,7 @@ public class LaserTower extends Tower{
 	public LaserTower(double x, double y) {
 		super(x,y,100,120, Color.RED);  // 120$
 		
-		Image img = new Image("file:assets/towers/laser.png");
+		Image img = new Image("file:src/assests/towers/lasertower.png");
         ImageView imageView = new ImageView(img);
         imageView.setFitWidth(40);
         imageView.setFitHeight(40);

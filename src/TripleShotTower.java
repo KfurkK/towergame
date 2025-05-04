@@ -14,7 +14,7 @@ public class TripleShotTower extends Tower{
 	public TripleShotTower(double x , double y) {
 		super(x,y,100,150, Color.DEEPSKYBLUE);// 150$
 		 
-		Image img = new Image("file:assets/towers/triple.png");
+		Image img = new Image("file:src/assests/towers/tripleshottower.png");
 	        ImageView imageView = new ImageView(img);
 	        imageView.setFitWidth(40);
 	        imageView.setFitHeight(40);
@@ -33,7 +33,7 @@ public class TripleShotTower extends Tower{
 	            List<Enemy> targets = nearestEnemies(enemies, 3);
 	            for (Enemy e : targets) {
 	                if (e != null && e.isAlive() && isRange(e)) {
-	                	System.out.println("Mermi oluşturuldu: hedef x=" + e.getX() + " y=" + e.getY());
+	                	
 	                    Bullet b = new Bullet(x, y, e, damage);
 	                    
 	                    Game.addBullet(b);
@@ -52,7 +52,7 @@ public class TripleShotTower extends Tower{
 		            inRangeEnemies.add(e);
 		        }
 		    }
-		    System.out.println("Menzildeki düşman sayısı: " + inRangeEnemies.size());
+		    
 
 		    // 2. Yakınlığa göre sırala (merkezden olan uzaklığa göre)
 		    inRangeEnemies.sort((e1, e2) -> {
@@ -65,7 +65,7 @@ public class TripleShotTower extends Tower{
 		    List<Enemy> result = new ArrayList<>();
 		    for (int i = 0; i < count && i < inRangeEnemies.size(); i++) {
 		        result.add(inRangeEnemies.get(i));
-		        System.out.println("Seçilen düşman " + (i + 1) + ": x=" + inRangeEnemies.get(i).getX() + ", y=" + inRangeEnemies.get(i).getY());
+		        
 		    }
 
 		    return result;

@@ -15,7 +15,7 @@ public class SingleShotTower extends Tower{
     	super(x,y,100,50, Color.BLUE);//100 range , 50$
     	this.damage = 10;
     	
-    	Image towerImage = new Image("file:assets/towers/single.png"); //  PNG yolu
+    	Image towerImage = new Image("file:src/assests/towers/singleshottower.png"); //  PNG yolu
         image = new ImageView(towerImage);
         image.setFitWidth(40);
         image.setFitHeight(40);

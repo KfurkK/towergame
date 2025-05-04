@@ -16,7 +16,7 @@ public class MissileLauncherTower extends Tower{
 	    public MissileLauncherTower(double x, double y) {
 	        super(x, y, 100, 200, Color.ORANGE); // 200$
 	        
-	        Image img = new Image("file:assets/towers/missile.png");
+	        Image img = new Image("file:src/assests/towers/missilelaunchtower.png");
 	        ImageView imageView = new ImageView(img);
 	        imageView.setFitWidth(40);
 	        imageView.setFitHeight(40);
