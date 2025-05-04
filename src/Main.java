@@ -1,6 +1,5 @@
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.List;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -30,7 +29,7 @@ public class Main extends Application {
     private final int WIDTH = 1920;
     private final int HEIGHT = 1080;
     private static final int GRID_SIZE = 10;
-    private static final int SQUARE_SIZE = 45;
+    private static final int TILE_SIZE = 45;
     private static final double SPACING = 2.5; // Grid spacing
     private static final Color[] YELLOW_TONES = {
             Color.web("FFCF50"), Color.web("FBC518")
@@ -45,15 +44,17 @@ public class Main extends Application {
     private ArrayList<int[]> pathCoordinates;
     private Pane gameOverlay;
 
-    public Enemy currentEnemy = null;
-
-    // enemy count, second between enemies, seconds before start of the wave
-    //private double[][] waveData = tools.getWaveData(1);
-    
     // UI elements
     private static Label livesLabel = new Label("Lives: " + lives);
     private static Label moneyLabel = new Label("Money: $" + money);
     private static Label debugLabel = new Label("Debug: No path loaded");
+
+    public Enemy currentEnemy = null;
+
+    // Tower selection and management
+    public int selectedTowerType = 1; // 1: Single, 2: Laser, 3: Triple, 4: Missile
+    public Tower selectedTower = null;
+    public boolean dragging = false;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -73,80 +74,146 @@ public class Main extends Application {
         primaryStage.show();
 
         startButton.setOnAction(e -> {
-        	primaryStage.setScene(gameScene);
+            primaryStage.setScene(gameScene);
             transitions.forEach(Animation::play);
-            
-            double maxDelay = (1188); // En sağ alt karenin animasyonu bitirmesi için süre ms
 
-            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> scheduleWaves()));
+            // Add game buttons and start wave scheduling after animations
+            double maxDelay = 1188; // Time for rightmost animation to complete in ms
+
+            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
+                //addGameButtons();
+                scheduleWaves(1);
+            }));
             delayTimeline.play();
-
-          /*  // Add a button to spawn an enemy after the game starts
-            Button spawnEnemyButton = new Button("Spawn Enemy");
-            spawnEnemyButton.setPrefWidth(150);
-            spawnEnemyButton.setPrefHeight(40);
-            spawnEnemyButton.setStyle(
-                    "-fx-font-size: 16px;" +
-                            "-fx-background-color: #FBD18B;" +
-                            "-fx-border-radius: 12;" +
-                            "-fx-background-radius: 12;" +
-                            "-fx-text-fill: black;"
-            );
-            spawnEnemyButton.setLayoutX(1520);
-            spawnEnemyButton.setLayoutY(500);
-            spawnEnemyButton.setOnAction(event -> spawnEnemy());
-            gameOverlay.getChildren().add(spawnEnemyButton);
-            */
-
-            // Add a debug button to visualize path points
-            Button debugButton = new Button("Debug Path");
-            debugButton.setPrefWidth(150);
-            debugButton.setPrefHeight(40);
-            debugButton.setStyle(
-                    "-fx-font-size: 16px;" +
-                            "-fx-background-color: #FBD18B;" +
-                            "-fx-border-radius: 12;" +
-                            "-fx-background-radius: 12;" +
-                            "-fx-text-fill: black;"
-            );
-            debugButton.setLayoutX(1520);
-            debugButton.setLayoutY(550);
-            debugButton.setOnAction(we -> {
-                try {
-                    visualizePathPoints();
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
-            });
-            gameOverlay.getChildren().add(debugButton);
-
-            // Add a debug button to visualize path points
-            Button damageButton = new Button("Damage Enemy");
-            damageButton.setPrefWidth(150);
-            damageButton.setPrefHeight(40);
-            damageButton.setStyle(
-                    "-fx-font-size: 16px;" +
-                            "-fx-background-color: #FBD18B;" +
-                            "-fx-border-radius: 12;" +
-                            "-fx-background-radius: 12;" +
-                            "-fx-text-fill: black;"
-            );
-            damageButton.setLayoutX(120);
-            damageButton.setLayoutY(550);
-            damageButton.setOnAction(we -> {
-                // action taken to damage
-                damageEnemy();
-
-            });
-            gameOverlay.getChildren().add(damageButton);
         });
     }
 
+    /**
+     * Add game control buttons to the overlay
+     */
+    private void addGameButtons() {
+        // Spawn Enemy button
+    	/*
+        Button spawnEnemyButton = createGameButton("Spawn Enemy", 1520, 500);
+        spawnEnemyButton.setOnAction(event -> spawnEnemy());
+        gameOverlay.getChildren().add(spawnEnemyButton);
+        */
+
+        // Debug Path button
+        Button debugButton = createGameButton("Debug Path", 1520, 550);
+        debugButton.setOnAction(we -> {
+            try {
+                visualizePathPoints();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        gameOverlay.getChildren().add(debugButton);
+
+        // Damage Enemy button
+        Button damageButton = createGameButton("Damage Enemy", 120, 550);
+        damageButton.setOnAction(we -> damageEnemy());
+        gameOverlay.getChildren().add(damageButton);
+    }
+
+    /**
+     * Schedule enemy waves to spawn at specific intervals
+     */
+
+    	private void scheduleWaves(int level) {
+            double[][] waveData = tools.getWaveData(level);
+            int waveCount = waveData.length;
+            int delay = 2;
+            for (double[] wave : waveData) {
+                int count = (int) wave[0];       // number of enemies
+                double spawnRate = wave[1];   // rate between each enemy
+                double buffer = 5;      // extra time before next wave
+
+                Timeline waveTimeline = new Timeline();
+                waveTimeline.getKeyFrames().add(new KeyFrame(Duration.seconds(delay), e -> {
+                    spawnWave(count, spawnRate);
+                }));
+               waveTimeline.play();
+
+                // Update delay for the next wave
+                delay += (count-1) * spawnRate + buffer;
+                
+                
+            }
+        }
+    
+
+    /**
+     * Spawn a wave of enemies with given parameters
+     *
+     * @param enemyCount Number of enemies to spawn
+     * @param intervalSeconds Time between spawning each enemy
+     */
+    private void spawnWave(int enemyCount, double intervalSeconds) {
+        Timeline timeline = new Timeline();
+        for (int i = 0; i < enemyCount; i++) {
+            int finalI = i;
+            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(finalI * intervalSeconds), e -> spawnEnemy()));
+        }
+        timeline.play();
+    }
+
+    /**
+     * Helper method to create consistent game buttons
+     */
+    private Button createGameButton(String text, double x, double y) {
+        Button button = new Button(text);
+        button.setPrefWidth(150);
+        button.setPrefHeight(40);
+        button.setStyle(
+                "-fx-font-size: 16px;" +
+                        "-fx-background-color: #FBD18B;" +
+                        "-fx-border-radius: 12;" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-text-fill: black;"
+        );
+        button.setLayoutX(x);
+        button.setLayoutY(y);
+        return button;
+    }
+
+    /**
+     * Create the main game scene
+     */
     private Scene getGameScene(StackPane gameRoot) throws FileNotFoundException {
         // Load path coordinates
         pathCoordinates = tools.readCoordinates("C:\\Users\\erenv\\OneDrive\\Desktop\\TermProject\\levels\\level1.txt");
 
         // Update debug label with path info
+        updatePathDebugInfo();
+
+        Scene gameScene = new Scene(gameRoot, WIDTH, HEIGHT);
+        gameRoot.setStyle("-fx-background-color: #FFF6DA;");
+
+        GridPane grid = createGameGrid();
+
+        // Create HUD panel
+        VBox hud = createHudPanel();
+
+        // Create overlay pane for enemies and UI elements
+        gameOverlay = new Pane();
+        hud.setLayoutX(1520);
+        hud.setLayoutY(280);
+
+        gameOverlay.getChildren().add(hud);
+        gameRoot.getChildren().add(grid);
+        gameRoot.getChildren().add(gameOverlay);
+
+        // Setup tower placement on click
+        setupTowerPlacement();
+
+        return gameScene;
+    }
+
+    /**
+     * Update debug label with path information
+     */
+    private void updatePathDebugInfo() {
         StringBuilder pathInfo = new StringBuilder("Path loaded with " + pathCoordinates.size() + " points: ");
         for (int i = 0; i < Math.min(5, pathCoordinates.size()); i++) {
             pathInfo.append("[").append(pathCoordinates.get(i)[0]).append(",").append(pathCoordinates.get(i)[1]).append("] ");
@@ -155,10 +222,12 @@ public class Main extends Application {
             pathInfo.append("...");
         }
         debugLabel.setText(pathInfo.toString());
+    }
 
-        Scene gameScene = new Scene(gameRoot, WIDTH, HEIGHT);
-        gameRoot.setStyle("-fx-background-color: #FFF6DA;");
-
+    /**
+     * Create the game grid
+     */
+    private GridPane createGameGrid() {
         GridPane grid = new GridPane();
         grid.setHgap(SPACING);
         grid.setVgap(SPACING);
@@ -172,15 +241,18 @@ public class Main extends Application {
             System.exit(1);
         }
 
-        for(int i=0;i<pathCoordinates.size();i++) {
-            isPath[pathCoordinates.get(i)[0]][pathCoordinates.get(i)[1]]=true;
+        for (int[] coord : pathCoordinates) {
+            if (coord[0] >= 0 && coord[0] < GRID_SIZE && coord[1] >= 0 && coord[1] < GRID_SIZE) {
+                isPath[coord[0]][coord[1]] = true;
+            } else {
+                System.err.println("Warning: Invalid coordinate in path data: [" + coord[0] + "," + coord[1] + "]");
             }
-            
+        }
 
         // Create and animate grid tiles
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
-                Rectangle tile = new Rectangle(SQUARE_SIZE, SQUARE_SIZE);
+                Rectangle tile = new Rectangle(TILE_SIZE, TILE_SIZE);
                 if (isPath[row][col]) {
                     tile.setFill(PATH_COLOR);
                 } else {
@@ -211,16 +283,28 @@ public class Main extends Application {
             }
         }
 
-        // Create HUD panel
+        return grid;
+    }
+
+    /**
+     * Create the HUD panel with game stats and tower options
+     */
+    private VBox createHudPanel() {
         VBox hud = new VBox(10);
         hud.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
         hud.setPrefWidth(240);
         hud.setAlignment(Pos.CENTER);
 
+        // Tower selection buttons
         Button singleShot = new Button("Single Shot Tower - 50$");
         Button laser = new Button("Laser Tower - 120$");
         Button tripleShot = new Button("Triple Shot Tower - 150$");
         Button missile = new Button("Missile Launcher Tower - 200$");
+
+        singleShot.setOnAction(e -> selectedTowerType = 1);
+        laser.setOnAction(e -> selectedTowerType = 2);
+        tripleShot.setOnAction(e -> selectedTowerType = 3);
+        missile.setOnAction(e -> selectedTowerType = 4);
 
         for (Button b : new Button[]{singleShot, laser, tripleShot, missile}) {
             b.setPrefWidth(150);
@@ -234,62 +318,57 @@ public class Main extends Application {
             );
         }
 
+        // Style labels
         livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
         moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
         debugLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #333;");
 
         hud.getChildren().addAll(livesLabel, moneyLabel, debugLabel, singleShot, laser, tripleShot, missile);
-
-        // Create overlay pane for enemies and UI elements
-        gameOverlay = new Pane();
-        hud.setLayoutX(1520);
-        hud.setLayoutY(280);
-
-        gameOverlay.getChildren().add(hud);
-        gameRoot.getChildren().add(grid);
-        gameRoot.getChildren().add(gameOverlay);
-
-        return gameScene;
-    }
-    private void scheduleWaves() {
-        Timeline startWave1 = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
-            spawnWave(5, 1.0);
-        }));
-
-        Timeline startWave2 = new Timeline();
-        	
-        	startWave2.getKeyFrames().add(new KeyFrame(Duration.seconds(2+4*1.0+5),e -> {
-        		spawnWave(8,0.5);
-        	}));
-        Timeline startWave3= new Timeline();
-            startWave3.getKeyFrames().add(new KeyFrame(Duration.seconds((2+4*1.0+5)+7*0.5+5),e -> {
-            	spawnWave(12,0.3);
-            }));
-      
-        	
-       
-            
-
-        startWave1.play();
-        startWave2.play();
-        startWave3.play();
+        return hud;
     }
 
-    private void spawnWave(int enemyCount, double intervalSeconds) {
-        Timeline timeline = new Timeline();
-        for (int i = 0; i < enemyCount; i++) {
-            int finalI = i;
-            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(finalI * intervalSeconds), e -> spawnEnemy()));
-        }
-        timeline.play();
+    /**
+     * Setup tower placement and dragging functionality
+     */
+    private void setupTowerPlacement() {
+        gameOverlay.setOnMouseClicked(e -> {
+            Tower tower = switch (selectedTowerType) {
+                case 1 -> new SingleShotTower(e.getX(), e.getY());
+                case 2 -> new LaserTower(e.getX(), e.getY());
+                case 3 -> new TripleShotTower(e.getX(), e.getY());
+                case 4 -> new MissileLauncherTower(e.getX(), e.getY());
+                default -> null;
+            };
+
+            if (tower != null) {
+                gameOverlay.getChildren().add(tower.getNode());
+                Game.addTower(tower);
+
+                tower.getNode().setOnMousePressed(ev -> {
+                    selectedTower = tower;
+                    dragging = true;
+                });
+
+                tower.getNode().setOnMouseDragged(ev -> {
+                    if (dragging) {
+                        tower.setPosition(ev.getX(), ev.getY());
+                    }
+                });
+
+                tower.getNode().setOnMouseReleased(ev -> {
+                    dragging = false;
+                    selectedTower = null;
+                });
+            }
+        });
     }
 
     /**
      * Visualize path points for debugging
      */
-    private void visualizePathPoints() {
+    private void visualizePathPoints() throws Exception {
         if (pathCoordinates == null || pathCoordinates.isEmpty()) {
-            return;
+            throw new Exception("Got empty coordinates!");
         }
 
         // Get center position of the grid in the scene
@@ -297,16 +376,16 @@ public class Main extends Application {
         double gridCenterY = gameOverlay.getScene().getHeight() / 2;
 
         // Calculate grid offset (to center it)
-        double gridWidth = (SQUARE_SIZE + SPACING) * GRID_SIZE - SPACING;
-        double gridHeight = (SQUARE_SIZE + SPACING) * GRID_SIZE - SPACING;
+        double gridWidth = (TILE_SIZE + SPACING) * GRID_SIZE - SPACING;
+        double gridHeight = (TILE_SIZE + SPACING) * GRID_SIZE - SPACING;
         double offsetX = gridCenterX - gridWidth / 2;
         double offsetY = gridCenterY - gridHeight / 2;
 
         // Create a circle at each path point
         for (int i = 0; i < pathCoordinates.size(); i++) {
             int[] point = pathCoordinates.get(i);
-            double x = offsetX + point[1] * (SQUARE_SIZE + SPACING) + SQUARE_SIZE / 2;
-            double y = offsetY + point[0] * (SQUARE_SIZE + SPACING) + SQUARE_SIZE / 2;
+            double x = offsetX + point[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
+            double y = offsetY + point[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
 
             Circle marker = new Circle(5);
             marker.setFill(i == 0 ? Color.GREEN : (i == pathCoordinates.size() - 1 ? Color.RED : Color.BLUE));
@@ -329,29 +408,21 @@ public class Main extends Application {
     /**
      * Spawn a single enemy on the path
      */
-    private void damageEnemy() {
-        if (currentEnemy.isAlive() && currentEnemy!= null) {
-            currentEnemy.damage(10);
-        }
-    }
     private void spawnEnemy() {
         currentEnemy = new Enemy(100, gameOverlay);
         enemies.add(currentEnemy);
 
-        // Test damage function - will damage the enemy after 3 seconds
-       /* Timeline damageTimer = new Timeline(
-                new KeyFrame(Duration.seconds(3), e -> {
-                	for(int i=0;i<enemies.size();i++) {
-                		if(enemies.get(i).isAlive())
-                enemy.damage(10);
-                	}
-                }
-                ));
-        damageTimer.play();
-        */
-
         // Start enemy movement along the path
         currentEnemy.moveAlongPath(pathCoordinates);
+    }
+
+    /**
+     * Damage the current enemy for testing
+     */
+    private void damageEnemy() {
+        if (currentEnemy != null && currentEnemy.isAlive()) {
+            currentEnemy.damage(10);
+        }
     }
 
     /**
@@ -375,6 +446,9 @@ public class Main extends Application {
         moneyLabel.setText("Money: $" + money);
     }
 
+    /**
+     * Create a styled start button
+     */
     private static Button getStartButton() {
         Button startButton = new Button("Start Game");
         startButton.setPrefWidth(300);

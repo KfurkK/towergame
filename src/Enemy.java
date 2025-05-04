@@ -115,7 +115,7 @@ public class Enemy {
      * Damage the enemy and update health bar
      * @param amount Amount of damage to deal
      */
-    public void damage(int amount) {
+    public void damage(double amount) {
         this.health -= amount;
 
         // Update health bar
