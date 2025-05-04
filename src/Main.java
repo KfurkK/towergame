@@ -302,7 +302,7 @@ public class Main extends Application {
         enemies.add(enemy);
 
         // Test damage function - will damage the enemy after 3 seconds
-        Timeline damageTimer = new Timeline(
+       /* Timeline damageTimer = new Timeline(
                 new KeyFrame(Duration.seconds(3), e -> {
                 	for(int i=0;i<enemies.size();i++) {
                 		if(enemies.get(i).isAlive())
@@ -311,6 +311,7 @@ public class Main extends Application {
                 }
                 ));
         damageTimer.play();
+        */
 
         // Start enemy movement along the path
         enemy.moveAlongPath(pathCoordinates);
