@@ -154,6 +154,8 @@ public class Enemy {
         ParallelTransition parallel = new ParallelTransition(fadeCircle, fadeHealth);
         parallel.setOnFinished(e -> removeFromGame());
         parallel.play();
+        
+        Main.increaseMoney(10);
     }
 
     /**
