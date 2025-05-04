@@ -1,4 +1,5 @@
 import java.util.List;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.canvas.GraphicsContext;
@@ -11,7 +12,8 @@ public abstract class Tower {
 	public double price; // kule fiyatı
    public Enemy target;
    public boolean selected;
-   public Rectangle body;
+   protected Node body;
+   
    public Circle rangeCircle;
    private int currentRow = -1;
    private int currentCol = -1;
@@ -39,7 +41,7 @@ public abstract class Tower {
        rangeCircle.setVisible(false); 
 	   }
    
-   public Rectangle getNode() {
+   public Node getNode() {
        return body;
    }
    

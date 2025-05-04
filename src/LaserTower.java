@@ -3,6 +3,8 @@ import java.util.List;
 import java.util.Map;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
 public class LaserTower extends Tower{
@@ -11,6 +13,16 @@ public class LaserTower extends Tower{
 	 
 	public LaserTower(double x, double y) {
 		super(x,y,100,120, Color.RED);  // 120$
+		
+		Image img = new Image("file:assets/towers/laser.png");
+        ImageView imageView = new ImageView(img);
+        imageView.setFitWidth(40);
+        imageView.setFitHeight(40);
+        imageView.setLayoutX(x - 20);
+        imageView.setLayoutY(y - 20);
+        imageView.setPickOnBounds(true);
+
+        this.body = imageView;
 	}
 	
 	  @Override

@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
 public class TripleShotTower extends Tower{
@@ -10,7 +12,17 @@ public class TripleShotTower extends Tower{
 	public int damage = 10;
 	
 	public TripleShotTower(double x , double y) {
-		super(x,y,100,150, Color.DEEPSKYBLUE); // 150$
+		super(x,y,100,150, Color.DEEPSKYBLUE);// 150$
+		 
+		Image img = new Image("file:assets/towers/triple.png");
+	        ImageView imageView = new ImageView(img);
+	        imageView.setFitWidth(40);
+	        imageView.setFitHeight(40);
+	        imageView.setLayoutX(x - 20);
+	        imageView.setLayoutY(y - 20);
+	        imageView.setPickOnBounds(true); 
+
+	        this.body = imageView;
 	}
 	
 	 @Override

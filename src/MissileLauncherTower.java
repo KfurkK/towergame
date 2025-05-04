@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
 public class MissileLauncherTower extends Tower{
@@ -13,6 +15,16 @@ public class MissileLauncherTower extends Tower{
 	    
 	    public MissileLauncherTower(double x, double y) {
 	        super(x, y, 100, 200, Color.ORANGE); // 200$
+	        
+	        Image img = new Image("file:assets/towers/missile.png");
+	        ImageView imageView = new ImageView(img);
+	        imageView.setFitWidth(40);
+	        imageView.setFitHeight(40);
+	        imageView.setLayoutX(x - 20);
+	        imageView.setLayoutY(y - 20);
+	        imageView.setPickOnBounds(true);
+
+	        this.body = imageView;
 	    }
 	    
 	    
