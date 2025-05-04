@@ -12,7 +12,7 @@ import javafx.util.Duration;
 import java.util.ArrayList;
 
 /**
- * A simple enemy that follows a path
+ * A simple enemy that follows a path with a health bar displayed above it
  */
 public class Enemy {
     private int health;
@@ -21,9 +21,13 @@ public class Enemy {
     private final Rectangle healthBar;
     private final Pane gamePane;
 
+    // Position tracking
+    private double x = 0;
+    private double y = 0;
+
     // Constants
     private static final int TILE_SIZE = 45;
-    private static final double SPACING = 2.5; // The grid's horizontal and vertical gap
+    private static final double SPACING = 2.5;
 
     /**
      * Create a new enemy
@@ -35,8 +39,8 @@ public class Enemy {
         this.maxHealth = health;
         this.gamePane = gamePane;
 
-        // Create the enemy circle
-        this.enemyCircle = new Circle(TILE_SIZE / 3);
+        // Create enemy representation
+        this.enemyCircle = new Circle(TILE_SIZE / 5);
         this.enemyCircle.setFill(Color.RED);
 
         // Create health bar above enemy
@@ -44,10 +48,14 @@ public class Enemy {
         this.healthBar.setFill(Color.GREEN);
 
         // Position health bar above enemy
-        this.healthBar.setTranslateY(-TILE_SIZE / 2);
-        this.healthBar.setTranslateX(-TILE_SIZE / 2);
+        healthBar.translateXProperty().bind(
+                enemyCircle.translateXProperty().subtract(TILE_SIZE / 2.0)
+        );
+        healthBar.translateYProperty().bind(
+                enemyCircle.translateYProperty().subtract(enemyCircle.getRadius() + healthBar.getHeight())
+        );
 
-        // Add enemy and health bar to the game pane
+        // Add both elements to the game pane
         gamePane.getChildren().addAll(enemyCircle, healthBar);
     }
 
@@ -56,34 +64,28 @@ public class Enemy {
      * @param path List of coordinates [row, col] representing the path
      */
     public void moveAlongPath(ArrayList<int[]> path) {
-        // Create a path for the enemy to follow
         Path movementPath = new Path();
 
-        // Get center position of the grid in the scene
+        // Calculate grid positioning
         double gridCenterX = gamePane.getScene().getWidth() / 2;
         double gridCenterY = gamePane.getScene().getHeight() / 2;
-
-        // Calculate grid offset (to center it)
         double gridWidth = (TILE_SIZE + SPACING) * 10 - SPACING;
         double gridHeight = (TILE_SIZE + SPACING) * 10 - SPACING;
         double offsetX = gridCenterX - gridWidth / 2;
         double offsetY = gridCenterY - gridHeight / 2;
 
-        // Convert the first coordinate to pixel position
+        // Set initial position
         int[] firstPoint = path.get(0);
         double startX = offsetX + firstPoint[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
         double startY = offsetY + firstPoint[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
 
-        // Set initial positions
+        this.x = startX;
+        this.y = startY;
         enemyCircle.setTranslateX(startX);
         enemyCircle.setTranslateY(startY);
-        healthBar.setTranslateX(startX - TILE_SIZE / 2);
-        healthBar.setTranslateY(startY - TILE_SIZE / 2);
 
-        // Set the starting point of the path
+        // Create the path
         movementPath.getElements().add(new MoveTo(startX, startY));
-
-        // Add all points to the path
         for (int i = 1; i < path.size(); i++) {
             int[] point = path.get(i);
             double x = offsetX + point[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
@@ -91,32 +93,22 @@ public class Enemy {
             movementPath.getElements().add(new LineTo(x, y));
         }
 
-        // Create animation for enemy circle
+        // Create animation for enemy movement
         PathTransition circleTransition = new PathTransition();
         circleTransition.setNode(enemyCircle);
         circleTransition.setPath(movementPath);
         circleTransition.setDuration(Duration.seconds(10));
         circleTransition.setCycleCount(1);
 
-        // Create identical animation for health bar
-        PathTransition healthBarTransition = new PathTransition();
-        healthBarTransition.setNode(healthBar);
-        healthBarTransition.setPath(movementPath);
-        healthBarTransition.setDuration(Duration.seconds(10));
-        healthBarTransition.setCycleCount(1);
-
-        // When animation finishes, remove the enemy if it reached the end
+        // Handle end of path
         circleTransition.setOnFinished(e -> {
             if (health > 0) {
-                // Enemy reached the end - player loses a life
-                Main.decreaseLives(1);
                 removeFromGame();
             }
         });
 
-        // Start both animations
+        // Start animation
         circleTransition.play();
-        healthBarTransition.play();
     }
 
     /**
@@ -124,15 +116,13 @@ public class Enemy {
      * @param amount Amount of damage to deal
      */
     public void damage(int amount) {
-        health -= amount;
+        this.health -= amount;
 
-        // Calculate health percentage
-        double healthPercent = (double) health / maxHealth;
-
-        // Update health bar width based on remaining health
+        // Update health bar
+        double healthPercent = (double) this.health / this.maxHealth;
         healthBar.setWidth(TILE_SIZE * healthPercent);
 
-        // Change health bar color based on health percentage
+        // Change health bar color based on remaining health
         if (healthPercent < 0.3) {
             healthBar.setFill(Color.RED);
         } else if (healthPercent < 0.6) {
@@ -158,48 +148,10 @@ public class Enemy {
         fadeHealth.setFromValue(1.0);
         fadeHealth.setToValue(0.0);
 
-        // Create explosion effect with particles
-        createExplosionEffect();
-
-        // Add player money reward
-        Main.increaseMoney(10);
-
         // Play animations
         ParallelTransition parallel = new ParallelTransition(fadeCircle, fadeHealth);
         parallel.setOnFinished(e -> removeFromGame());
         parallel.play();
-    }
-
-    /**
-     * Create a simple explosion effect with particles
-     */
-    private void createExplosionEffect() {
-        for (int i = 0; i < 20; i++) {
-            // Create a small particle circle
-            Circle particle = new Circle(3, Color.ORANGE);
-            particle.setTranslateX(enemyCircle.getTranslateX());
-            particle.setTranslateY(enemyCircle.getTranslateY());
-            gamePane.getChildren().add(particle);
-
-            // Random angle and distance
-            double angle = Math.random() * 2 * Math.PI;
-            double distance = Math.random() * TILE_SIZE;
-
-            // Create fade animation
-            FadeTransition fade = new FadeTransition(Duration.millis(500), particle);
-            fade.setFromValue(1.0);
-            fade.setToValue(0.0);
-
-            // Create movement animation
-            javafx.animation.TranslateTransition translate = new javafx.animation.TranslateTransition(Duration.millis(500), particle);
-            translate.setByX(Math.cos(angle) * distance);
-            translate.setByY(Math.sin(angle) * distance);
-
-            // Play animations
-            ParallelTransition pt = new ParallelTransition(fade, translate);
-            pt.setOnFinished(e -> gamePane.getChildren().remove(particle));
-            pt.play();
-        }
     }
 
     /**
@@ -221,5 +173,14 @@ public class Enemy {
      */
     public Circle getView() {
         return enemyCircle;
+    }
+
+    // Position getters
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
     }
 }

@@ -45,6 +45,11 @@ public class Main extends Application {
     private ArrayList<int[]> pathCoordinates;
     private Pane gameOverlay;
 
+    public Enemy currentEnemy = null;
+
+    // enemy count, second between enemies, seconds before start of the wave
+    //private double[][] waveData = tools.getWaveData(1);
+    
     // UI elements
     private static Label livesLabel = new Label("Lives: " + lives);
     private static Label moneyLabel = new Label("Money: $" + money);
@@ -68,7 +73,7 @@ public class Main extends Application {
         primaryStage.show();
 
         startButton.setOnAction(e -> {
-            primaryStage.setScene(gameScene);
+        	primaryStage.setScene(gameScene);
             transitions.forEach(Animation::play);
             
             double maxDelay = (1188); // En sağ alt karenin animasyonu bitirmesi için süre ms
@@ -76,8 +81,8 @@ public class Main extends Application {
             Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> scheduleWaves()));
             delayTimeline.play();
 
-            // Add a button to spawn an enemy after the game starts
-          /*  Button spawnEnemyButton = new Button("Spawn Enemy");
+          /*  // Add a button to spawn an enemy after the game starts
+            Button spawnEnemyButton = new Button("Spawn Enemy");
             spawnEnemyButton.setPrefWidth(150);
             spawnEnemyButton.setPrefHeight(40);
             spawnEnemyButton.setStyle(
@@ -89,8 +94,9 @@ public class Main extends Application {
             );
             spawnEnemyButton.setLayoutX(1520);
             spawnEnemyButton.setLayoutY(500);
-            spawnEnemyButton.setOnAction(we -> spawnEnemy());
-            gameOverlay.getChildren().add(spawnEnemyButton);*/
+            spawnEnemyButton.setOnAction(event -> spawnEnemy());
+            gameOverlay.getChildren().add(spawnEnemyButton);
+            */
 
             // Add a debug button to visualize path points
             Button debugButton = new Button("Debug Path");
@@ -105,8 +111,34 @@ public class Main extends Application {
             );
             debugButton.setLayoutX(1520);
             debugButton.setLayoutY(550);
-            debugButton.setOnAction(ce -> visualizePathPoints());
+            debugButton.setOnAction(we -> {
+                try {
+                    visualizePathPoints();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
             gameOverlay.getChildren().add(debugButton);
+
+            // Add a debug button to visualize path points
+            Button damageButton = new Button("Damage Enemy");
+            damageButton.setPrefWidth(150);
+            damageButton.setPrefHeight(40);
+            damageButton.setStyle(
+                    "-fx-font-size: 16px;" +
+                            "-fx-background-color: #FBD18B;" +
+                            "-fx-border-radius: 12;" +
+                            "-fx-background-radius: 12;" +
+                            "-fx-text-fill: black;"
+            );
+            damageButton.setLayoutX(120);
+            damageButton.setLayoutY(550);
+            damageButton.setOnAction(we -> {
+                // action taken to damage
+                damageEnemy();
+
+            });
+            gameOverlay.getChildren().add(damageButton);
         });
     }
 
@@ -297,9 +329,14 @@ public class Main extends Application {
     /**
      * Spawn a single enemy on the path
      */
+    private void damageEnemy() {
+        if (currentEnemy.isAlive() && currentEnemy!= null) {
+            currentEnemy.damage(10);
+        }
+    }
     private void spawnEnemy() {
-        Enemy enemy = new Enemy(100, gameOverlay);
-        enemies.add(enemy);
+        currentEnemy = new Enemy(100, gameOverlay);
+        enemies.add(currentEnemy);
 
         // Test damage function - will damage the enemy after 3 seconds
        /* Timeline damageTimer = new Timeline(
@@ -314,7 +351,7 @@ public class Main extends Application {
         */
 
         // Start enemy movement along the path
-        enemy.moveAlongPath(pathCoordinates);
+        currentEnemy.moveAlongPath(pathCoordinates);
     }
 
     /**
