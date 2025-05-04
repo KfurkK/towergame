@@ -32,6 +32,10 @@ public class Bullet {
 	}
 	
 	public void update() {
+		if (!active || target == null || !target.isAlive()) {
+			shape.setVisible(false);
+			return;
+			}
 		double dx = target.getX() - x;
         double dy = target.getY() - y;
         double enemyDistance = Math.sqrt(dx * dx + dy * dy);
@@ -47,6 +51,7 @@ public class Bullet {
             target.damage(damage);
             active = false;
             shape.setVisible(false);
+            Game.gameOverlay.getChildren().remove(shape);
             return;
         }
         x += dx / enemyDistance * speed;

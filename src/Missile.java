@@ -1,5 +1,6 @@
 import java.util.List;
 
+import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -19,7 +20,9 @@ public class Missile {
         this.target = target;
         this.damage = damage;
         this.effectRadius = effectRadius;
-        shape = new Circle(7, Color.ORANGERED);
+        shape = new Circle(8, Color.ORANGE);
+        shape.setStroke(Color.RED);           
+        shape.setStrokeWidth(2);  
         shape.setLayoutX(x);
         shape.setLayoutY(y);
 
@@ -32,7 +35,7 @@ public class Missile {
 	
 	
 	public void update(List<Enemy> enemies) {
-        if (!active || !target.isAlive()) return;
+        if (!active || target == null || !target.isAlive()) return;
 
         double dx = target.getX() - x;
         double dy = target.getY() - y;
@@ -43,6 +46,7 @@ public class Missile {
             explode(enemies);
             active = false;
             shape.setVisible(false);
+            
             return;
         }
 
@@ -65,7 +69,7 @@ public class Missile {
 
         
     }
-	 public Circle getNode() {
+	 public Node getNode() {
 	        return shape;
 	    }
 	  

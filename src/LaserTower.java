@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import javafx.scene.shape.Line;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +12,8 @@ import javafx.scene.paint.Color;
 public class LaserTower extends Tower{
 	double damagePerSecond = 10.0;
 	Map<Enemy, Double> targetTimers = new HashMap<>();
+	public Line laserBeam = new Line();
+	private List<Line> laserBeams = new ArrayList<>();
 	 
 	public LaserTower(double x, double y) {
 		super(x,y,100,120, Color.RED);  // 120$
@@ -21,6 +25,8 @@ public class LaserTower extends Tower{
         imageView.setLayoutX(x - 20);
         imageView.setLayoutY(y - 20);
         imageView.setPickOnBounds(true);
+        
+        
 
         this.body = imageView;
 	}
@@ -28,6 +34,12 @@ public class LaserTower extends Tower{
 	  @Override
 	   public void update(List<Enemy> enemies) {
 	        long instanceTime = System.currentTimeMillis();
+	        
+	        for (Line beam : laserBeams) {
+	            beam.setVisible(false);
+	            Game.gameOverlay.getChildren().remove(beam);
+	        }
+	        laserBeams.clear();
 
 	        for (Enemy e : enemies) {
 	            if (isRange(e) && e.isAlive()) {
@@ -42,8 +54,16 @@ public class LaserTower extends Tower{
 	                    e.damage(damagePerSecond * elapsedSeconds);
 	                    targetTimers.put(e, instanceTime * 1.0);
 	                }
+	                Line beam = new Line(x, y, e.getX(), e.getY());
+	                beam.setStroke(Color.RED);
+	                beam.setStrokeWidth(2);
+	                beam.setOpacity(0.7);
+
+	                Game.gameOverlay.getChildren().add(beam);
+	                laserBeams.add(beam);
+	                
 	            } else {
-	                // Menzil dışına çıktıysa zamanlayıcıyı sıfırla
+	            	laserBeam.setVisible(false);
 	                targetTimers.remove(e);
 	            }
 	        }

@@ -164,6 +164,7 @@ public class Main extends Application {
         gameOverlay.getChildren().add(hud);
         gameRoot.getChildren().add(grid);
         gameRoot.getChildren().add(gameOverlay);
+        Game.gameOverlay = gameOverlay;
 
         // Setup tower placement on click
         setupTowerPlacement();
