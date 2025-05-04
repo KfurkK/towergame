@@ -7,8 +7,8 @@ import javafx.scene.paint.Color;
 
 public class MissileLauncherTower extends Tower{
 	    public long lastShotTime = 0;
-	    public long shootInterval = 2000; // 2 saniye
-	    public int missileDamage = 30;
+	    public long shootInterval = 600; // 2 saniye
+	    public int missileDamage = 100;
 	    public double effectRadius = 50;
 	    
 	    public MissileLauncherTower(double x, double y) {
