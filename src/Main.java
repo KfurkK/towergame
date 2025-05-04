@@ -33,6 +33,7 @@ public class Main extends Application {
     private static final Color[] YELLOW_TONES = {
             Color.web("FFCF50"), Color.web("FBC518")
     };
+    private final ArrayList<int[]> placedTowerCells = new ArrayList<>();
     private static final Color PATH_COLOR = Color.web("FBEBE0");
     private final ArrayList<Animation> transitions = new ArrayList<>();
 
@@ -49,6 +50,7 @@ public class Main extends Application {
     private static Label debugLabel = new Label("Debug: No path loaded");
 
     public Enemy currentEnemy = null;
+    
 
     // Tower selection and management
     public int selectedTowerType = 1; // 1: Single, 2: Laser, 3: Triple, 4: Missile
@@ -288,7 +290,42 @@ public class Main extends Application {
      */
     private void setupTowerPlacement() {
         gameOverlay.setOnMouseClicked(e -> {
-            Tower tower = switch (selectedTowerType) {
+        	 double clickX = e.getX();
+        	 double clickY = e.getY();
+        	    
+        	if (clickX >= 1520) 
+        		return;
+        	
+        	
+        	
+        	double gridUnit = TILE_SIZE + SPACING;
+            double gridWidth = gridUnit * GRID_SIZE - SPACING;
+            double gridHeight = gridUnit * GRID_SIZE - SPACING;
+
+            double offsetX = (WIDTH - gridWidth) / 2;
+            double offsetY = (HEIGHT - gridHeight) / 2;
+            
+            if (clickX < offsetX || clickY < offsetY) 
+            	return;
+            
+            int col = (int)((clickX - offsetX) / gridUnit);
+            int row = (int)((clickY - offsetY) / gridUnit);
+
+            for (int[] coord : pathCoordinates) {
+                if (coord[0] == row && coord[1] == col) {
+                   return;
+                }
+            }
+            
+            for (int[] placed : placedTowerCells) {
+                if (placed[0] == row && placed[1] == col) {
+                    return;
+                    
+                }
+            }
+            
+            
+        	Tower tower = switch (selectedTowerType) {
                 case 1 -> new SingleShotTower(e.getX(), e.getY());
                 case 2 -> new LaserTower(e.getX(), e.getY());
                 case 3 -> new TripleShotTower(e.getX(), e.getY());
@@ -297,12 +334,19 @@ public class Main extends Application {
             };
 
             if (tower != null) {
+            	if (money < tower.getPrice()) {
+                   return;
+                }
+            	
+            	gameOverlay.getChildren().add(tower.getRangeCircle());
                 gameOverlay.getChildren().add(tower.getNode());
                 Game.addTower(tower);
+                placedTowerCells.add(new int[]{row, col});
 
                 tower.getNode().setOnMousePressed(ev -> {
                     selectedTower = tower;
                     dragging = true;
+                    tower.getRangeCircle().setVisible(true);
                 });
 
                 tower.getNode().setOnMouseDragged(ev -> {
@@ -314,6 +358,7 @@ public class Main extends Application {
                 tower.getNode().setOnMouseReleased(ev -> {
                     dragging = false;
                     selectedTower = null;
+                    tower.getRangeCircle().setVisible(false);
                 });
             }
         });

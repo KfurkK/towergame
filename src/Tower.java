@@ -3,6 +3,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Circle;
 
 public abstract class Tower {
 	public double x, y; // Kule konumu
@@ -11,6 +12,7 @@ public abstract class Tower {
    public Enemy target;
    public boolean selected;
    public Rectangle body;
+   public Circle rangeCircle;
    
    public Tower() {
 	   
@@ -26,10 +28,21 @@ public abstract class Tower {
 	   body = new Rectangle(20, 20, color);
        body.setLayoutX(x - 10);
        body.setLayoutY(y - 10);
+       
+       rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.2)); // yarı saydam kırmızı
+       rangeCircle.setStroke(Color.RED);
+       rangeCircle.setFill(Color.rgb(255, 0, 0, 0.1));
+       rangeCircle.setLayoutX(x);
+       rangeCircle.setLayoutY(y);
+       rangeCircle.setVisible(false); 
 	   }
    
    public Rectangle getNode() {
        return body;
+   }
+   
+   public double getPrice() {
+	   return price;
    }
    
    public void setPosition(double newX, double newY) {
@@ -37,6 +50,13 @@ public abstract class Tower {
        this.y = newY;
        body.setLayoutX(x - 10);
        body.setLayoutY(y - 10);
+       
+       rangeCircle.setLayoutX(x);
+       rangeCircle.setLayoutY(y);
+   }
+   
+   public Circle getRangeCircle() {
+       return rangeCircle;
    }
    
    public boolean contains(double px, double py) {
