@@ -24,11 +24,7 @@ public class Bullet {
         shape.setLayoutX(x);
         shape.setLayoutY(y);
         
-        if (target == null) {
-            System.err.println("🚨 Uyarı: Bullet'a null hedef verildi!");
-        } else {
-            System.out.println("🎯 Bullet hedefi: " + target.hashCode());
-        }
+        
     }
 	
 	public boolean isActive() {
@@ -47,7 +43,7 @@ public class Bullet {
 		}
         
         if (enemyDistance < 5) {
-        	System.out.println("💥 Single hedefe ulaştı, hasar veriliyor.");
+        	
             target.damage(damage);
             active = false;
             shape.setVisible(false);

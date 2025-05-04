@@ -11,6 +11,15 @@ public class Game {
 	public static List<Bullet> bullets = new ArrayList<>();
     public static List<Missile> missiles = new ArrayList<>();
     public static Pane root = new Pane();;
+    private static Pane gameOverlay;
+    
+    public static void setOverlay(Pane overlay) {
+        gameOverlay = overlay;
+    }
+    
+    public static Pane getOverlay() {
+        return gameOverlay;
+    }
     
     
     
@@ -28,17 +37,34 @@ public class Game {
          /* for (Enemy e : enemies) {
             e.update();
         } */
+        
+        List<Bullet> toRemove = new ArrayList<>();
+        for (Bullet b : bullets) {
+            b.update();
+            if (!b.isActive()) {
+                toRemove.add(b);
+            }
+        }
 
-        for (Bullet b : bullets) b.update();
-        bullets.removeIf(b -> !b.isActive());
+        for (Bullet b : toRemove) {
+            bullets.remove(b);
+            gameOverlay.getChildren().remove(b.getNode());
+        }
 
-        for (Missile m : missiles) m.update(enemies);
-        missiles.removeIf(m -> !m.isActive());
 
-        // Temizlik
-        bullets.removeIf(b -> !b.isActive());
-        missiles.removeIf(m -> !m.isActive());
-        enemies.removeIf(e -> !e.isAlive());
+        List<Missile> toRemoveMissiles = new ArrayList<>();
+        for (Missile m : missiles) {
+            m.update(enemies);
+            if (!m.isActive()) {
+                toRemoveMissiles.add(m);
+            }
+        }
+        for (Missile m : toRemoveMissiles) {
+            missiles.remove(m);
+            gameOverlay.getChildren().remove(m.getNode());
+        }
+
+      
     }
     
     public static void addTower(Tower t) {
@@ -56,6 +82,11 @@ public class Game {
     public static void addBullet(Bullet b) {
         bullets.add(b);
         root.getChildren().add(b.getNode());
+    }
+    
+    public static void removeBullet(Bullet b) {
+        bullets.remove(b); // logic'ten sil
+        root.getChildren().remove(b.getNode()); 
     }
 
     public static void addMissile(Missile m) {

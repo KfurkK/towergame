@@ -45,7 +45,7 @@ public class Main extends Application {
     private static int lives = 5;
     private ArrayList<Enemy> enemies = new ArrayList<>();
     private ArrayList<int[]> pathCoordinates;
-    private Pane gameOverlay;
+    public Pane gameOverlay;
 
     // UI elements
     private static Label livesLabel = new Label("Lives: " + lives);
