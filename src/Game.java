@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.layout.Pane;
 
 
 public class Game {
@@ -9,20 +10,22 @@ public class Game {
 	public static List<Enemy> enemies = new ArrayList<>();
 	public static List<Bullet> bullets = new ArrayList<>();
     public static List<Missile> missiles = new ArrayList<>();
+    public static Pane root = new Pane();;
     
     
     
     private int money = 100;
     private int lives = 5;
     
+    
     public static void update() {
         // Kuleleri güncelle
         for (Tower tower : towers) {
-            tower.update(enemies);
+            tower.update(Game.enemies);
         }
 
-        /* // Düşmanları güncelle
-        for (Enemy e : enemies) {
+         // Düşmanları güncelle
+         /* for (Enemy e : enemies) {
             e.update();
         } */
 
@@ -48,6 +51,7 @@ public class Game {
 
     public static void addBullet(Bullet b) {
         bullets.add(b);
+        root.getChildren().add(b.getNode());
     }
 
     public static void addMissile(Missile m) {

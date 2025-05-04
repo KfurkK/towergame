@@ -6,7 +6,7 @@ import javafx.scene.paint.Color;
 
 public class TripleShotTower extends Tower{
 	public long lastShotTime = 0;
-	public long shootInterval = 1200; 
+	public long shootInterval = 300; 
 	public int damage = 10;
 	
 	public TripleShotTower(double x , double y) {
@@ -15,12 +15,15 @@ public class TripleShotTower extends Tower{
 	
 	 @Override
 	    public void update(List<Enemy> enemies) {
+		 
 	        long instanceTime = System.currentTimeMillis();
 	        if (instanceTime - lastShotTime >= shootInterval) {
 	            List<Enemy> targets = nearestEnemies(enemies, 3);
 	            for (Enemy e : targets) {
-	                if (e.isAlive() && isRange(e)) {
-	                    Bullet b = new Bullet(x, y, e, damage); // Bullet sınıfı hasarı da almalı
+	                if (e != null && e.isAlive() && isRange(e)) {
+	                	System.out.println("Mermi oluşturuldu: hedef x=" + e.getX() + " y=" + e.getY());
+	                    Bullet b = new Bullet(x, y, e, damage);
+	                    
 	                    Game.addBullet(b);
 	                }
 	            }
@@ -37,11 +40,12 @@ public class TripleShotTower extends Tower{
 		            inRangeEnemies.add(e);
 		        }
 		    }
+		    System.out.println("Menzildeki düşman sayısı: " + inRangeEnemies.size());
 
 		    // 2. Yakınlığa göre sırala (merkezden olan uzaklığa göre)
 		    inRangeEnemies.sort((e1, e2) -> {
-		        double d1 = Math.sqrt((e1.getX() -x) * (e1.getX() -x) + (e1.getY()- y) * (e1.getY() - y ));
-		        double d2 = Math.sqrt((e2.getX() -x) * (e2.getX() -x) + (e2.getY()- y) * (e2.getY() - y ));
+		        double d1 = Math.sqrt((e1.getX() - x)*(e1.getX() - x) + (e1.getY() - y)*(e1.getY() - y));
+		        double d2 = Math.sqrt((e2.getX() - x)*(e2.getX() - x) + (e2.getY() - y)*(e2.getY() - y));
 		        return Double.compare(d1, d2);
 		    });
 
@@ -49,6 +53,7 @@ public class TripleShotTower extends Tower{
 		    List<Enemy> result = new ArrayList<>();
 		    for (int i = 0; i < count && i < inRangeEnemies.size(); i++) {
 		        result.add(inRangeEnemies.get(i));
+		        System.out.println("Seçilen düşman " + (i + 1) + ": x=" + inRangeEnemies.get(i).getX() + ", y=" + inRangeEnemies.get(i).getY());
 		    }
 
 		    return result;

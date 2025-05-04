@@ -1,5 +1,6 @@
 
 
+import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -22,6 +23,12 @@ public class Bullet {
         shape = new Circle(5, Color.BLACK);
         shape.setLayoutX(x);
         shape.setLayoutY(y);
+        
+        if (target == null) {
+            System.err.println("🚨 Uyarı: Bullet'a null hedef verildi!");
+        } else {
+            System.out.println("🎯 Bullet hedefi: " + target.hashCode());
+        }
     }
 	
 	public boolean isActive() {
@@ -33,11 +40,14 @@ public class Bullet {
         double dy = target.getY() - y;
         double enemyDistance = Math.sqrt(dx * dx + dy * dy);
 		
-        if (!active || target.isAlive()) {
+        if (!active || !target.isAlive()) {
+        	active = false;
+        	shape.setVisible(false);
 			return;
 		}
         
         if (enemyDistance < 5) {
+        	System.out.println("💥 Single hedefe ulaştı, hasar veriliyor.");
             target.damage(damage);
             active = false;
             shape.setVisible(false);
@@ -49,7 +59,7 @@ public class Bullet {
         shape.setLayoutY(y);
         }
 	 
-	public Circle getNode() {
+	public Node getNode() {
 	        return shape;
 	    }
 	

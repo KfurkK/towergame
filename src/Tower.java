@@ -49,6 +49,7 @@ public abstract class Tower {
 	   
 	   double enemyRange = Math.sqrt((dy*dy)+(dx*dx));
 	   
+	   
 	   if (enemyRange <= range)
 		   return true;
 	   else
