@@ -63,6 +63,12 @@ public abstract class Tower {
        return rangeCircle;
    }
    
+   public void remove() {
+	    // Varsayılan: sadece sahneden görseli siler
+	    Game.gameOverlay.getChildren().remove(getNode());
+	    Game.gameOverlay.getChildren().remove(rangeCircle);
+	}
+   
    public boolean contains(double px, double py) {
        return body.getBoundsInParent().contains(px, py);
    }

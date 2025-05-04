@@ -1,8 +1,10 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Line;
 
 
 public class Game {
@@ -67,12 +69,21 @@ public class Game {
       
     }
     
+    public static void forceClearAllLaserBeams() {
+        for (Node n : new ArrayList<>(gameOverlay.getChildren())) {
+            if (n instanceof Line) {
+                gameOverlay.getChildren().remove(n);
+            }
+        }
+    }
+    
     public static void addTower(Tower t) {
         towers.add(t);
     }
     
     public static void removeTower(Tower t) {
         towers.remove(t);
+        Game.forceClearAllLaserBeams();
     }
 
     public static void addEnemy(Enemy e) {

@@ -35,8 +35,10 @@ public class LaserTower extends Tower{
 	   public void update(List<Enemy> enemies) {
 	        long instanceTime = System.currentTimeMillis();
 	        
+	        
+	        
 	        for (Line beam : laserBeams) {
-	            beam.setVisible(false);
+	            
 	            Game.gameOverlay.getChildren().remove(beam);
 	        }
 	        laserBeams.clear();
@@ -68,6 +70,19 @@ public class LaserTower extends Tower{
 	            }
 	        }
 	    }
+	  @Override
+	  public void remove() {
+		  super.remove();
+		  
+		    for (Line beam : laserBeams) {
+		        Game.gameOverlay.getChildren().remove(beam);
+		    }
+		    laserBeams.clear();
+		    Game.forceClearAllLaserBeams();
+
+		    
+		    targetTimers.clear();
+		}
 
 	  
 }
