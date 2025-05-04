@@ -44,6 +44,10 @@ public class Game {
     public static void addTower(Tower t) {
         towers.add(t);
     }
+    
+    public static void removeTower(Tower t) {
+        towers.remove(t);
+    }
 
     public static void addEnemy(Enemy e) {
         enemies.add(e);

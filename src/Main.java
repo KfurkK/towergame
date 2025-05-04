@@ -314,7 +314,7 @@ public class Main extends Application {
             int row = (int)((clickY - offsetY) / gridUnit);
             
             if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
-                System.out.println("❌ Harita dışına kule koyamazsın!");
+                
                 return;
             }
 
@@ -347,6 +347,8 @@ public class Main extends Application {
                    return;
                 }
             	
+            	decreaseMoney(tower.getPrice());
+            	
             	gameOverlay.getChildren().add(tower.getRangeCircle());
                 gameOverlay.getChildren().add(tower.getNode());
                 Game.addTower(tower);
@@ -355,6 +357,23 @@ public class Main extends Application {
                 placedTowerCells.add(new int[]{row, col});
 
                 tower.getNode().setOnMousePressed(ev -> {
+                	
+                    if (ev.isSecondaryButtonDown()) {
+                        
+                        increaseMoney(tower.getPrice());
+
+                        
+                        gameOverlay.getChildren().removeAll(tower.getNode(), tower.getRangeCircle());
+
+                        
+                        int[] gridPos = tower.getGridPosition();
+                        placedTowerCells.removeIf(p -> p[0] == gridPos[0] && p[1] == gridPos[1]);
+
+                        
+                        Game.removeTower(tower); 
+
+                        return;
+                    }
                     selectedTower = tower;
                     dragging = true;
                     tower.getRangeCircle().setVisible(true);
@@ -379,15 +398,15 @@ public class Main extends Application {
                     
                     for (int[] coord : pathCoordinates) {
                         if (coord[0] == row1 && coord[1] == col1) {
-                            System.out.println("❌ Yola kule bırakılamaz!");
+                            
                             return;
                         }
                     }
 
-                    // 🔁 Eski pozisyonu sil
+                    //  Eski pozisyonu sil
                     placedTowerCells.removeIf(p -> p[0] == tower.getGridPosition()[0] && p[1] == tower.getGridPosition()[1]);
 
-                    // ✅ Yeni pozisyonu uygula
+                    //  Yeni pozisyonu uygula
                     double centerX = offsetX + col1 * gridUnit + TILE_SIZE / 2;
                     double centerY = offsetY + row1 * gridUnit + TILE_SIZE / 2;
 
@@ -479,8 +498,13 @@ public class Main extends Application {
     /**
      * Static method to increase player money
      */
-    public static void increaseMoney(int amount) {
+    public static void increaseMoney(double amount) {
         money += amount;
+        moneyLabel.setText("Money: $" + money);
+    }
+    
+    public static void decreaseMoney(double amount) {
+        money -= amount;
         moneyLabel.setText("Money: $" + money);
     }
 
