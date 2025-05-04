@@ -3,8 +3,10 @@ import java.util.ArrayList;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -74,7 +76,15 @@ public class Main extends Application {
         startButton.setOnAction(e -> {
             primaryStage.setScene(gameScene);
             transitions.forEach(Animation::play);
-            addGameButtons();
+
+            // Add game buttons and start wave scheduling after animations
+            double maxDelay = 1188; // Time for rightmost animation to complete in ms
+
+            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
+                addGameButtons();
+                scheduleWaves();
+            }));
+            delayTimeline.play();
         });
     }
 
@@ -102,6 +112,44 @@ public class Main extends Application {
         Button damageButton = createGameButton("Damage Enemy", 120, 550);
         damageButton.setOnAction(we -> damageEnemy());
         gameOverlay.getChildren().add(damageButton);
+    }
+
+    /**
+     * Schedule enemy waves to spawn at specific intervals
+     */
+    private void scheduleWaves() {
+        Timeline startWave1 = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
+            spawnWave(5, 1.0);
+        }));
+
+        Timeline startWave2 = new Timeline();
+        startWave2.getKeyFrames().add(new KeyFrame(Duration.seconds(2+4*1.0+5), e -> {
+            spawnWave(8, 0.5);
+        }));
+
+        Timeline startWave3 = new Timeline();
+        startWave3.getKeyFrames().add(new KeyFrame(Duration.seconds((2+4*1.0+5)+7*0.5+5), e -> {
+            spawnWave(12, 0.3);
+        }));
+
+        startWave1.play();
+        startWave2.play();
+        startWave3.play();
+    }
+
+    /**
+     * Spawn a wave of enemies with given parameters
+     *
+     * @param enemyCount Number of enemies to spawn
+     * @param intervalSeconds Time between spawning each enemy
+     */
+    private void spawnWave(int enemyCount, double intervalSeconds) {
+        Timeline timeline = new Timeline();
+        for (int i = 0; i < enemyCount; i++) {
+            int finalI = i;
+            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(finalI * intervalSeconds), e -> spawnEnemy()));
+        }
+        timeline.play();
     }
 
     /**
