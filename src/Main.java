@@ -298,6 +298,7 @@ public class Main extends Application {
         	
         	
         	
+        	
         	double gridUnit = TILE_SIZE + SPACING;
             double gridWidth = gridUnit * GRID_SIZE - SPACING;
             double gridHeight = gridUnit * GRID_SIZE - SPACING;
@@ -308,8 +309,15 @@ public class Main extends Application {
             if (clickX < offsetX || clickY < offsetY) 
             	return;
             
+            
+            
             int col = (int)((clickX - offsetX) / gridUnit);
             int row = (int)((clickY - offsetY) / gridUnit);
+            
+            if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
+                System.out.println("❌ Harita dışına kule koyamazsın!");
+                return;
+            }
 
             for (int[] coord : pathCoordinates) {
                 if (coord[0] == row && coord[1] == col) {
@@ -323,13 +331,15 @@ public class Main extends Application {
                     
                 }
             }
+            double cellCenterX = offsetX + col * gridUnit + TILE_SIZE / 2;
+            double cellCenterY = offsetY + row * gridUnit + TILE_SIZE / 2;
             
             
         	Tower tower = switch (selectedTowerType) {
-                case 1 -> new SingleShotTower(e.getX(), e.getY());
-                case 2 -> new LaserTower(e.getX(), e.getY());
-                case 3 -> new TripleShotTower(e.getX(), e.getY());
-                case 4 -> new MissileLauncherTower(e.getX(), e.getY());
+                case 1 -> new SingleShotTower(cellCenterX, cellCenterY);
+                case 2 -> new LaserTower(cellCenterX, cellCenterY);
+                case 3 -> new TripleShotTower(cellCenterX, cellCenterY);
+                case 4 -> new MissileLauncherTower(cellCenterX, cellCenterY);
                 default -> null;
             };
 
