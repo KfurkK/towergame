@@ -25,7 +25,10 @@ import javafx.util.Duration;
  * Main game application class
  */
 public class Main extends Application {
-    private final int WIDTH = 1920;
+	private double offsetX;
+	private double offsetY;
+	private final double gridUnit = TILE_SIZE + SPACING;
+	private final int WIDTH = 1920;
     private final int HEIGHT = 1080;
     private static final int GRID_SIZE = 10;
     private static final int TILE_SIZE = 45;
@@ -141,7 +144,7 @@ public class Main extends Application {
     private Scene getGameScene(StackPane gameRoot) throws FileNotFoundException {
         // Load path coordinates
         pathCoordinates = tools.readCoordinates("C:\\Users\\asara\\OneDrive\\Masaüstü\\TermProject\\levels\\level2.txt");
-
+        
         // Update debug label with path info
         updatePathDebugInfo();
 
@@ -164,6 +167,12 @@ public class Main extends Application {
 
         // Setup tower placement on click
         setupTowerPlacement();
+        
+        double gridWidth = gridUnit * GRID_SIZE - SPACING;
+        double gridHeight = gridUnit * GRID_SIZE - SPACING;
+
+        offsetX = (WIDTH - gridWidth) / 2;
+        offsetY = (HEIGHT - gridHeight) / 2;
 
         return gameScene;
     }
@@ -295,18 +304,8 @@ public class Main extends Application {
         	    
         	if (clickX >= 1520) 
         		return;
-        	
-        	
-        	
-        	
-        	double gridUnit = TILE_SIZE + SPACING;
-            double gridWidth = gridUnit * GRID_SIZE - SPACING;
-            double gridHeight = gridUnit * GRID_SIZE - SPACING;
-
-            double offsetX = (WIDTH - gridWidth) / 2;
-            double offsetY = (HEIGHT - gridHeight) / 2;
-            
-            if (clickX < offsetX || clickY < offsetY) 
+    
+        	if (clickX < offsetX || clickY < offsetY) 
             	return;
             
             
@@ -351,6 +350,8 @@ public class Main extends Application {
             	gameOverlay.getChildren().add(tower.getRangeCircle());
                 gameOverlay.getChildren().add(tower.getNode());
                 Game.addTower(tower);
+                
+                tower.setGridPosition(row, col);
                 placedTowerCells.add(new int[]{row, col});
 
                 tower.getNode().setOnMousePressed(ev -> {
@@ -361,14 +362,39 @@ public class Main extends Application {
 
                 tower.getNode().setOnMouseDragged(ev -> {
                     if (dragging) {
-                        tower.setPosition(ev.getX(), ev.getY());
+                    	tower.setPosition(ev.getX(), ev.getY());
                     }
                 });
 
                 tower.getNode().setOnMouseReleased(ev -> {
-                    dragging = false;
+                	dragging = false;
                     selectedTower = null;
-                    tower.getRangeCircle().setVisible(false);
+                    tower.getRangeCircle().setVisible(false); 
+                    double mouseX = ev.getX();
+                    double mouseY = ev.getY();
+
+                    int col1 = (int)((mouseX - offsetX) / gridUnit);
+                    int row1 = (int)((mouseY - offsetY) / gridUnit);
+
+                    
+                    for (int[] coord : pathCoordinates) {
+                        if (coord[0] == row1 && coord[1] == col1) {
+                            System.out.println("❌ Yola kule bırakılamaz!");
+                            return;
+                        }
+                    }
+
+                    // 🔁 Eski pozisyonu sil
+                    placedTowerCells.removeIf(p -> p[0] == tower.getGridPosition()[0] && p[1] == tower.getGridPosition()[1]);
+
+                    // ✅ Yeni pozisyonu uygula
+                    double centerX = offsetX + col1 * gridUnit + TILE_SIZE / 2;
+                    double centerY = offsetY + row1 * gridUnit + TILE_SIZE / 2;
+
+                    tower.setPosition(centerX, centerY);
+                    tower.setGridPosition(row1, col1);
+                    placedTowerCells.add(new int[]{row1, col1});
+                    
                 });
             }
         });

@@ -13,6 +13,8 @@ public abstract class Tower {
    public boolean selected;
    public Rectangle body;
    public Circle rangeCircle;
+   private int currentRow = -1;
+   private int currentCol = -1;
    
    public Tower() {
 	   
@@ -76,6 +78,15 @@ public abstract class Tower {
 		   return false;
 	   
    }
+   
+   public void setGridPosition(int row, int col) {
+	    this.currentRow = row;
+	    this.currentCol = col;
+	}
+
+	public int[] getGridPosition() {
+	    return new int[]{currentRow, currentCol};
+	}
    
    
    
