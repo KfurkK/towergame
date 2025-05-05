@@ -149,6 +149,8 @@ public class Enemy {
         FadeTransition fadeHealth = new FadeTransition(Duration.millis(300), healthBar);
         fadeHealth.setFromValue(1.0);
         fadeHealth.setToValue(0.0);
+        
+        createExplosionEffect();
 
         // Play animations
         ParallelTransition parallel = new ParallelTransition(fadeCircle, fadeHealth);
@@ -156,6 +158,36 @@ public class Enemy {
         parallel.play();
         
         Main.increaseMoney(10);
+    }
+    
+    private void createExplosionEffect() {
+        for (int i = 0; i < 20; i++) {
+            // Create a small particle circle
+            Circle particle = new Circle(4, Color.RED);
+            particle.setTranslateX(enemyCircle.getTranslateX());
+            particle.setTranslateY(enemyCircle.getTranslateY());
+            gamePane.getChildren().add(particle);
+
+            // Random angle and distance
+            double angle = Math.random() * 2 * Math.PI;
+            double distance = Math.random() * TILE_SIZE; // always inside the pixel (max:45px)
+
+            // Create fade animation
+            FadeTransition fade = new FadeTransition(Duration.millis(500), particle);
+            fade.setFromValue(1.0);
+            fade.setToValue(0.0);
+
+            // Create movement animation
+            javafx.animation.TranslateTransition translate = new javafx.animation.TranslateTransition(Duration.millis(500), particle);
+
+            translate.setByX(Math.cos(angle) * distance);
+            translate.setByY(Math.sin(angle) * distance);
+
+            // Play animations
+            ParallelTransition pt = new ParallelTransition(fade, translate);
+            pt.setOnFinished(e -> gamePane.getChildren().remove(particle));
+            pt.play();
+        }
     }
 
     /**

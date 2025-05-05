@@ -52,8 +52,8 @@ public abstract class Tower {
    public void setPosition(double newX, double newY) {
        this.x = newX;
        this.y = newY;
-       body.setLayoutX(x - 10);
-       body.setLayoutY(y - 10);
+       body.setLayoutX(x - 20 );
+       body.setLayoutY(y - 20 );
        
        rangeCircle.setLayoutX(x);
        rangeCircle.setLayoutY(y);
