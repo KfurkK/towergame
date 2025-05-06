@@ -39,13 +39,11 @@ public class Enemy {
         this.maxHealth = health;
         this.gamePane  = gamePane;
 
-        // 1) Use a PNG sprite instead of a red circle
         Image img = new Image(getClass().getResource("/assets/soldier.png").toExternalForm());
         this.enemyView = new ImageView(img);
         enemyView.setFitWidth(TILE_SIZE * 0.8);
         enemyView.setFitHeight(TILE_SIZE * 0.8);
 
-        // 3) Create health bar and bind it slightly higher above the sprite
         this.healthBar = new Rectangle(TILE_SIZE, 5);
         healthBar.setFill(Color.GREEN);
 
@@ -62,9 +60,6 @@ public class Enemy {
         gamePane.getChildren().addAll(enemyView, healthBar);
     }
 
-    /**
-     * Move the enemy along a path at constant speed (no easing)
-     */
     public void moveAlongPath(ArrayList<int[]> path) {
         Path movementPath = new Path();
 

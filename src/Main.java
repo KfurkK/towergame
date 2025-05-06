@@ -536,7 +536,7 @@ public class Main extends Application {
      * Spawn a single enemy on the path
      */
     private void spawnEnemy() {
-        currentEnemy = new Enemy(100, gameOverlay);
+        currentEnemy = new Enemy(30, gameOverlay); // 100:health
         enemies.add(currentEnemy);
         Game.enemies.add(currentEnemy);
 
