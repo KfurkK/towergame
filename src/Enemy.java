@@ -1,14 +1,18 @@
 import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PathTransition;
+import javafx.animation.TranslateTransition;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+
 import java.util.ArrayList;
 
 /**
@@ -17,184 +21,154 @@ import java.util.ArrayList;
 public class Enemy {
     private int health;
     private final int maxHealth;
-    private final Circle enemyCircle;
+    private final ImageView enemyView;
     private final Rectangle healthBar;
     private final Pane gamePane;
 
-    // Position tracking
-    private double x = 0;
-    private double y = 0;
-
     // Constants
     private static final int TILE_SIZE = 45;
-    private static final double SPACING = 2.5;
+    private static final double SPACING   = 2.5;
 
     /**
      * Create a new enemy
-     * @param health The enemy's health
+     * @param health   The enemy's health
      * @param gamePane The pane to add the enemy to
      */
     public Enemy(int health, Pane gamePane) {
-        this.health = health;
+        this.health    = health;
         this.maxHealth = health;
-        this.gamePane = gamePane;
+        this.gamePane  = gamePane;
 
-        // Create enemy representation
-        this.enemyCircle = new Circle(TILE_SIZE / 5);
-        this.enemyCircle.setFill(Color.RED);
+        Image img = new Image(getClass().getResource("/assets/soldier.png").toExternalForm());
+        this.enemyView = new ImageView(img);
+        enemyView.setFitWidth(TILE_SIZE * 0.8);
+        enemyView.setFitHeight(TILE_SIZE * 0.8);
 
-        // Create health bar above enemy
         this.healthBar = new Rectangle(TILE_SIZE, 5);
-        this.healthBar.setFill(Color.GREEN);
+        healthBar.setFill(Color.GREEN);
 
-        // Position health bar above enemy
         healthBar.translateXProperty().bind(
-                enemyCircle.translateXProperty().subtract(TILE_SIZE / 2.0)
+                enemyView.translateXProperty().subtract((enemyView.getFitWidth() / 2.0)-15)
         );
         healthBar.translateYProperty().bind(
-                enemyCircle.translateYProperty().subtract(enemyCircle.getRadius() + healthBar.getHeight())
+                enemyView.translateYProperty()
+                        .subtract(enemyView.getFitHeight() / 2.0)
+                        .subtract(healthBar.getHeight() + 1)   // lift +5px
         );
 
-        // Add both elements to the game pane
-        gamePane.getChildren().addAll(enemyCircle, healthBar);
+        // Add both to the pane
+        gamePane.getChildren().addAll(enemyView, healthBar);
     }
 
-    /**
-     * Move the enemy along a path
-     * @param path List of coordinates [row, col] representing the path
-     */
     public void moveAlongPath(ArrayList<int[]> path) {
         Path movementPath = new Path();
 
         // Calculate grid positioning
         double gridCenterX = gamePane.getScene().getWidth() / 2;
         double gridCenterY = gamePane.getScene().getHeight() / 2;
-        double gridWidth = (TILE_SIZE + SPACING) * 10 - SPACING;
-        double gridHeight = (TILE_SIZE + SPACING) * 10 - SPACING;
-        double offsetX = gridCenterX - gridWidth / 2;
-        double offsetY = gridCenterY - gridHeight / 2;
+        double gridWidth   = (TILE_SIZE + SPACING) * 10 - SPACING;
+        double gridHeight  = (TILE_SIZE + SPACING) * 10 - SPACING;
+        double offsetX     = gridCenterX - gridWidth  / 2;
+        double offsetY     = gridCenterY - gridHeight / 2;
 
-        // Set initial position
+        // Initial position
         int[] firstPoint = path.get(0);
         double startX = offsetX + firstPoint[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
         double startY = offsetY + firstPoint[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
+        enemyView.setTranslateX(startX);
+        enemyView.setTranslateY(startY);
 
-        this.x = startX;
-        this.y = startY;
-        enemyCircle.setTranslateX(startX);
-        enemyCircle.setTranslateY(startY);
-
-        // Create the path
+        // Build the Path object
         movementPath.getElements().add(new MoveTo(startX, startY));
         for (int i = 1; i < path.size(); i++) {
-            int[] point = path.get(i);
-            double x = offsetX + point[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
-            double y = offsetY + point[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
+            int[] pt = path.get(i);
+            double x = offsetX + pt[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
+            double y = offsetY + pt[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
             movementPath.getElements().add(new LineTo(x, y));
         }
 
-        // Create animation for enemy movement
-        PathTransition circleTransition = new PathTransition();
-        circleTransition.setNode(enemyCircle);
-        circleTransition.setPath(movementPath);
-        circleTransition.setDuration(Duration.seconds(10));
-        circleTransition.setCycleCount(1);
-
-        // Handle end of path
-        circleTransition.setOnFinished(e -> {
-            if (health > 0) {
-                removeFromGame();
-            }
+        // 1) Use a PathTransition with a LINEAR interpolator
+        PathTransition move = new PathTransition();
+        move.setNode(enemyView);
+        move.setPath(movementPath);
+        move.setDuration(Duration.seconds(10));      // total travel time
+        move.setInterpolator(Interpolator.LINEAR);   // constant speed
+        move.setCycleCount(1);
+        move.setOnFinished(e -> {
+            if (health > 0) removeFromGame();
         });
-
-        // Start animation
-        circleTransition.play();
+        move.play();
     }
 
     /**
      * Damage the enemy and update health bar
-     * @param amount Amount of damage to deal
      */
     public void damage(double amount) {
-    	//  System.out.println("🟥 Hasar alındı: -" + amount);
-        this.health -= amount;
-        //  System.out.println("🟨 Kalan can: " + this.health + " / " + this.maxHealth);
+        health -= amount;
+        double percent = (double) health / maxHealth;
+        healthBar.setWidth(TILE_SIZE * percent);
 
-        // Update health bar
-        double healthPercent = (double) this.health / this.maxHealth;
-        healthBar.setWidth(TILE_SIZE * healthPercent);
-
-        // Change health bar color based on remaining health
-        if (healthPercent < 0.3) {
+        if (percent < 0.3) {
             healthBar.setFill(Color.RED);
-        } else if (healthPercent < 0.6) {
+        } else if (percent < 0.6) {
             healthBar.setFill(Color.ORANGE);
         }
 
-        // If health is zero or below, enemy dies
         if (health <= 0) {
             die();
         }
     }
 
     /**
-     * Kill the enemy and play death animation
+     * Play death animation and remove
      */
     private void die() {
-        // Simple fade out animation
-        FadeTransition fadeCircle = new FadeTransition(Duration.millis(300), enemyCircle);
-        fadeCircle.setFromValue(1.0);
-        fadeCircle.setToValue(0.0);
+        FadeTransition fadeSprite = new FadeTransition(Duration.millis(300), enemyView);
+        fadeSprite.setFromValue(1.0);
+        fadeSprite.setToValue(0.0);
 
-        FadeTransition fadeHealth = new FadeTransition(Duration.millis(300), healthBar);
-        fadeHealth.setFromValue(1.0);
-        fadeHealth.setToValue(0.0);
-        
+        FadeTransition fadeBar = new FadeTransition(Duration.millis(300), healthBar);
+        fadeBar.setFromValue(1.0);
+        fadeBar.setToValue(0.0);
+
         createExplosionEffect();
-
-        // Play animations
-        ParallelTransition parallel = new ParallelTransition(fadeCircle, fadeHealth);
-        parallel.setOnFinished(e -> removeFromGame());
-        parallel.play();
-        
         Main.increaseMoney(10);
+
+        ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
+        deathAnim.setOnFinished(e -> removeFromGame());
+        deathAnim.play();
     }
-    
+
+    /**
+     * Simple particle explosion
+     */
     private void createExplosionEffect() {
         for (int i = 0; i < 20; i++) {
-            // Create a small particle circle
-            Circle particle = new Circle(4, Color.RED);
-            particle.setTranslateX(enemyCircle.getTranslateX());
-            particle.setTranslateY(enemyCircle.getTranslateY());
-            gamePane.getChildren().add(particle);
+            javafx.scene.shape.Circle p = new javafx.scene.shape.Circle(3, Color.ORANGE);
+            p.setTranslateX(enemyView.getTranslateX());
+            p.setTranslateY(enemyView.getTranslateY());
+            gamePane.getChildren().add(p);
 
-            // Random angle and distance
-            double angle = Math.random() * 2 * Math.PI;
-            double distance = Math.random() * TILE_SIZE; // always inside the pixel (max:45px)
-
-            // Create fade animation
-            FadeTransition fade = new FadeTransition(Duration.millis(500), particle);
+            FadeTransition fade = new FadeTransition(Duration.millis(500), p);
             fade.setFromValue(1.0);
             fade.setToValue(0.0);
 
-            // Create movement animation
-            javafx.animation.TranslateTransition translate = new javafx.animation.TranslateTransition(Duration.millis(500), particle);
+            TranslateTransition tr = new TranslateTransition(Duration.millis(500), p);
+            double angle    = Math.random() * 2 * Math.PI;
+            double distance = Math.random() * TILE_SIZE;
+            tr.setByX(Math.cos(angle) * distance);
+            tr.setByY(Math.sin(angle) * distance);
 
-            translate.setByX(Math.cos(angle) * distance);
-            translate.setByY(Math.sin(angle) * distance);
-
-            // Play animations
-            ParallelTransition pt = new ParallelTransition(fade, translate);
-            pt.setOnFinished(e -> gamePane.getChildren().remove(particle));
+            ParallelTransition pt = new ParallelTransition(fade, tr);
+            pt.setOnFinished(e -> gamePane.getChildren().remove(p));
             pt.play();
         }
     }
-
     /**
      * Remove enemy from the game
      */
     private void removeFromGame() {
-        gamePane.getChildren().removeAll(enemyCircle, healthBar);
+        gamePane.getChildren().removeAll(enemyView, healthBar);
     }
 
     /**
@@ -207,16 +181,16 @@ public class Enemy {
     /**
      * Get the enemy circle node
      */
-    public Circle getView() {
-        return enemyCircle;
+    public ImageView getView() {
+        return enemyView;
     }
 
     // Position getters
     public double getX() {
-        return enemyCircle.getTranslateX();
+        return enemyView.getTranslateX();
     }
 
     public double getY() {
-    	return enemyCircle.getTranslateY();
+        return enemyView.getTranslateY();
     }
 }

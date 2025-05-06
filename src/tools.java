@@ -44,13 +44,55 @@ public class tools {
 
         return coordinates;
     }
-
+    // 5 enemies, 1 seconds between enemies, 2 seconds delay before start
     public static double[][] getWaveData(int level) {
         if (level == 1) {
-            return new double[][]{{5, 1, 2}, {8, 0.5, 5}, {12, 0.3, 5}};
+            return new double[][] {
+                    {5, 1, 2}, // 4*1 + 2 + 5
+                    {8, 0.5, 5},
+                    {12, 0.3, 5}
+            };
+        } else if (level == 2) {
+            return new double[][] {
+                    {5, 1, 2},
+                    {8, 0.5, 5},
+                    {12, 0.3, 5},
+                    {20, 0.3, 5}
+            };
+        } else if (level == 3) {
+            return new double[][] {
+                    {5, 1, 2},
+                    {8, 0.5, 5},
+                    {12, 0.3, 5},
+                    {20, 0.3, 5},
+                    {25, 0.3, 5}
+            };
+        } else if (level == 4) {
+            return new double[][] {
+                    {5, 1, 2},
+                    {8, 0.5, 5},
+                    {12, 0.3, 5},
+                    {20, 0.3, 5},
+                    {25, 0.3, 5}
+            };
+        } else if (level == 5) {
+            return new double[][] {
+                    {5, 1, 2},
+                    {8, 0.5, 5},
+                    {12, 0.3, 5},
+                    {20, 0.3, 5},
+                    {25, 0.3, 5}
+            };
         }
 
-        return new double[][] {{0, 0, 0}, {0,0,0}, {0,0,0}};
+        // Default return for undefined levels
+        return new double[][] {
+                {0, 0, 0},
+                {0, 0, 0},
+                {0, 0, 0}
+        };
     }
 
+
 }
+
