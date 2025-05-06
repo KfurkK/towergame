@@ -1,38 +1,41 @@
 import java.util.List;
 
+import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
 public class Missile {
-	public double x, y;
-	public Enemy target;
-	public double speed = 2.0;
-	public int damage = 30;
-	public double effectRadius;
-	public boolean active = true;
-	public Circle shape;
-	
-	public Missile(double x, double y, Enemy target, int damage, double effectRadius) {
+    public double x, y;
+    public Enemy target;
+    public double speed = 2.0;
+    public int damage = 30;
+    public double effectRadius;
+    public boolean active = true;
+    public Circle shape;
+
+    public Missile(double x, double y, Enemy target, int damage, double effectRadius) {
         this.x = x;
         this.y = y;
         this.target = target;
         this.damage = damage;
         this.effectRadius = effectRadius;
-        shape = new Circle(7, Color.ORANGERED);
+        shape = new Circle(8, Color.ORANGE);
+        shape.setStroke(Color.RED);
+        shape.setStrokeWidth(2);
         shape.setLayoutX(x);
         shape.setLayoutY(y);
 
-        
+
     }
-	
-	public boolean isActive() {
+
+    public boolean isActive() {
         return active;
     }
-	
-	
-	public void update(List<Enemy> enemies) {
-        if (!active || !target.isAlive()) return;
+
+
+    public void update(List<Enemy> enemies) {
+        if (!active || target == null || !target.isAlive()) return;
 
         double dx = target.getX() - x;
         double dy = target.getY() - y;
@@ -43,17 +46,18 @@ public class Missile {
             explode(enemies);
             active = false;
             shape.setVisible(false);
+
             return;
         }
 
-        
+
         x += dx / enemyDistance * speed;
         y += dy / enemyDistance * speed;
         shape.setLayoutX(x);
         shape.setLayoutY(y);
     }
-	
-	private void explode(List<Enemy> enemies) {
+
+    private void explode(List<Enemy> enemies) {
         for (Enemy e : enemies) {
             if (e.isAlive()) {
                 double dist = Math.sqrt((e.getX() - x) * (e.getX() - x) + (e.getY() - y) * (e.getY() - y) );
@@ -63,13 +67,13 @@ public class Missile {
             }
         }
 
-        
-    }
-	 public Circle getNode() {
-	        return shape;
-	    }
-	  
 
-	
-	
+    }
+    public Node getNode() {
+        return shape;
+    }
+
+
+
+
 }

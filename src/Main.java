@@ -2,6 +2,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import javafx.animation.Animation;
+import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.ParallelTransition;
@@ -36,6 +37,12 @@ public class Main extends Application {
     };
     private static final Color PATH_COLOR = Color.web("FBEBE0");
     private final ArrayList<Animation> transitions = new ArrayList<>();
+    private final ArrayList<int[]> placedTowerCells = new ArrayList<>();
+
+    // Grid positioning variables
+    private double offsetX;
+    private double offsetY;
+    private final double gridUnit = TILE_SIZE + SPACING;
 
     // Game state variables
     private static int money = 100;
@@ -59,6 +66,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Button startButton = getStartButton();
+        Game.root = new Pane();
 
         StackPane root = new StackPane();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
@@ -72,6 +80,15 @@ public class Main extends Application {
         primaryStage.setTitle("Tower Defense Game");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        // Set up game loop
+        AnimationTimer gameLoop = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                Game.update();
+            }
+        };
+        gameLoop.start();
 
         startButton.setOnAction(e -> {
             primaryStage.setScene(gameScene);
@@ -119,22 +136,35 @@ public class Main extends Application {
      */
     private void scheduleWaves(int level) {
         double[][] waveData = tools.getWaveData(level);
-        int waveCount = waveData.length;
-        int delay = 2;
-        for (double[] wave : waveData) {
-            int count = (int) wave[0];       // number of enemies
-            double spawnRate = wave[1];   // rate between each enemy
-            double buffer = wave[2];      // extra time before next wave
 
-            Timeline waveTimeline = new Timeline();
-            waveTimeline.getKeyFrames().add(new KeyFrame(Duration.seconds(delay), e -> {
-                spawnWave(count, spawnRate);
-            }));
-            waveTimeline.play();
+        Timeline master = new Timeline();
+        double delay = 2.0;  // initial delay before Wave 1
 
-            // Update delay for the next wave
-            delay += count * spawnRate + buffer;
+        for (int i = 0; i < waveData.length; i++) {
+            int    count = (int) waveData[i][0];
+            double rate  = waveData[i][1];
+
+            // schedule this wave at absolute time "delay"
+            master.getKeyFrames().add(
+                    new KeyFrame(
+                            Duration.seconds(delay),
+                            e -> spawnWave(count, rate)
+                    )
+            );
+
+            // compute when this wave's last enemy spawns
+            double end = delay + (count - 1) * rate;
+
+            // use the **next** wave's buffer value (or 0 if last wave)
+            double buffer = (i + 1 < waveData.length)
+                    ? waveData[i + 1][2]
+                    : 0;
+
+            delay = end + buffer;
+            System.out.printf("Next wave scheduled at t=%.3fs%n", delay);
         }
+
+        master.play();
     }
 
     /**
@@ -175,7 +205,8 @@ public class Main extends Application {
      * Create the main game scene
      */
     private Scene getGameScene(StackPane gameRoot) throws FileNotFoundException {
-        // Load path coordinates
+        // Load path coordinates - use appropriate path based on your file structure
+        // Use a relative path or allow path to be configurable
         pathCoordinates = tools.readCoordinates("C:\\Users\\kamil\\IdeaProjects\\towergame\\src\\levels\\level1.txt");
 
         // Update debug label with path info
@@ -197,6 +228,14 @@ public class Main extends Application {
         gameOverlay.getChildren().add(hud);
         gameRoot.getChildren().add(grid);
         gameRoot.getChildren().add(gameOverlay);
+        Game.gameOverlay = gameOverlay;
+
+        // Calculate grid dimensions for proper tower placement
+        double gridWidth = gridUnit * GRID_SIZE - SPACING;
+        double gridHeight = gridUnit * GRID_SIZE - SPACING;
+
+        offsetX = (WIDTH - gridWidth) / 2;
+        offsetY = (HEIGHT - gridHeight) / 2;
 
         // Setup tower placement on click
         setupTowerPlacement();
@@ -326,32 +365,132 @@ public class Main extends Application {
      */
     private void setupTowerPlacement() {
         gameOverlay.setOnMouseClicked(e -> {
+            double clickX = e.getX();
+            double clickY = e.getY();
+
+            // Prevent tower placement in HUD area
+            if (clickX >= 1520)
+                return;
+
+            // Prevent tower placement outside grid
+            if (clickX < offsetX || clickY < offsetY)
+                return;
+
+            // Convert click coordinates to grid position
+            int col = (int)((clickX - offsetX) / gridUnit);
+            int row = (int)((clickY - offsetY) / gridUnit);
+
+            // Check if grid position is valid
+            if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
+                return;
+            }
+
+            // Check if path tile
+            for (int[] coord : pathCoordinates) {
+                if (coord[0] == row && coord[1] == col) {
+                    return;
+                }
+            }
+
+            // Check if tower already placed
+            for (int[] placed : placedTowerCells) {
+                if (placed[0] == row && placed[1] == col) {
+                    return;
+                }
+            }
+
+            // Calculate center of grid cell for tower placement
+            double cellCenterX = offsetX + col * gridUnit + TILE_SIZE / 2;
+            double cellCenterY = offsetY + row * gridUnit + TILE_SIZE / 2;
+
+            // Create tower based on selected type
             Tower tower = switch (selectedTowerType) {
-                case 1 -> new SingleShotTower(e.getX(), e.getY());
-                case 2 -> new LaserTower(e.getX(), e.getY());
-                case 3 -> new TripleShotTower(e.getX(), e.getY());
-                case 4 -> new MissileLauncherTower(e.getX(), e.getY());
+                case 1 -> new SingleShotTower(cellCenterX, cellCenterY);
+                case 2 -> new LaserTower(cellCenterX, cellCenterY);
+                case 3 -> new TripleShotTower(cellCenterX, cellCenterY);
+                case 4 -> new MissileLauncherTower(cellCenterX, cellCenterY);
                 default -> null;
             };
 
             if (tower != null) {
+                // Check if player has enough money
+                if (money < tower.getPrice()) {
+                    return;
+                }
+
+                // Deduct tower cost
+                decreaseMoney(tower.getPrice());
+
+                // Add tower to game
+                gameOverlay.getChildren().add(tower.getRangeCircle());
                 gameOverlay.getChildren().add(tower.getNode());
                 Game.addTower(tower);
 
+                // Set tower grid position
+                tower.setGridPosition(row, col);
+                placedTowerCells.add(new int[]{row, col});
+
+                // Handle tower selection and right-click to sell
                 tower.getNode().setOnMousePressed(ev -> {
+                    if (ev.isSecondaryButtonDown()) {
+                        // Sell tower on right-click
+                        increaseMoney(tower.getPrice());
+
+                        // Remove tower from display
+                        gameOverlay.getChildren().removeAll(tower.getNode(), tower.getRangeCircle());
+
+                        // Remove tower from grid tracking
+                        int[] gridPos = tower.getGridPosition();
+                        placedTowerCells.removeIf(p -> p[0] == gridPos[0] && p[1] == gridPos[1]);
+
+                        // Remove tower from game logic
+                        Game.removeTower(tower);
+
+                        return;
+                    }
+
+                    // Select tower and show range
                     selectedTower = tower;
                     dragging = true;
+                    tower.getRangeCircle().setVisible(true);
                 });
 
+                // Handle tower dragging
                 tower.getNode().setOnMouseDragged(ev -> {
                     if (dragging) {
                         tower.setPosition(ev.getX(), ev.getY());
                     }
                 });
 
+                // Handle tower placement after drag
                 tower.getNode().setOnMouseReleased(ev -> {
                     dragging = false;
                     selectedTower = null;
+                    tower.getRangeCircle().setVisible(false);
+
+                    double mouseX = ev.getX();
+                    double mouseY = ev.getY();
+
+                    int col1 = (int)((mouseX - offsetX) / gridUnit);
+                    int row1 = (int)((mouseY - offsetY) / gridUnit);
+
+                    // Check if new position is on path
+                    for (int[] coord : pathCoordinates) {
+                        if (coord[0] == row1 && coord[1] == col1) {
+                            return;
+                        }
+                    }
+
+                    // Remove old position from tracking
+                    placedTowerCells.removeIf(p -> p[0] == tower.getGridPosition()[0] && p[1] == tower.getGridPosition()[1]);
+
+                    // Apply new position
+                    double centerX = offsetX + col1 * gridUnit + TILE_SIZE / 2;
+                    double centerY = offsetY + row1 * gridUnit + TILE_SIZE / 2;
+
+                    tower.setPosition(centerX, centerY);
+                    tower.setGridPosition(row1, col1);
+                    placedTowerCells.add(new int[]{row1, col1});
                 });
             }
         });
@@ -365,15 +504,9 @@ public class Main extends Application {
             throw new Exception("Got empty coordinates!");
         }
 
-        // Get center position of the grid in the scene
-        double gridCenterX = gameOverlay.getScene().getWidth() / 2;
-        double gridCenterY = gameOverlay.getScene().getHeight() / 2;
-
-        // Calculate grid offset (to center it)
+        // Calculate grid dimensions
         double gridWidth = (TILE_SIZE + SPACING) * GRID_SIZE - SPACING;
         double gridHeight = (TILE_SIZE + SPACING) * GRID_SIZE - SPACING;
-        double offsetX = gridCenterX - gridWidth / 2;
-        double offsetY = gridCenterY - gridHeight / 2;
 
         // Create a circle at each path point
         for (int i = 0; i < pathCoordinates.size(); i++) {
@@ -405,6 +538,7 @@ public class Main extends Application {
     private void spawnEnemy() {
         currentEnemy = new Enemy(100, gameOverlay);
         enemies.add(currentEnemy);
+        Game.enemies.add(currentEnemy);
 
         // Start enemy movement along the path
         currentEnemy.moveAlongPath(pathCoordinates);
@@ -435,8 +569,16 @@ public class Main extends Application {
     /**
      * Static method to increase player money
      */
-    public static void increaseMoney(int amount) {
+    public static void increaseMoney(double amount) {
         money += amount;
+        moneyLabel.setText("Money: $" + money);
+    }
+
+    /**
+     * Static method to decrease player money
+     */
+    public static void decreaseMoney(double amount) {
+        money -= amount;
         moneyLabel.setText("Money: $" + money);
     }
 

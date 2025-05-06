@@ -1,20 +1,21 @@
 
 
+import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
 public class Bullet {
-	public double x,y;
-	public Enemy target;
-	public double speed = 5.0 ; // Sonra dolduralım.
-	public int damage = 10;
-	public boolean active = true;
-	public Circle shape;
+    public double x,y;
+    public Enemy target;
+    public double speed = 5.0 ; // Sonra dolduralım.
+    public int damage = 10;
+    public boolean active = true;
+    public Circle shape;
 
-	
-	
-	public Bullet(double x, double y, Enemy target, int damage) {
+
+
+    public Bullet(double x, double y, Enemy target, int damage) {
         this.x = x;
         this.y = y;
         this.target = target;
@@ -22,36 +23,46 @@ public class Bullet {
         shape = new Circle(5, Color.BLACK);
         shape.setLayoutX(x);
         shape.setLayoutY(y);
+
+
     }
-	
-	public boolean isActive() {
-		return true;
-	}
-	
-	public void update() {
-		double dx = target.getX() - x;
+
+    public boolean isActive() {
+        return true;
+    }
+
+    public void update() {
+        if (!active || target == null || !target.isAlive()) {
+            shape.setVisible(false);
+            return;
+        }
+        double dx = target.getX() - x;
         double dy = target.getY() - y;
         double enemyDistance = Math.sqrt(dx * dx + dy * dy);
-		
-        if (!active || target.isAlive()) {
-			return;
-		}
-        
+
+        if (!active || !target.isAlive()) {
+            active = false;
+            shape.setVisible(false);
+            return;
+        }
+
         if (enemyDistance < 5) {
+
             target.damage(damage);
             active = false;
             shape.setVisible(false);
+            Game.gameOverlay.getChildren().remove(shape);
             return;
         }
         x += dx / enemyDistance * speed;
         y += dy / enemyDistance * speed;
         shape.setLayoutX(x);
         shape.setLayoutY(y);
-        }
-	 
-	public Circle getNode() {
-	        return shape;
-	    }
-	
-	  
+    }
+
+    public Node getNode() {
+        return shape;
+    }
+
+
 }
