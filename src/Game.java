@@ -120,6 +120,7 @@ public class Game {
         missiles.clear();
         money = 100;
         lives = 5;
+        
     }
 
 

@@ -1,4 +1,6 @@
 import java.util.List;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
@@ -12,7 +14,9 @@ public class Missile {
     public int damage = 30;
     public double effectRadius;
     public boolean active = true;
-    public Circle shape;
+    public ImageView shape;
+    private static final Image MISSILE_IMG =
+            new Image(Missile.class.getResource("/assets/bullets/missile.png").toExternalForm());
 
     public Missile(double x, double y, Enemy target, int damage, double effectRadius) {
         this.x = x;
@@ -20,11 +24,13 @@ public class Missile {
         this.target = target;
         this.damage = damage;
         this.effectRadius = effectRadius;
-        shape = new Circle(8, Color.ORANGE);
-        shape.setStroke(Color.RED);
-        shape.setStrokeWidth(2);
-        shape.setLayoutX(x);
-        shape.setLayoutY(y);
+        shape = new ImageView(MISSILE_IMG);
+        double size = 20;
+        shape.setFitWidth(size);
+        shape.setFitHeight(size);
+        shape.setPreserveRatio(true);
+        shape.setLayoutX(x - size/2);
+        shape.setLayoutY(y - size/2);
 
 
     }
@@ -51,6 +57,9 @@ public class Missile {
         double dx = target.getX() - x;
         double dy = target.getY() - y;
         double enemyDistance = Math.sqrt((dx * dx) +  (dy * dy));
+        
+        double angleDeg = Math.toDegrees(Math.atan2(dy, dx));
+        shape.setRotate(angleDeg );
 
         // Hedefe ulaştıysa → patla
         if (enemyDistance < 5) {
@@ -65,8 +74,10 @@ public class Missile {
 
         x += dx / enemyDistance * speed;
         y += dy / enemyDistance * speed;
-        shape.setLayoutX(x);
-        shape.setLayoutY(y);
+        double w = shape.getFitWidth();
+        double h = shape.getFitHeight();
+        shape.setLayoutX(x - w/2);
+        shape.setLayoutY(y - h/2);
     }
 
     private void explode(List<Enemy> enemies) {

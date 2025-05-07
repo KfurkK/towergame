@@ -12,7 +12,7 @@ public abstract class Tower {
     public double price; // kule fiyatı
     public Enemy target;
     public boolean selected;
-    protected Node body;
+    public Node body;
 
     public Circle rangeCircle;
     private int currentRow = -1;
