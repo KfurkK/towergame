@@ -84,7 +84,7 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         
-        loseButton.setOnAction(we ->{
+        getloseButton().setOnAction(we ->{
         	
         	primaryStage.setScene(scene);
         	
@@ -117,7 +117,7 @@ public class Main extends Application {
         }
     public void resetGame() {
     	Game.root.getChildren().clear();
-        Game.towers.remove(Tower);
+        Game.towers.clear();
         Game.enemies.clear();
         Game.bullets.clear();
         Game.missiles.clear();//towerlear silinmiyo
