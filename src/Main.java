@@ -30,9 +30,11 @@ import javafx.util.Duration;
  * Main game application class
  */
 public class Main extends Application {
+	private static Stage mainStage;
+	private static Button loseButton;
 	public boolean draggingTower = false;
-    private final int WIDTH = 1920;
-    private final int HEIGHT = 1080;
+    private final static int WIDTH = 1920;
+    private final static int HEIGHT = 1080;
     private static final int GRID_SIZE = 10;
     private static final int TILE_SIZE = 45;
     private static final double SPACING = 2.5; // Grid spacing
@@ -40,7 +42,7 @@ public class Main extends Application {
             Color.web("FFCF50"), Color.web("FBC518")
     };
     private static final Color PATH_COLOR = Color.web("FBEBE0");
-    private final ArrayList<Animation> transitions = new ArrayList<>();
+    private final static ArrayList<Animation> transitions = new ArrayList<>();
     private final ArrayList<int[]> placedTowerCells = new ArrayList<>();
 
     // Grid positioning variables
@@ -69,6 +71,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+    	mainStage=primaryStage;
         Button startButton = getStartButton();
         Game.root = new Pane();
 
@@ -84,6 +87,13 @@ public class Main extends Application {
         primaryStage.setTitle("Tower Defense Game");
         primaryStage.setScene(scene);
         primaryStage.show();
+        
+        getloseButton().setOnAction(we ->{
+        	
+        	primaryStage.setScene(scene);
+        	resetGame();
+			
+        });
 
         // Set up game loop
         AnimationTimer gameLoop = new AnimationTimer() {
@@ -245,6 +255,26 @@ public class Main extends Application {
         setupTowerPlacement();
 
         return gameScene;
+    }
+    
+private static void goEndScene() {
+    	
+    	StackPane endRoot=new StackPane();
+    	Scene endScene=new Scene(endRoot,WIDTH,HEIGHT);
+    	Label endLabel=new Label("GAME OVER! ");
+    	endLabel.setStyle("-fx-font-size: 24px;");
+    	VBox bL=new VBox(20);//ButtonAndLabel
+    	 bL.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
+         bL.setPrefWidth(240);
+         bL.setAlignment(Pos.CENTER);
+         bL.getChildren().addAll(endLabel,getloseButton());
+        
+    	
+    	endRoot.getChildren().addAll(bL);
+    	endRoot.setStyle("-fx-background-color: #FFF6DA;");;
+    	
+        mainStage.setScene(endScene);
+    	
     }
 
     /**
@@ -815,13 +845,13 @@ public class Main extends Application {
     /**
      * Static method to decrease player lives
      */
-    public static void decreaseLives(int amount) {
-        lives -= amount;
+    public static void decreaseLives() {
+        lives --;
         livesLabel.setText("Lives: " + lives);
 
         // Game over condition
         if (lives <= 0) {
-            System.out.println("Game Over!");
+        	goEndScene();
         }
     }
 
@@ -898,8 +928,15 @@ public class Main extends Application {
         
         money = 100;
         lives = 5;
+        if(Main.transitions != null ) {
+        	Main.transitions.forEach(Animation::stop);
+        }
+        if (moneyLabel != null) {
         moneyLabel.setText("Money: $" + money);
+        }
+        if (livesLabel != null) {
         livesLabel.setText("Lives: " + lives);
+        }
 
         
         
@@ -907,5 +944,21 @@ public class Main extends Application {
 
     public static void main(String[] args) throws FileNotFoundException {
         launch(args);
+    }
+    
+    private static Button getloseButton() {
+    	if(loseButton==null) {
+        loseButton = new Button("Back to Main Menu");
+    	}
+        loseButton.setPrefWidth(400);
+        loseButton.setPrefHeight(150);
+        loseButton.setStyle(
+                "-fx-font-size: 32px;" +
+                        "-fx-background-color: #c29b57;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-background-radius: 40;" +
+                        "-fx-border-radius: 40;"
+        );
+        return loseButton;
     }
 }

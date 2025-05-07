@@ -95,7 +95,10 @@ public class Enemy {
         move.setInterpolator(Interpolator.LINEAR);   // constant speed
         move.setCycleCount(1);
         move.setOnFinished(e -> {
-            if (health > 0) removeFromGame();
+            if (health > 0) { 
+            	removeFromGame();
+            Main.decreaseLives();
+            	}
         });
         move.play();
     }
