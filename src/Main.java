@@ -458,7 +458,7 @@ public class Main extends Application {
                 // Handle tower dragging
                 tower.getNode().setOnMouseDragged(ev -> {
                     if (dragging) {
-                        tower.setPosition(ev.getX(), ev.getY());
+                    	tower.setPosition(ev.getSceneX(), ev.getSceneY());
                     }
                 });
 
@@ -468,8 +468,8 @@ public class Main extends Application {
                     selectedTower = null;
                     tower.getRangeCircle().setVisible(false);
 
-                    double mouseX = ev.getX();
-                    double mouseY = ev.getY();
+                    double mouseX = ev.getSceneX();
+                    double mouseY = ev.getSceneY();
 
                     int col1 = (int)((mouseX - offsetX) / gridUnit);
                     int row1 = (int)((mouseY - offsetY) / gridUnit);
