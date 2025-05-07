@@ -1,7 +1,10 @@
 
 
 import javafx.scene.Node;
+
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
@@ -11,7 +14,9 @@ public class Bullet {
     public double speed = 5.0 ; // Sonra dolduralım.
     public int damage = 10;
     public boolean active = true;
-    public Circle shape;
+    public ImageView shape;
+    private static final Image BULLET_IMG =
+    	    new Image(Bullet.class.getResource("/assets/bullets/cannonball.png").toExternalForm());
 
 
 
@@ -20,9 +25,15 @@ public class Bullet {
         this.y = y;
         this.target = target;
         this.damage = damage;
-        shape = new Circle(5, Color.BLACK);
-        shape.setLayoutX(x);
-        shape.setLayoutY(y);
+        shape = new ImageView(BULLET_IMG);
+        double diameter = 20;
+        
+        shape.setFitWidth(diameter);
+        shape.setFitHeight(diameter);
+        shape.setPreserveRatio(true);
+        
+        shape.setLayoutX(x - diameter/2);
+        shape.setLayoutY(y - diameter/2);
 
 
     }
