@@ -109,19 +109,22 @@ public class Game {
         bullets.remove(b); // logic'ten sil
         gameOverlay.getChildren().remove(b.getNode());
     }
-
-
-
-
-    public void resetGame() {
-        towers.clear();
-        enemies.clear();
-        bullets.clear();
-        missiles.clear();
-        money = 100;
-        lives = 5;
-        
+    
+    public static List<Tower> getTowers() {
+        return towers;
     }
+    
+    public static List<Bullet> getBullets() {
+        return bullets;
+    }
+
+    public static List<Missile> getMissiles() {
+        return missiles;
+    }
+
+
+
+    
 
 
 

@@ -193,4 +193,10 @@ public class Enemy {
     public double getY() {
         return enemyView.getTranslateY();
     }
+    
+    public Rectangle getHealthBar() {
+        return healthBar;
+    }
+    
+    
 }

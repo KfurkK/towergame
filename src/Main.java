@@ -857,6 +857,53 @@ public class Main extends Application {
         );
         return startButton;
     }
+    
+    public void resetGame() {
+        
+
+        
+        for (Enemy e : enemies) {
+            gameOverlay.getChildren().remove(e.getView());
+            gameOverlay.getChildren().remove(e.getHealthBar());
+        }
+        
+        Game.enemies.clear();
+
+        
+        for (Tower t : Game.getTowers()) {   
+            gameOverlay.getChildren().remove(t.getNode());
+            gameOverlay.getChildren().remove(t.getRangeCircle());
+        }
+        Game.getTowers().clear();
+
+        
+        for (Bullet b : Game.getBullets()) {
+            gameOverlay.getChildren().remove(b.getNode());
+        }
+        Game.getBullets().clear();
+
+        
+        for (Missile m : Game.getMissiles()) {
+            gameOverlay.getChildren().remove(m.getNode());
+        }
+        Game.getMissiles().clear();
+
+        
+        placedTowerCells.clear();
+
+        
+        enemies.clear();   // Main.enemies
+        
+
+        
+        money = 100;
+        lives = 5;
+        moneyLabel.setText("Money: $" + money);
+        livesLabel.setText("Lives: " + lives);
+
+        
+        
+    }
 
     public static void main(String[] args) throws FileNotFoundException {
         launch(args);
