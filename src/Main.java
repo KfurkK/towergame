@@ -383,7 +383,7 @@ public class Main extends Application {
         hud.setAlignment(Pos.CENTER);
 
         // Tower selection buttons
-        Image singleShotImage = new Image("/assets/singleShotTower.png");
+        Image singleShotImage = new Image("/assets/towers/singleshottower.png");
         ImageView image=new ImageView(singleShotImage);
         image.setFitWidth(30);
 		image.setFitHeight(30);
@@ -396,7 +396,7 @@ public class Main extends Application {
         singleShot.setGraphic(vbox1); 
         
         
-        Image laserImage = new Image("/assets/LaserTower.png");
+        Image laserImage = new Image("/assets/towers/lasertower.png");
         ImageView image2=new ImageView(laserImage);
         image2.setFitWidth(30);
 		image2.setFitHeight(30);
@@ -409,8 +409,9 @@ public class Main extends Application {
         laser.setGraphic(vbox2);
         
         
-        Image TripleShotImage = new Image("/assets/towers/lasertower.png");
-        ImageView image3=new ImageView(laserImage);
+        Image TripleShotImage = new Image("/assets/towers/tripleshottower.png");
+        ImageView image3=new ImageView(TripleShotImage);
+        
         image3.setFitWidth(30);
 		image3.setFitHeight(30);
         VBox vbox3 = new VBox();
@@ -421,12 +422,15 @@ public class Main extends Application {
         Button tripleShot = new Button();
         tripleShot.setGraphic(vbox3);
 
-        
+        Image MissileTowerImage = new Image("/assets/towers/missilelaunchtower.png");
+        ImageView image4=new ImageView(MissileTowerImage);
         VBox vbox4= new VBox();
+        image4.setFitWidth(30);
+		image4.setFitHeight(30);
         vbox4.setAlignment(Pos.CENTER);
         Label label7 = new Label("Missile Launcher Tower");
         Label label8 = new Label("200$");
-        vbox4.getChildren().addAll(label7, label8);
+        vbox4.getChildren().addAll(image4,label7, label8);
         Button missile= new Button();
         missile.setGraphic(vbox4);
         
