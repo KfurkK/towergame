@@ -12,6 +12,8 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -22,6 +24,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
 import javafx.util.Duration;
+
 
 /**
  * Main game application class
@@ -328,12 +331,60 @@ public class Main extends Application {
         hud.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
         hud.setPrefWidth(240);
         hud.setAlignment(Pos.CENTER);
+        
+        Image singleShotImage = new Image("/assets/towers/singleshottower.png");
+        ImageView image=new ImageView(singleShotImage);
+        image.setFitWidth(30);
+		image.setFitHeight(30);
+        VBox vbox1 = new VBox();
+        vbox1.setAlignment(Pos.CENTER);
+        Label label1 = new Label("Single Shot Tower");
+        Label label2 = new Label("50$");
+        vbox1.getChildren().addAll(image,label1, label2);
+        Button singleShot = new Button();
+        singleShot.setGraphic(vbox1); 
+        
+        
+        Image laserImage = new Image("/assets/towers/lasertower.png");
+        ImageView image2=new ImageView(laserImage);
+        image2.setFitWidth(30);
+		image2.setFitHeight(30);
+        VBox vbox2= new VBox(5);
+        vbox2.setAlignment(Pos.CENTER);
+        Label label3 = new Label("Laser Tower");
+        Label label4 = new Label("120$");
+        vbox2.getChildren().addAll(image2,label3, label4);
+        Button laser= new Button();
+        laser.setGraphic(vbox2);
+        
+        
+        Image TripleShotImage = new Image("/assets/towers/tripleshottower.png");
+        ImageView image3=new ImageView(TripleShotImage);
+        
+        image3.setFitWidth(30);
+		image3.setFitHeight(30);
+        VBox vbox3 = new VBox();
+        vbox3.setAlignment(Pos.CENTER);
+        Label label5 = new Label("Triple Shot Tower");
+        Label label6 = new Label("150$");
+        vbox3.getChildren().addAll(image3,label5, label6);
+        Button tripleShot = new Button();
+        tripleShot.setGraphic(vbox3);
 
-        // Tower selection buttons
-        Button singleShot = new Button("Single Shot Tower - 50$");
-        Button laser = new Button("Laser Tower - 120$");
-        Button tripleShot = new Button("Triple Shot Tower - 150$");
-        Button missile = new Button("Missile Launcher Tower - 200$");
+        Image MissileTowerImage = new Image("/assets/towers/missilelaunchtower.png");
+        ImageView image4=new ImageView(MissileTowerImage);
+        VBox vbox4= new VBox();
+        image4.setFitWidth(30);
+		image4.setFitHeight(30);
+        vbox4.setAlignment(Pos.CENTER);
+        Label label7 = new Label("Missile Launcher Tower");
+        Label label8 = new Label("200$");
+        vbox4.getChildren().addAll(image4,label7, label8);
+        Button missile= new Button();
+        missile.setGraphic(vbox4);
+
+        
+        
 
         singleShot.setOnAction(e -> {
             selectedTowerType = 1;
@@ -370,6 +421,7 @@ public class Main extends Application {
         });
 
         for (Button b : new Button[]{singleShot, laser, tripleShot, missile}) {
+        	b.setFocusTraversable(false);
             b.setPrefWidth(150);
             b.setPrefHeight(90);
             b.setStyle(
