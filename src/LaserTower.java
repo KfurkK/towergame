@@ -16,7 +16,7 @@ public class LaserTower extends Tower{
 	private List<Line> laserBeams = new ArrayList<>();
 
 	public LaserTower(double x, double y) {
-		super(x,y,100,120, Color.RED);  // 120$
+		super(x,y,100,120, Color.ORANGERED);  // 120$
 
 		Image img = new Image("assets/towers/lasertower.png");
 		ImageView imageView = new ImageView(img);
@@ -57,7 +57,7 @@ public class LaserTower extends Tower{
 					targetTimers.put(e, instanceTime * 1.0);
 				}
 				Line beam = new Line(x, y, e.getX(), e.getY());
-				beam.setStroke(Color.RED);
+				beam.setStroke(Color.ORANGE);
 				beam.setStrokeWidth(2);
 				beam.setOpacity(0.7);
 
