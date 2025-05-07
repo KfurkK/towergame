@@ -504,6 +504,29 @@ private static void goEndScene() {
                 int row = (int)((clickY - offsetY) / gridUnit);
                 // (istersen path ve placedTowerCells kontrolü yap)
                 
+                boolean invalid = false;
+                if (clickX < offsetX || clickY < offsetY
+                 || col < 0 || col >= GRID_SIZE || row < 0 || row >= GRID_SIZE) {
+                    invalid = true;
+                }
+                for (int[] p : pathCoordinates) {
+                    if (p[0]==row && p[1]==col) { invalid = true; break; }
+                }
+                
+                for (int[] p : placedTowerCells) {
+                    if (p[0]==row && p[1]==col) { invalid = true; break; }
+                }
+                if (invalid) {
+                    // Preview’u sahneden kaldır
+                    gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
+                    gameOverlay.getChildren().remove(selectedTower.getNode());
+                    // Dragging bitir
+                    draggingTower = false;
+                    selectedTower = null;
+                    selectedTowerType = 0;
+                    return;
+                }
+                
                 
                 if (clickX >= 1520)
                     return;
@@ -587,14 +610,14 @@ private static void goEndScene() {
                         
 
                         // 4) Geçersiz mi kontrol et?
-                        boolean invalid = false;
+                        boolean invalid1 = false;
                         if (row1 < 0 || row1 >= GRID_SIZE || col1 < 0 || col1 >= GRID_SIZE) {
-                            invalid = true; // grid dışı
+                            invalid1 = true; // grid dışı
                         }
                         // yol hücresi mi?
                         for (int[] p : pathCoordinates) {
                             if (p[0] == row1 && p[1] == col1) {
-                                invalid = true;
+                                invalid1 = true;
                                 break;
                             }
                         }
@@ -603,12 +626,12 @@ private static void goEndScene() {
                             if (p[0] == row1 && p[1] == col1
                              && !(p[0] == placed.getGridPosition()[0]
                                && p[1] == placed.getGridPosition()[1])) {
-                                invalid = true;
+                                invalid1 = true;
                                 break;
                             }
                         }
 
-                        if (invalid) {
+                        if (invalid1) {
                             // 5a) Hatalıysa geri eski hücresine dön
                             double origX = offsetX
                                          + placed.getGridPosition()[1] * gridUnit
