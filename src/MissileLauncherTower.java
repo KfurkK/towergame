@@ -7,7 +7,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
-public class MissileLauncherTower extends Tower{
+public class MissileLauncherTower extends Tower {
 	public long lastShotTime = 0;
 	public long shootInterval = 600; // 2 saniye
 	public int missileDamage = 100;
@@ -26,7 +26,6 @@ public class MissileLauncherTower extends Tower{
 		this.body = imageView;
 	}
 
-
 	public void update(List<Enemy> enemies) {
 		long instanceTime = System.currentTimeMillis();
 		if (instanceTime - lastShotTime >= shootInterval) {
@@ -44,7 +43,7 @@ public class MissileLauncherTower extends Tower{
 		double minDistance = Double.MAX_VALUE;
 		for (Enemy e : enemies) {
 			if (isRange(e) && e.isAlive()) {
-				double enemyDistance = Math.sqrt((e.getX() - x ) * (e.getX() - x ) + (e.getY() - y)* (e.getY() - y));
+				double enemyDistance = Math.sqrt((e.getX() - x) * (e.getX() - x) + (e.getY() - y) * (e.getY() - y));
 				if (enemyDistance <= minDistance) {
 					minDistance = enemyDistance;
 					closest = e;
@@ -53,12 +52,5 @@ public class MissileLauncherTower extends Tower{
 		}
 		return closest;
 	}
-
-
-
-
-
-
-
 
 }

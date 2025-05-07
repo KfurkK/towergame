@@ -9,14 +9,14 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
-public class LaserTower extends Tower{
-	double damagePerSecond = 10.0;
+public class LaserTower extends Tower {
+	double damagePerSecond = 1.0;
 	Map<Enemy, Double> targetTimers = new HashMap<>();
 	public Line laserBeam = new Line();
 	private List<Line> laserBeams = new ArrayList<>();
 
 	public LaserTower(double x, double y) {
-		super(x,y,100,120, Color.ORANGERED);  // 120$
+		super(x, y, 100, 120, Color.ORANGERED); // 120$
 
 		Image img = new Image("assets/towers/lasertower.png");
 		ImageView imageView = new ImageView(img);
@@ -26,16 +26,12 @@ public class LaserTower extends Tower{
 		imageView.setLayoutY(y - 20);
 		imageView.setPickOnBounds(true);
 
-
-
 		this.body = imageView;
 	}
 
 	@Override
 	public void update(List<Enemy> enemies) {
 		long instanceTime = System.currentTimeMillis();
-
-
 
 		for (Line beam : laserBeams) {
 
@@ -70,6 +66,7 @@ public class LaserTower extends Tower{
 			}
 		}
 	}
+
 	@Override
 	public void remove() {
 		super.remove();
@@ -80,9 +77,7 @@ public class LaserTower extends Tower{
 		laserBeams.clear();
 		Game.forceClearAllLaserBeams();
 
-
 		targetTimers.clear();
 	}
-
 
 }

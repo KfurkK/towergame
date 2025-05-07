@@ -6,13 +6,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
-public class TripleShotTower extends Tower{
+public class TripleShotTower extends Tower {
 	public long lastShotTime = 0;
 	public long shootInterval = 300;
 	public int damage = 10;
 
-	public TripleShotTower(double x , double y) {
-		super(x,y,100,150, Color.DEEPSKYBLUE);// 150$
+	public TripleShotTower(double x, double y) {
+		super(x, y, 100, 150, Color.DEEPSKYBLUE);// 150$
 
 		Image img = new Image("assets/towers/tripleshottower.png");
 		ImageView imageView = new ImageView(img);
@@ -53,11 +53,10 @@ public class TripleShotTower extends Tower{
 			}
 		}
 
-
 		// 2. Yakınlığa göre sırala (merkezden olan uzaklığa göre)
 		inRangeEnemies.sort((e1, e2) -> {
-			double d1 = Math.sqrt((e1.getX() - x)*(e1.getX() - x) + (e1.getY() - y)*(e1.getY() - y));
-			double d2 = Math.sqrt((e2.getX() - x)*(e2.getX() - x) + (e2.getY() - y)*(e2.getY() - y));
+			double d1 = Math.sqrt((e1.getX() - x) * (e1.getX() - x) + (e1.getY() - y) * (e1.getY() - y));
+			double d2 = Math.sqrt((e2.getX() - x) * (e2.getX() - x) + (e2.getY() - y) * (e2.getY() - y));
 			return Double.compare(d1, d2);
 		});
 
@@ -70,11 +69,5 @@ public class TripleShotTower extends Tower{
 
 		return result;
 	}
-
-
-
-
-
-
 
 }
