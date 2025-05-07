@@ -64,6 +64,7 @@ public class Main extends Application {
     public int selectedTowerType = 1; // 1: Single, 2: Laser, 3: Triple, 4: Missile
     public Tower selectedTower = null;
     public boolean dragging = false;
+    
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -87,8 +88,8 @@ public class Main extends Application {
         getloseButton().setOnAction(we ->{
         	
         	primaryStage.setScene(scene);
-        	
         	resetGame();
+			
         });
 
         // Set up game loop
@@ -116,11 +117,15 @@ public class Main extends Application {
        
         }
     public void resetGame() {
+    	
     	Game.root.getChildren().clear();
-        Game.towers.clear();
+    	Game.towers.clear();
         Game.enemies.clear();
         Game.bullets.clear();
-        Game.missiles.clear();//towerlear silinmiyo
+        Game.missiles.clear();
+        //Game.gameOverlay.getChildren().remove(getNode());
+        //Game.gameOverlay.getChildren().remove(rangeCircle);
+        //towerlear silinmiyo
         money = 100;
         lives = 5;
         if (Main.transitions != null) {
@@ -129,6 +134,7 @@ public class Main extends Application {
         if (moneyLabel != null) moneyLabel.setText("Money: " + money);
         if (livesLabel != null) livesLabel.setText("Lives: " + lives);
         scheduleWaves(1);
+    	
     }
     
 
@@ -375,10 +381,42 @@ public class Main extends Application {
         hud.setAlignment(Pos.CENTER);
 
         // Tower selection buttons
-        Button singleShot = new Button("Single Shot Tower - 50$");
-        Button laser = new Button("Laser Tower - 120$");
-        Button tripleShot = new Button("Triple Shot Tower - 150$");
-        Button missile = new Button("Missile Launcher Tower - 200$");
+        VBox vbox1 = new VBox();
+        vbox1.setAlignment(Pos.CENTER);
+        Label label1 = new Label("Single Shot Tower");
+        Label label2 = new Label("50$");
+        vbox1.getChildren().addAll(label1, label2);
+        Button singleShot = new Button();
+        singleShot.setGraphic(vbox1); 
+        
+        
+        
+        VBox vbox3= new VBox();
+        vbox3.setAlignment(Pos.CENTER);
+        Label label5 = new Label("Laser Tower");
+        Label label6 = new Label("120$");
+        vbox3.getChildren().addAll(label5, label6);
+        Button laser= new Button();
+        laser.setGraphic(vbox3);
+        
+        VBox vbox2 = new VBox();
+        vbox2.setAlignment(Pos.CENTER);
+        Label label3 = new Label("Triple Shot Tower");
+        Label label4 = new Label("150$");
+        vbox2.getChildren().addAll(label3, label4);
+        Button tripleShot = new Button();
+        tripleShot.setGraphic(vbox2);
+
+        
+        VBox vbox4= new VBox();
+        vbox4.setAlignment(Pos.CENTER);
+        Label label7 = new Label("Missile Launcher Tower");
+        Label label8 = new Label("200$");
+        vbox4.getChildren().addAll(label7, label8);
+        Button missile= new Button();
+        missile.setGraphic(vbox4);
+        
+        
 
         singleShot.setOnAction(e -> selectedTowerType = 1);
         laser.setOnAction(e -> selectedTowerType = 2);
