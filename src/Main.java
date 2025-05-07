@@ -117,7 +117,7 @@ public class Main extends Application {
         }
     public void resetGame() {
     	Game.root.getChildren().clear();
-        Game.towers.remove(Tower t);
+        Game.towers.remove(Tower);
         Game.enemies.clear();
         Game.bullets.clear();
         Game.missiles.clear();//towerlear silinmiyo
