@@ -1,4 +1,5 @@
-
+import javafx.scene.media.AudioClip;
+import javax.sound.sampled.*;
 
 import javafx.scene.Node;
 
@@ -17,6 +18,16 @@ public class Bullet {
     public ImageView shape;
     private static final Image BULLET_IMG =
     	    new Image(Bullet.class.getResource("/assets/bullets/cannonball.png").toExternalForm());
+    /* public static Clip shootClip;
+    static {
+        try (AudioInputStream ais = AudioSystem.getAudioInputStream(
+                 Bullet.class.getResource("/assets/sounds/Cannonball.wav"))) {
+            shootClip = AudioSystem.getClip();
+            shootClip.open(ais);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }*/ 
 
 
 
