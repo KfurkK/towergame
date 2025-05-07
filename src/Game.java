@@ -104,6 +104,15 @@ public class Game {
         bullets.remove(b); // logic'ten sil
         gameOverlay.getChildren().remove(b.getNode());
     }
+    public static List<Tower> getTowers(){
+    	return towers;
+    }
+    public static List<Bullet> getBullets(){
+    	return bullets;
+    }
+    public static List<Missile> getMissiles(){
+    	return missiles;
+    }
 
 
 

@@ -19,6 +19,7 @@ import java.util.ArrayList;
  * A simple enemy that follows a path with a health bar displayed above it
  */
 public class Enemy {
+	private PathTransition currentTransition;
     private int health;
     private final int maxHealth;
     private final ImageView enemyView;
@@ -61,6 +62,7 @@ public class Enemy {
     }
 
     public void moveAlongPath(ArrayList<int[]> path) {
+    	
         Path movementPath = new Path();
 
         // Calculate grid positioning
@@ -100,9 +102,16 @@ public class Enemy {
             Main.decreaseLives();
             }
         });
+        
+        this.currentTransition = move; // 🌟 Burada referansı saklıyoruz
         move.play();
     }
 
+    public void stop() {
+        if (currentTransition != null) {
+            currentTransition.stop();
+        }
+    }
     /**
      * Damage the enemy and update health bar
      */
@@ -173,6 +182,9 @@ public class Enemy {
  
     private void removeFromGame() {
         gamePane.getChildren().removeAll(enemyView, healthBar);
+    }
+    public Rectangle getHealthBar() {
+    	return healthBar;
     }
 
     /**
