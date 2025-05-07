@@ -597,6 +597,7 @@ private static void goEndScene() {
                 });
                 placed.getNode().setOnMouseReleased(ev -> {
                     if (draggingTower && selectedTower==placed) {
+                    	draggingTower = false;
                     	placed.getRangeCircle().setVisible(false);
 
                         // 2) Sahne koordinatlarını al
@@ -612,27 +613,46 @@ private static void goEndScene() {
                         // 4) Geçersiz mi kontrol et?
                         boolean invalid1 = false;
                         if (row1 < 0 || row1 >= GRID_SIZE || col1 < 0 || col1 >= GRID_SIZE) {
-                            invalid1 = true; // grid dışı
+                        	increaseMoney(placed.getPrice());
+                            // görselleri sahneden kaldır
+                            gameOverlay.getChildren().removeAll(
+                                placed.getNode(), placed.getRangeCircle()
+                            );
+                            
+                            placedTowerCells.removeIf(p ->
+                            p[0] == placed.getGridPosition()[0]
+                         && p[1] == placed.getGridPosition()[1]
+                        );
+                        Game.removeTower(placed);
+                        // seçimi temizle
+                        selectedTower = null;
+                        selectedTowerType = 0;
+                        return;
+                            // grid dışı
                         }
-                        // yol hücresi mi?
+                        
+                        boolean invalidPlacement = false;
+                        // 4.a) yol kontrolü
                         for (int[] p : pathCoordinates) {
                             if (p[0] == row1 && p[1] == col1) {
-                                invalid1 = true;
+                                invalidPlacement = true;
                                 break;
                             }
                         }
-                        // başka kule var mı? (kendisi hariç)
-                        for (int[] p : placedTowerCells) {
-                            if (p[0] == row1 && p[1] == col1
-                             && !(p[0] == placed.getGridPosition()[0]
-                               && p[1] == placed.getGridPosition()[1])) {
-                                invalid1 = true;
-                                break;
+                        
+                        if (!invalidPlacement) {
+                            for (int[] p : placedTowerCells) {
+                                if (p[0] == row1 && p[1] == col1
+                                 && !(p[0] == placed.getGridPosition()[0]
+                                   && p[1] == placed.getGridPosition()[1])) {
+                                    invalidPlacement = true;
+                                    break;
+                                }
                             }
                         }
-
-                        if (invalid1) {
-                            // 5a) Hatalıysa geri eski hücresine dön
+                        
+                        if (invalidPlacement) {
+                            // 5) geçersizse → orjinal hücresine geri koy
                             double origX = offsetX
                                          + placed.getGridPosition()[1] * gridUnit
                                          + TILE_SIZE/2;
@@ -640,26 +660,28 @@ private static void goEndScene() {
                                          + placed.getGridPosition()[0] * gridUnit
                                          + TILE_SIZE/2;
                             placed.setPosition(origX, origY);
-                        } else {
-                            // 5b) Geçerliyse eski kaydı sil, yeniyi ekle
+                        }else {
+                            // 6) geçerli yeni hücreye taşı
+                            // önce eski kaydı sil
                             placedTowerCells.removeIf(p ->
-                                p[0] == placed.getGridPosition()[0] &&
-                                p[1] == placed.getGridPosition()[1]);
-                            
+                                p[0] == placed.getGridPosition()[0]
+                             && p[1] == placed.getGridPosition()[1]
+                            );
+                            // yeni koordinata göre görseli güncelle
                             double newX = offsetX + col1 * gridUnit + TILE_SIZE/2;
                             double newY = offsetY + row1 * gridUnit + TILE_SIZE/2;
-
-                            
                             placed.setPosition(newX, newY);
                             placed.setGridPosition(row1, col1);
+                            // sonra yeni kaydı ekle
                             placedTowerCells.add(new int[]{row1, col1});
                         }
-
-                        // 6) Dragging flag’ını sıfırla
-                        draggingTower = false;
                         selectedTower = null;
                         selectedTowerType = 0;
                     }
+                        
+                        
+
+                        
                 });
 
                 // 4) temizle
