@@ -24,6 +24,7 @@ public class Enemy {
     private final ImageView enemyView;
     private final Rectangle healthBar;
     private final Pane gamePane;
+	private PathTransition currentTransition;
 
     // Constants
     private static final int TILE_SIZE = 45;
@@ -100,7 +101,14 @@ public class Enemy {
             Main.decreaseLives();
             	}
         });
+        this.currentTransition = move;
         move.play();
+    }
+    
+    public void stop() {
+        if (currentTransition != null) {
+            currentTransition.stop();
+        }
     }
 
     /**

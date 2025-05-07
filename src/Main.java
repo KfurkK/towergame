@@ -937,51 +937,51 @@ private static void goEndScene() {
         
 
         
-        for (Enemy e : enemies) {
-            gameOverlay.getChildren().remove(e.getView());
-            gameOverlay.getChildren().remove(e.getHealthBar());
-        }
-        
-        Game.enemies.clear();
+    	for (Enemy e : enemies) {
+	        e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
+	        gameOverlay.getChildren().remove(e.getView());
+	        gameOverlay.getChildren().remove(e.getHealthBar());
+	    }
 
-        
-        for (Tower t : Game.getTowers()) {   
-            gameOverlay.getChildren().remove(t.getNode());
-            gameOverlay.getChildren().remove(t.getRangeCircle());
-        }
-        Game.getTowers().clear();
+	    Game.enemies.clear();
+	    enemies.clear();
 
-        
-        for (Bullet b : Game.getBullets()) {
-            gameOverlay.getChildren().remove(b.getNode());
-        }
-        Game.getBullets().clear();
+	    // Kuleleri sahneden kaldır
+	    for (Tower t : Game.getTowers()) {
+	        gameOverlay.getChildren().remove(t.getNode());
+	        gameOverlay.getChildren().remove(t.getRangeCircle());
+	    }
+	    Game.getTowers().clear();
 
-        
-        for (Missile m : Game.getMissiles()) {
-            gameOverlay.getChildren().remove(m.getNode());
-        }
-        Game.getMissiles().clear();
+	    // Mermileri sahneden kaldır
+	    for (Bullet b : Game.getBullets()) {
+	        gameOverlay.getChildren().remove(b.getNode());
+	    }
+	    Game.getBullets().clear();
 
-        
-        placedTowerCells.clear();
+	    for (Missile m : Game.getMissiles()) {
+	        gameOverlay.getChildren().remove(m.getNode());
+	    }
+	    Game.getMissiles().clear();
 
-        
-        enemies.clear();   // Main.enemies
-        
+	    // Yerleşim yerlerini sıfırla
+	    placedTowerCells.clear();
 
-        
-        money = 100;
-        lives = 5;
-        if(Main.transitions != null ) {
-        	Main.transitions.forEach(Animation::stop);
-        }
-        if (moneyLabel != null) {
-        moneyLabel.setText("Money: $" + money);
-        }
-        if (livesLabel != null) {
-        livesLabel.setText("Lives: " + lives);
-        }
+	    // Oyun değişkenlerini sıfırla
+	    money = 100;
+	    lives = 5;
+
+	    if (Main.transitions != null) {
+	        Main.transitions.forEach(Animation::stop);
+	    }
+
+	    if (moneyLabel != null) {
+	        moneyLabel.setText("Money: $" + money);
+	    }
+	    if (livesLabel != null) {
+	        livesLabel.setText("Lives: " + lives);
+	    }
+
 
         
         
