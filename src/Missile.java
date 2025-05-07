@@ -35,7 +35,18 @@ public class Missile {
 
 
     public void update(List<Enemy> enemies) {
-        if (!active || target == null || !target.isAlive()) return;
+        
+        
+        if (!active) 
+        	return;
+        
+        if (target == null || !target.isAlive()) {
+        	        active = false;
+        	        shape.setVisible(false);
+        	
+        	        Game.gameOverlay.getChildren().remove(shape);
+        	        return;
+        	   }
 
         double dx = target.getX() - x;
         double dy = target.getY() - y;
@@ -46,6 +57,7 @@ public class Missile {
             explode(enemies);
             active = false;
             shape.setVisible(false);
+            Game.gameOverlay.getChildren().remove(shape);
 
             return;
         }

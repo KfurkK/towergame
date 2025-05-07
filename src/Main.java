@@ -27,6 +27,7 @@ import javafx.util.Duration;
  * Main game application class
  */
 public class Main extends Application {
+	public boolean draggingTower = false;
     private final int WIDTH = 1920;
     private final int HEIGHT = 1080;
     private static final int GRID_SIZE = 10;
@@ -334,10 +335,39 @@ public class Main extends Application {
         Button tripleShot = new Button("Triple Shot Tower - 150$");
         Button missile = new Button("Missile Launcher Tower - 200$");
 
-        singleShot.setOnAction(e -> selectedTowerType = 1);
-        laser.setOnAction(e -> selectedTowerType = 2);
-        tripleShot.setOnAction(e -> selectedTowerType = 3);
-        missile.setOnAction(e -> selectedTowerType = 4);
+        singleShot.setOnAction(e -> {
+            selectedTowerType = 1;
+            selectedTower = new SingleShotTower(0, 0);
+            draggingTower = true;
+
+            // Menzil ve kule sahneye ekleniyor
+            gameOverlay.getChildren().add(selectedTower.getRangeCircle());
+            gameOverlay.getChildren().add(selectedTower.getNode());
+        });
+        laser.setOnAction(e -> {
+            selectedTowerType = 2;
+            selectedTower = new LaserTower(0, 0);
+            draggingTower = true;
+
+            gameOverlay.getChildren().add(selectedTower.getRangeCircle());
+            gameOverlay.getChildren().add(selectedTower.getNode());
+        });
+        tripleShot.setOnAction(e -> {
+            selectedTowerType = 3;
+            selectedTower = new TripleShotTower(0, 0);
+            draggingTower = true;
+
+            gameOverlay.getChildren().add(selectedTower.getRangeCircle());
+            gameOverlay.getChildren().add(selectedTower.getNode());
+        });
+        missile.setOnAction(e -> {
+            selectedTowerType = 4;
+            selectedTower = new MissileLauncherTower(0, 0);
+            draggingTower = true;
+
+            gameOverlay.getChildren().add(selectedTower.getRangeCircle());
+            gameOverlay.getChildren().add(selectedTower.getNode());
+        });
 
         for (Button b : new Button[]{singleShot, laser, tripleShot, missile}) {
             b.setPrefWidth(150);
@@ -363,41 +393,192 @@ public class Main extends Application {
     /**
      * Setup tower placement and dragging functionality
      */
-    private void setupTowerPlacement() {
+    public void setupTowerPlacement() {
+    	gameOverlay.setOnMouseMoved(e -> {
+            if (draggingTower && selectedTower != null) {
+                // Sahne koordinatlarıyla güncelle
+                selectedTower.setPosition(e.getSceneX(), e.getSceneY());
+                
+                
+            }
+        });
         gameOverlay.setOnMouseClicked(e -> {
-            double clickX = e.getX();
-            double clickY = e.getY();
+        	if (draggingTower && selectedTower != null) {
+        		
+        		int price = (int) selectedTower.getPrice();
+        	    if (money < price) {
+        	        System.out.println("❌ Yetersiz para! Kule elden gitti.");
+        	        gameOverlay.getChildren().remove(selectedTower.getNode());
+        	        gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
+        	        draggingTower = false;
+        	        selectedTower = null;
+        	        selectedTowerType = 0;
+        	        return;
+        	    }
+                // col,row hesaplamanı buraya al
+                double clickX = e.getSceneX();
+                double clickY = e.getSceneY();
+                int col = (int)((clickX - offsetX) / gridUnit);
+                int row = (int)((clickY - offsetY) / gridUnit);
+                // (istersen path ve placedTowerCells kontrolü yap)
+                
+                
+                if (clickX >= 1520)
+                    return;
 
-            // Prevent tower placement in HUD area
-            if (clickX >= 1520)
-                return;
+                // Prevent tower placement outside grid
+                if (clickX < offsetX || clickY < offsetY)
+                    return;
+                
+                if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
+                    return;
+                }
 
-            // Prevent tower placement outside grid
-            if (clickX < offsetX || clickY < offsetY)
-                return;
+                // Check if path tile
+                for (int[] coord : pathCoordinates) {
+                    if (coord[0] == row && coord[1] == col) {
+                        return;
+                    }
+                }
+
+                // Check if tower already placed
+                for (int[] placed : placedTowerCells) {
+                    if (placed[0] == row && placed[1] == col) {
+                        return;
+                    }
+                }
+                
+                
+                decreaseMoney(price);
+
+                // 1) preview zaten sahnede: artık final pozisyona al
+                double centerX = offsetX + col * gridUnit + TILE_SIZE / 2;
+                double centerY = offsetY + row * gridUnit + TILE_SIZE / 2;
+                selectedTower.setPosition(centerX, centerY);
+                selectedTower.setGridPosition(row, col);
+                placedTowerCells.add(new int[]{row, col});
+
+                // 2) preview node’larını sahneden temizle
+                gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
+                gameOverlay.getChildren().remove(selectedTower.getNode());
+                
+                gameOverlay.getChildren().add(selectedTower.getNode());
+                gameOverlay.getChildren().add(selectedTower.getRangeCircle());
+
+                // 3) gerçek kuleyi oyuna ekle
+                Game.addTower(selectedTower);
+                
+                Tower placed = selectedTower;
+                // Sağ tık satma ve sol tık sürükleme handler’ları:
+                placed.getNode().setOnMousePressed(ev -> {
+                    if (ev.isSecondaryButtonDown()) {
+                        // sat
+                        increaseMoney(placed.getPrice());
+                        gameOverlay.getChildren().removeAll(placed.getNode(), placed.getRangeCircle());
+                        int[] g = placed.getGridPosition();
+                        placedTowerCells.removeIf(p -> p[0]==g[0] && p[1]==g[1]);
+                        Game.removeTower(placed);
+                    } else {
+                        // sol tıkla hareket başlat
+                        draggingTower = true;
+                        selectedTower = placed;
+                        placed.getRangeCircle().setVisible(true);
+                    }
+                });
+                placed.getNode().setOnMouseDragged(ev -> {
+                    if (draggingTower && selectedTower==placed) {
+                        placed.setPosition(ev.getSceneX(), ev.getSceneY());
+                    }
+                });
+                placed.getNode().setOnMouseReleased(ev -> {
+                    if (draggingTower && selectedTower==placed) {
+                    	placed.getRangeCircle().setVisible(false);
+
+                        // 2) Sahne koordinatlarını al
+                        double mouseX = ev.getSceneX();
+                        double mouseY = ev.getSceneY();
+                        
+                        int col1 = (int)((mouseX - offsetX) / gridUnit);
+                        int row1 = (int)((mouseY - offsetY) / gridUnit);
+
+                        // 3) Hücre indeksine dönüştür
+                        
+
+                        // 4) Geçersiz mi kontrol et?
+                        boolean invalid = false;
+                        if (row1 < 0 || row1 >= GRID_SIZE || col1 < 0 || col1 >= GRID_SIZE) {
+                            invalid = true; // grid dışı
+                        }
+                        // yol hücresi mi?
+                        for (int[] p : pathCoordinates) {
+                            if (p[0] == row1 && p[1] == col1) {
+                                invalid = true;
+                                break;
+                            }
+                        }
+                        // başka kule var mı? (kendisi hariç)
+                        for (int[] p : placedTowerCells) {
+                            if (p[0] == row1 && p[1] == col1
+                             && !(p[0] == placed.getGridPosition()[0]
+                               && p[1] == placed.getGridPosition()[1])) {
+                                invalid = true;
+                                break;
+                            }
+                        }
+
+                        if (invalid) {
+                            // 5a) Hatalıysa geri eski hücresine dön
+                            double origX = offsetX
+                                         + placed.getGridPosition()[1] * gridUnit
+                                         + TILE_SIZE/2;
+                            double origY = offsetY
+                                         + placed.getGridPosition()[0] * gridUnit
+                                         + TILE_SIZE/2;
+                            placed.setPosition(origX, origY);
+                        } else {
+                            // 5b) Geçerliyse eski kaydı sil, yeniyi ekle
+                            placedTowerCells.removeIf(p ->
+                                p[0] == placed.getGridPosition()[0] &&
+                                p[1] == placed.getGridPosition()[1]);
+                            
+                            double newX = offsetX + col1 * gridUnit + TILE_SIZE/2;
+                            double newY = offsetY + row1 * gridUnit + TILE_SIZE/2;
+
+                            
+                            placed.setPosition(newX, newY);
+                            placed.setGridPosition(row1, col1);
+                            placedTowerCells.add(new int[]{row1, col1});
+                        }
+
+                        // 6) Dragging flag’ını sıfırla
+                        draggingTower = false;
+                        selectedTower = null;
+                        selectedTowerType = 0;
+                    }
+                });
+
+                // 4) temizle
+                draggingTower = false;
+                selectedTower = null;
+                selectedTowerType = 0;
+                return;  // buradan çık, alt kod çalışmasın
+            }
+        	
+        	
 
             // Convert click coordinates to grid position
-            int col = (int)((clickX - offsetX) / gridUnit);
-            int row = (int)((clickY - offsetY) / gridUnit);
+            
 
             // Check if grid position is valid
-            if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
-                return;
-            }
-
-            // Check if path tile
-            for (int[] coord : pathCoordinates) {
-                if (coord[0] == row && coord[1] == col) {
-                    return;
-                }
-            }
-
-            // Check if tower already placed
-            for (int[] placed : placedTowerCells) {
-                if (placed[0] == row && placed[1] == col) {
-                    return;
-                }
-            }
+            
+            
+            if (selectedTowerType < 1 || selectedTowerType > 4) return;
+            
+            double clickX = e.getSceneX();
+            double clickY = e.getSceneY();
+            
+            int col = (int)((clickX - offsetX) / gridUnit);
+            int row = (int)((clickY - offsetY) / gridUnit);
 
             // Calculate center of grid cell for tower placement
             double cellCenterX = offsetX + col * gridUnit + TILE_SIZE / 2;
@@ -419,12 +600,16 @@ public class Main extends Application {
                 }
 
                 // Deduct tower cost
-                decreaseMoney(tower.getPrice());
+                
 
                 // Add tower to game
-                gameOverlay.getChildren().add(tower.getRangeCircle());
-                gameOverlay.getChildren().add(tower.getNode());
-                Game.addTower(tower);
+                
+                
+                
+                
+                
+                
+                
 
                 // Set tower grid position
                 tower.setGridPosition(row, col);
@@ -432,7 +617,13 @@ public class Main extends Application {
 
                 // Handle tower selection and right-click to sell
                 tower.getNode().setOnMousePressed(ev -> {
-                    if (ev.isSecondaryButtonDown()) {
+                	if (ev.isPrimaryButtonDown()) {
+                        draggingTower = true;
+                        selectedTower = tower;
+                        tower.getRangeCircle().setVisible(true);
+                    }
+                    
+                	if (ev.isSecondaryButtonDown()) {
                         // Sell tower on right-click
                         increaseMoney(tower.getPrice());
 
@@ -473,12 +664,28 @@ public class Main extends Application {
 
                     int col1 = (int)((mouseX - offsetX) / gridUnit);
                     int row1 = (int)((mouseY - offsetY) / gridUnit);
+                    
+                    boolean invalid = false;
 
                     // Check if new position is on path
                     for (int[] coord : pathCoordinates) {
                         if (coord[0] == row1 && coord[1] == col1) {
-                            return;
+                        	invalid = true;
+                            
                         }
+                    }
+                    
+                    for (int[] placed : placedTowerCells) {
+                        if (placed[0] == row1 && placed[1] == col1) 
+                        	invalid = true;
+                    }
+                    
+                    if (invalid) {
+                        // geri koy
+                        double origX = offsetX + tower.getGridPosition()[1] * gridUnit + TILE_SIZE/2;
+                        double origY = offsetY + tower.getGridPosition()[0] * gridUnit + TILE_SIZE/2;
+                        tower.setPosition(origX, origY);
+                        return;
                     }
 
                     // Remove old position from tracking
