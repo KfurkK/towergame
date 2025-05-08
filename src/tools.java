@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class tools {
 
     public static void main(String[] args) throws FileNotFoundException {
-        readCoordinates("C:/Users/kamil/IdeaProjects/towergame/src/levels/level2.txt");
+        //readCoordinates("C:/Users/kamil/IdeaProjects/towergame/src/levels/level2.txt");
     }
 
     public static ArrayList<int[]> readCoordinates(String filePath) throws FileNotFoundException {

@@ -31,6 +31,7 @@ import javafx.util.Duration;
  */
 public class Main extends Application {
 	private static Stage mainStage;
+	private static Button continueButton;
 	private static Button loseButton;
 	public boolean draggingTower = false;
     private final static int WIDTH = 1920;
@@ -68,6 +69,8 @@ public class Main extends Application {
     public int selectedTowerType = 1; // 1: Single, 2: Laser, 3: Triple, 4: Missile
     public Tower selectedTower = null;
     public boolean dragging = false;
+	private int currentLevel=1;
+	private int finishedWaveCount=0;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -88,19 +91,26 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         
-        getloseButton().setOnAction(we ->{
-        	
-        	primaryStage.setScene(scene);
-        	resetGame();
-			
-        });
-
+        
         // Set up game loop
         AnimationTimer gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 Game.update();
+                
+                if (tools.getWaveData(currentLevel).length == finishedWaveCount
+                        && Game.enemies.isEmpty()
+                        && lives > 0) {
+
+                    System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
+
+                    finishedWaveCount = 0;     // Dalga sayacını sıfırla
+                    currentLevel++;            // Bir sonraki levele geç
+                    OtherResetGame();          // Ekranı temizle, resetle
+                    goContinueScene();         // "Continue" ekranına geç
+                }
             }
+            
         };
         gameLoop.start();
 
@@ -117,6 +127,18 @@ public class Main extends Application {
             }));
             delayTimeline.play();
         });
+        
+         getloseButton().setOnAction(we ->{
+        	
+        	primaryStage.setScene(scene);
+        	resetGame();
+			
+        });
+         
+         /*getContinueButton().setOnAction(wea ->{
+        	 
+         }*/
+
     }
 
     /**
@@ -194,6 +216,12 @@ public class Main extends Application {
             timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(finalI * intervalSeconds), e -> spawnEnemy()));
         }
         timeline.play();
+       
+        timeline.setOnFinished(e -> {
+            ++finishedWaveCount;
+            System.out.println(finishedWaveCount);
+        });
+       
     }
 
     /**
@@ -221,7 +249,7 @@ public class Main extends Application {
     private Scene getGameScene(StackPane gameRoot) throws FileNotFoundException {
         // Load path coordinates - use appropriate path based on your file structure
         // Use a relative path or allow path to be configurable
-        pathCoordinates = tools.readCoordinates("C:\\Users\\erenv\\OneDrive\\Desktop\\TermProject\\levels\\level1.txt");
+        pathCoordinates = tools.readCoordinates("src\\levels\\level1.txt");
 
         // Update debug label with path info
         updatePathDebugInfo();
@@ -255,6 +283,25 @@ public class Main extends Application {
         setupTowerPlacement();
 
         return gameScene;
+    }
+    
+    public void goContinueScene() {
+    	StackPane nextRoot=new StackPane();
+    	Scene nextScene=new Scene(nextRoot,WIDTH,HEIGHT);
+    	Label nextLabel=new Label("You won!");
+    	nextLabel.setStyle("-fx-font-size: 24px;");
+    	VBox bL=new VBox(20);//ButtonAndLabel
+    	 bL.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
+         bL.setPrefWidth(240);
+         bL.setAlignment(Pos.CENTER);
+         bL.getChildren().addAll(nextLabel,getContinueButton());
+        
+    	
+         nextRoot.getChildren().addAll(bL);
+         nextRoot.setStyle("-fx-background-color: #FFF6DA;");;
+         mainStage.setScene(nextScene);
+         
+         
     }
     
 private static void goEndScene() {
@@ -887,7 +934,6 @@ private static void goEndScene() {
         );
         return startButton;
     }
-    
     public void resetGame() {
     	 for (Enemy e : enemies) {
     	        e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
@@ -933,18 +979,57 @@ private static void goEndScene() {
     	    if (livesLabel != null) {
     	        livesLabel.setText("Lives: " + lives);
     	    }
-
-    	   /* // Animasyonlar bittikten sonra dalgaları yeniden başlat
-    	    double maxDelay = 1188; // Animasyon süresi
-
-    	    Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
-    	        addGameButtons();     // oyun içi butonları tekrar ekle
-    	        scheduleWaves(1);     // tekrar seviye 1'den başla
-    	    }));
-    	    delayTimeline.play();*/
         
         
     }
+    public void OtherResetGame() {
+   	 for (Enemy e : enemies) {
+   	        e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
+   	        gameOverlay.getChildren().remove(e.getView());
+   	        gameOverlay.getChildren().remove(e.getHealthBar());
+   	    }
+
+   	    Game.enemies.clear();
+   	    enemies.clear();
+
+   	    // Kuleleri sahneden kaldır
+   	    for (Tower t : Game.getTowers()) {
+   	        gameOverlay.getChildren().remove(t.getNode());
+   	        gameOverlay.getChildren().remove(t.getRangeCircle());
+   	    }
+   	    Game.getTowers().clear();
+
+   	    // Mermileri sahneden kaldır
+   	    for (Bullet b : Game.getBullets()) {
+   	        gameOverlay.getChildren().remove(b.getNode());
+   	    }
+   	    Game.getBullets().clear();
+
+   	    for (Missile m : Game.getMissiles()) {
+   	        gameOverlay.getChildren().remove(m.getNode());
+   	    }
+   	    Game.getMissiles().clear();
+
+   	    // Yerleşim yerlerini sıfırla
+   	    placedTowerCells.clear();
+
+   	    // Oyun değişkenlerini sıfırla
+   	    lives = 5;
+   	    finishedWaveCount=0;
+
+   	    if (Main.transitions != null) {
+   	        Main.transitions.forEach(Animation::stop);
+   	    }
+
+   	    if (moneyLabel != null) {
+   	        moneyLabel.setText("Money: $" + money);
+   	    }
+   	    if (livesLabel != null) {
+   	        livesLabel.setText("Lives: " + lives);
+   	    }
+       
+       
+   }
 
     public static void main(String[] args) throws FileNotFoundException {
         launch(args);
@@ -965,4 +1050,22 @@ private static void goEndScene() {
         );
         return loseButton;
     }
+    
+    private static Button getContinueButton() {
+    	if(continueButton==null) {
+    		continueButton = new Button("Continue To Next Level");
+        	}
+    	continueButton.setPrefWidth(400);
+    	continueButton.setPrefHeight(150);
+    	continueButton.setStyle(
+                    "-fx-font-size: 32px;" +
+                            "-fx-background-color: #c29b57;" +
+                            "-fx-text-fill: black;" +
+                            "-fx-background-radius: 40;" +
+                            "-fx-border-radius: 40;"
+            );
+            return continueButton;
+    
+    }
+    
 }
