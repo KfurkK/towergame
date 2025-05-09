@@ -108,6 +108,7 @@ public class Main extends Application {
                     currentLevel++;            // Bir sonraki levele geç
                     OtherResetGame();          // Ekranı temizle, resetle
                     goContinueScene();         // "Continue" ekranına geç
+                    System.out.println(currentLevel);
                 }
             }
             
@@ -249,7 +250,7 @@ public class Main extends Application {
     private Scene getGameScene(StackPane gameRoot) throws FileNotFoundException {
         // Load path coordinates - use appropriate path based on your file structure
         // Use a relative path or allow path to be configurable
-        pathCoordinates = tools.readCoordinates("src\\levels\\level1.txt");
+        pathCoordinates = tools.readCoordinates("src\\levels\\level"+currentLevel+".txt");
 
         // Update debug label with path info
         updatePathDebugInfo();
@@ -1027,6 +1028,9 @@ private static void goEndScene() {
    	    if (livesLabel != null) {
    	        livesLabel.setText("Lives: " + lives);
    	    }
+   	/* if (waveTimeline != null) { 
+   		 waveTimeline.stop();
+   	 }*/
        
        
    }
@@ -1051,7 +1055,7 @@ private static void goEndScene() {
         return loseButton;
     }
     
-    private static Button getContinueButton() {
+    private Button getContinueButton() {
     	if(continueButton==null) {
     		continueButton = new Button("Continue To Next Level");
         	}
@@ -1064,6 +1068,19 @@ private static void goEndScene() {
                             "-fx-background-radius: 40;" +
                             "-fx-border-radius: 40;"
             );
+    	continueButton.setOnAction(e->{ 
+    		try { 
+    			Scene nextLevelScene = getGameScene(new StackPane()); 
+    			mainStage.setScene(nextLevelScene); 
+    			transitions.forEach(Animation::play);
+    			scheduleWaves(currentLevel);
+    			// Animasyonları yeniden başlat transitions.forEach(Animation::play); // Yeni leveli başlat scheduleWaves(currentLevel); } catch(Exception ex) { System.out.println("exception found"); } }); return continueButton;
+    		}
+    		catch(Exception ex) {
+    			System.out.println("continue exeption");
+    		}
+    	});
+    	
             return continueButton;
     //e
     }
