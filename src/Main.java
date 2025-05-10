@@ -180,12 +180,12 @@ public class Main extends Application {
      */
     private void addGameButtons() {
         // Spawn Enemy button
-        Button spawnEnemyButton = createGameButton("Spawn Enemy", 1520, 500);
+        Button spawnEnemyButton = createGameButton("Spawn Enemy", 520, 500);
         spawnEnemyButton.setOnAction(event -> spawnEnemy());
         gameOverlay.getChildren().add(spawnEnemyButton);
 
         // Debug Path button
-        Button debugButton = createGameButton("Debug Path", 1520, 550);
+        Button debugButton = createGameButton("Debug Path", 520, 550);
         debugButton.setOnAction(we -> {
             try {
                 visualizePathPoints();
@@ -196,9 +196,7 @@ public class Main extends Application {
         gameOverlay.getChildren().add(debugButton);
 
         // Damage Enemy button
-        Button damageButton = createGameButton("Damage Enemy", 120, 550);
-        damageButton.setOnAction(we -> damageEnemy());
-        gameOverlay.getChildren().add(damageButton);
+        
     }
 
     /**
