@@ -506,6 +506,9 @@ private static void goEndScene() {
             selectedTowerType = 1;
             selectedTower = new SingleShotTower(0, 0);
             draggingTower = true;
+            
+            Circle circle = selectedTower.getRangeCircle();
+            circle.setVisible(true);
 
             // Menzil ve kule sahneye ekleniyor
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
@@ -515,6 +518,8 @@ private static void goEndScene() {
             selectedTowerType = 2;
             selectedTower = new LaserTower(0, 0);
             draggingTower = true;
+            Circle circle = selectedTower.getRangeCircle();
+            circle.setVisible(true);
 
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
@@ -523,6 +528,8 @@ private static void goEndScene() {
             selectedTowerType = 3;
             selectedTower = new TripleShotTower(0, 0);
             draggingTower = true;
+            Circle circle = selectedTower.getRangeCircle();
+            circle.setVisible(true);
 
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
@@ -531,6 +538,8 @@ private static void goEndScene() {
             selectedTowerType = 4;
             selectedTower = new MissileLauncherTower(0, 0);
             draggingTower = true;
+            Circle circle = selectedTower.getRangeCircle();
+            circle.setVisible(true);
 
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
@@ -655,7 +664,9 @@ private static void goEndScene() {
                 gameOverlay.getChildren().remove(selectedTower.getNode());
                 
                 gameOverlay.getChildren().add(selectedTower.getNode());
-                gameOverlay.getChildren().add(selectedTower.getRangeCircle());
+                Circle placedCircle = selectedTower.getRangeCircle();
+                gameOverlay.getChildren().add(placedCircle);
+                placedCircle.setVisible(false);
 
                 // 3) gerçek kuleyi oyuna ekle
                 Game.addTower(selectedTower);

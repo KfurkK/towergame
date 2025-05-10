@@ -32,9 +32,9 @@ public abstract class Tower {
 		body.setLayoutX(x - 10);
 		body.setLayoutY(y - 10);
 
-		rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.2)); // yarı saydam kırmızı
+		rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.5)); // yarı saydam kırmızı
 		rangeCircle.setStroke(Color.RED);
-		rangeCircle.setFill(Color.rgb(255, 0, 0, 0.1));
+		rangeCircle.setFill(Color.rgb(255, 0, 0, 0.5));
 		rangeCircle.setLayoutX(x);
 		rangeCircle.setLayoutY(y);
 		rangeCircle.setVisible(false);
