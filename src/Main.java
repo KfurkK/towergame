@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import javafx.scene.image.Image;
@@ -20,6 +21,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.net.URL;
+import javax.sound.sampled.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -41,6 +46,7 @@ public class Main extends Application {
 	private static Button continueButton;
 	private static Button loseButton;
 	public boolean draggingTower = false;
+	private MediaPlayer mediaPlayer;
     private final static int WIDTH = 1920;
     private final static int HEIGHT = 1080;
     private int gridSize=10;
@@ -81,6 +87,9 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+    	
+    	AudioPlayer bgMusic = new AudioPlayer();
+    	bgMusic.playLoop("src/assets/sounds/Muzik1.wav");
     	
     	mainStage=primaryStage;
         Button startButton = getStartButton();
@@ -1212,5 +1221,25 @@ private static void goEndScene() {
             return continueButton;
     //e
     }
+    
+    public class AudioPlayer {
+        private Clip clip;
+
+        public void playLoop(String filepath) {
+            try (AudioInputStream ais = AudioSystem.getAudioInputStream(new File(filepath))) {
+                clip = AudioSystem.getClip();
+                clip.open(ais);
+                clip.loop(Clip.LOOP_CONTINUOUSLY);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void stop() {
+            if (clip != null && clip.isRunning()) clip.stop();
+        }
+    }
+    
+    
     
 }
