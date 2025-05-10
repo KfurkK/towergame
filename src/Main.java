@@ -29,7 +29,8 @@ import javafx.util.Duration;
 /**
  * Main game application class
  */
-public class Main extends Application {
+public class Main extends Application {              
+    private Pane initialGameOverlay;
 	private Timeline countdownTimer;
 	private Timeline waveTimeLine;
 	private Label waveCountdownLabel;
@@ -77,6 +78,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+    	
     	mainStage=primaryStage;
         Button startButton = getStartButton();
         Game.root = new Pane();
@@ -86,6 +88,7 @@ public class Main extends Application {
 
         StackPane gameRoot = new StackPane();
         Scene gameScene = getGameScene(gameRoot);
+        initialGameOverlay = gameOverlay;
 
         root.setStyle("-fx-background-color: #FFF6DA;");
         root.getChildren().add(startButton);
@@ -136,9 +139,30 @@ public class Main extends Application {
          getloseButton().setOnAction(we ->{
         	 currentLevel=1;
         	finishedWaveCount=0;
-        	
-        	primaryStage.setScene(scene);
         	resetGame();
+        	
+        	
+        	
+        	if (waveTimeLine != null)    
+        		waveTimeLine.stop();
+            if (countdownTimer != null)  
+            	countdownTimer.stop();
+            
+            StackPane newGameRoot = new StackPane();
+            Scene newGameScene;
+            try {
+                newGameScene = getGameScene(newGameRoot);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
+            
+            primaryStage.setScene(newGameScene);
+            transitions.forEach(Animation::play);
+            
+            addGameButtons();
+            setupTowerPlacement();
+            scheduleWaves(currentLevel);
 			
         });
          
@@ -1053,6 +1077,9 @@ private static void goEndScene() {
     	        gameOverlay.getChildren().remove(m.getNode());
     	    }
     	    Game.getMissiles().clear();
+    	    
+    	    if (waveTimeLine != null)    waveTimeLine.stop();
+    	    if (countdownTimer != null)  countdownTimer.stop();
 
     	    // Yerleşim yerlerini sıfırla
     	    placedTowerCells.clear();
