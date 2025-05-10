@@ -93,6 +93,18 @@ public class tools {
         };
     }
 
+	public static int getMapSize(String filePath) throws FileNotFoundException {
+		try (Scanner scanner = new Scanner(new File(filePath))) {
+	        while (scanner.hasNextLine()) {
+	            String line = scanner.nextLine().trim();
+	            if (line.startsWith("WIDTH:")) {
+	                return Integer.parseInt(line.split(":")[1].trim());
+	            }
+	        }
+	    }
+	    return 10;
+	}
+
 
 }
 

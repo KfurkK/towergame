@@ -64,12 +64,18 @@ public class Enemy {
     public void moveAlongPath(ArrayList<int[]> path) {
     	
         Path movementPath = new Path();
+        int maxRow = 0, maxCol = 0;
+        for (int[] coord : path) {
+            maxRow = Math.max(maxRow, coord[0]);
+            maxCol = Math.max(maxCol, coord[1]);
+        }
+        int gridSize = Math.max(maxRow, maxCol) + 1; 
 
         // Calculate grid positioning
         double gridCenterX = gamePane.getScene().getWidth() / 2;
         double gridCenterY = gamePane.getScene().getHeight() / 2;
-        double gridWidth   = (TILE_SIZE + SPACING) * 10 - SPACING;
-        double gridHeight  = (TILE_SIZE + SPACING) * 10 - SPACING;
+        double gridWidth   = (TILE_SIZE + SPACING) * gridSize - SPACING;
+        double gridHeight  = (TILE_SIZE + SPACING) * gridSize - SPACING;
         double offsetX     = gridCenterX - gridWidth  / 2;
         double offsetY     = gridCenterY - gridHeight / 2;
 
@@ -99,8 +105,7 @@ public class Enemy {
         move.setOnFinished(e -> {
             if (health > 0) {
             	removeFromGame();
-            Main main = new Main();
-			main.decreaseLives();
+            Main.decreaseLives();
             }
         });
         

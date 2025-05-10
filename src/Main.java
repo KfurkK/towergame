@@ -36,7 +36,7 @@ public class Main extends Application {
 	public boolean draggingTower = false;
     private final static int WIDTH = 1920;
     private final static int HEIGHT = 1080;
-    private static final int GRID_SIZE = 10;
+    private int gridSize=10;
     private static final int TILE_SIZE = 45;
     private static final double SPACING = 2.5; // Grid spacing
     private static final Color[] YELLOW_TONES = {
@@ -124,12 +124,15 @@ public class Main extends Application {
 
             Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
                 addGameButtons();
-                scheduleWaves(1);
+                setupTowerPlacement();
+                scheduleWaves(currentLevel);
             }));
             delayTimeline.play();
         });
         
          getloseButton().setOnAction(we ->{
+        	 currentLevel=1;
+        	finishedWaveCount=0;
         	
         	primaryStage.setScene(scene);
         	resetGame();
@@ -251,6 +254,7 @@ public class Main extends Application {
         // Load path coordinates - use appropriate path based on your file structure
         // Use a relative path or allow path to be configurable
         pathCoordinates = tools.readCoordinates("src\\levels\\level"+currentLevel+".txt");
+        gridSize=tools.getMapSize("src\\levels\\level"+currentLevel+".txt");
 
         // Update debug label with path info
         updatePathDebugInfo();
@@ -274,8 +278,8 @@ public class Main extends Application {
         Game.gameOverlay = gameOverlay;
 
         // Calculate grid dimensions for proper tower placement
-        double gridWidth = gridUnit * GRID_SIZE - SPACING;
-        double gridHeight = gridUnit * GRID_SIZE - SPACING;
+        double gridWidth = gridUnit * gridSize - SPACING;
+        double gridHeight = gridUnit * gridSize - SPACING;
 
         offsetX = (WIDTH - gridWidth) / 2;
         offsetY = (HEIGHT - gridHeight) / 2;
@@ -349,7 +353,7 @@ private static void goEndScene() {
         grid.setAlignment(Pos.CENTER);
 
         // Define the path
-        boolean[][] isPath = new boolean[GRID_SIZE][GRID_SIZE];
+        boolean[][] isPath = new boolean[gridSize][gridSize];
 
         if (pathCoordinates.isEmpty()) {
             System.err.println("Error: Coordinates could not be loaded.");
@@ -357,7 +361,7 @@ private static void goEndScene() {
         }
 
         for (int[] coord : pathCoordinates) {
-            if (coord[0] >= 0 && coord[0] < GRID_SIZE && coord[1] >= 0 && coord[1] < GRID_SIZE) {
+            if (coord[0] >= 0 && coord[0] < gridSize && coord[1] >= 0 && coord[1] < gridSize) {
                 isPath[coord[0]][coord[1]] = true;
             } else {
                 System.err.println("Warning: Invalid coordinate in path data: [" + coord[0] + "," + coord[1] + "]");
@@ -365,8 +369,8 @@ private static void goEndScene() {
         }
 
         // Create and animate grid tiles
-        for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE; col++) {
+        for (int row = 0; row < gridSize; row++) {
+            for (int col = 0; col < gridSize; col++) {
                 Rectangle tile = new Rectangle(TILE_SIZE, TILE_SIZE);
                 if (isPath[row][col]) {
                     tile.setFill(PATH_COLOR);
@@ -393,7 +397,7 @@ private static void goEndScene() {
 
                 // Parallel animation
                 ParallelTransition pt = new ParallelTransition(ft, st);
-                pt.setDelay(Duration.millis((row * GRID_SIZE + col) * 12));
+                pt.setDelay(Duration.millis((row * gridSize + col) * 12));
                 transitions.add(pt);
             }
         }
@@ -560,7 +564,7 @@ private static void goEndScene() {
                 if (clickX < offsetX || clickY < offsetY)
                     return;
                 
-                if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
+                if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {
                     return;
                 }
 
@@ -636,7 +640,7 @@ private static void goEndScene() {
 
                         // 4) Geçersiz mi kontrol et?
                         boolean invalid = false;
-                        if (row1 < 0 || row1 >= GRID_SIZE || col1 < 0 || col1 >= GRID_SIZE) {
+                        if (row1 < 0 || row1 >= gridSize || col1 < 0 || col1 >= gridSize) {
                             invalid = true; // grid dışı
                         }
                         // yol hücresi mi?
@@ -842,8 +846,8 @@ private static void goEndScene() {
         }
 
         // Calculate grid dimensions
-        double gridWidth = (TILE_SIZE + SPACING) * GRID_SIZE - SPACING;
-        double gridHeight = (TILE_SIZE + SPACING) * GRID_SIZE - SPACING;
+        double gridWidth = (TILE_SIZE + SPACING) * gridSize - SPACING;
+        double gridHeight = (TILE_SIZE + SPACING) * gridSize - SPACING;
 
         // Create a circle at each path point
         for (int i = 0; i < pathCoordinates.size(); i++) {
