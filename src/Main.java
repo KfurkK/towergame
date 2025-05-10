@@ -1,5 +1,8 @@
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
@@ -18,25 +21,33 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.net.URL;
+import javax.sound.sampled.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
 import javafx.util.Duration;
+import javafx.scene.shape.Arc;
 
 
 /**
  * Main game application class
  */
-public class Main extends Application {
+public class Main extends Application {              
+    private Pane initialGameOverlay;
 	private Timeline countdownTimer;
 	private Timeline waveTimeLine;
 	private Label waveCountdownLabel;
 	private static Stage mainStage;
 	private static Button continueButton;
+	private static Button wonButton;
 	private static Button loseButton;
 	public boolean draggingTower = false;
+	private MediaPlayer mediaPlayer;
     private final static int WIDTH = 1920;
     private final static int HEIGHT = 1080;
     private int gridSize=10;
@@ -77,6 +88,10 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+    	
+    	AudioPlayer bgMusic = new AudioPlayer();
+    	bgMusic.playLoop("src/assets/sounds/Muzik1.wav");
+    	
     	mainStage=primaryStage;
         Button startButton = getStartButton();
         Game.root = new Pane();
@@ -86,6 +101,7 @@ public class Main extends Application {
 
         StackPane gameRoot = new StackPane();
         Scene gameScene = getGameScene(gameRoot);
+        initialGameOverlay = gameOverlay;
 
         root.setStyle("-fx-background-color: #FFF6DA;");
         root.getChildren().add(startButton);
@@ -100,18 +116,24 @@ public class Main extends Application {
             @Override
             public void handle(long now) {
                 Game.update();
-                
                 if (tools.getWaveData(currentLevel).length == finishedWaveCount
                         && Game.enemies.isEmpty()
                         && lives > 0) {
-                	waveCountdownLabel.setText("Next wave: 0s");
-                    System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
 
-                    finishedWaveCount = 0;     // Dalga sayacını sıfırla
-                    currentLevel++;            // Bir sonraki levele geç
-                    OtherResetGame();          // Ekranı temizle, resetle
-                    goContinueScene();         // "Continue" ekranına geç
-                    System.out.println(currentLevel);
+                    if (currentLevel == 5) {
+                        // 🎉 5. level bitti, oyun kazanıldı
+                        goWonScene();
+                    } else {
+                        // ⏭ Diğer levellere geçiş
+                        waveCountdownLabel.setText("Next wave: 0s");
+                        System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
+
+                        finishedWaveCount = 0;
+                        currentLevel++;
+                        OtherResetGame();
+                        goContinueScene();
+                        System.out.println(currentLevel);
+                    }
                 }
             }
             
@@ -136,15 +158,58 @@ public class Main extends Application {
          getloseButton().setOnAction(we ->{
         	 currentLevel=1;
         	finishedWaveCount=0;
-        	
-        	primaryStage.setScene(scene);
         	resetGame();
+        	
+        	
+        	
+        	if (waveTimeLine != null)    
+        		waveTimeLine.stop();
+            if (countdownTimer != null)  
+            	countdownTimer.stop();
+            
+            StackPane newGameRoot = new StackPane();
+            Scene newGameScene;
+            try {
+                newGameScene = getGameScene(newGameRoot);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
+            
+            primaryStage.setScene(newGameScene);
+            transitions.forEach(Animation::play);
+            
+            addGameButtons();
+            setupTowerPlacement();
+            scheduleWaves(currentLevel);
 			
         });
-         
-         /*getContinueButton().setOnAction(wea ->{
-        	 
-         }*/
+         getWonButton().setOnAction(e->{
+        	 currentLevel=1;
+          	finishedWaveCount=0;
+          	resetGame();
+
+         	if (waveTimeLine != null)    
+         		waveTimeLine.stop();
+             if (countdownTimer != null)  
+             	countdownTimer.stop();
+             
+             StackPane newGameRoot = new StackPane();
+             Scene newGameScene;
+             try {
+                 newGameScene = getGameScene(newGameRoot);
+             } catch (FileNotFoundException ex) {
+                 ex.printStackTrace();
+                 return;
+             }
+             
+             primaryStage.setScene(newGameScene);
+             transitions.forEach(Animation::play);
+             
+             addGameButtons();
+             setupTowerPlacement();
+             scheduleWaves(currentLevel);
+         });
 
     }
 
@@ -153,12 +218,12 @@ public class Main extends Application {
      */
     private void addGameButtons() {
         // Spawn Enemy button
-        Button spawnEnemyButton = createGameButton("Spawn Enemy", 1520, 500);
+        Button spawnEnemyButton = createGameButton("Spawn Enemy", 520, 500);
         spawnEnemyButton.setOnAction(event -> spawnEnemy());
         gameOverlay.getChildren().add(spawnEnemyButton);
 
         // Debug Path button
-        Button debugButton = createGameButton("Debug Path", 1520, 550);
+        Button debugButton = createGameButton("Debug Path", 520, 550);
         debugButton.setOnAction(we -> {
             try {
                 visualizePathPoints();
@@ -169,9 +234,7 @@ public class Main extends Application {
         gameOverlay.getChildren().add(debugButton);
 
         // Damage Enemy button
-        Button damageButton = createGameButton("Damage Enemy", 120, 550);
-        damageButton.setOnAction(we -> damageEnemy());
-        gameOverlay.getChildren().add(damageButton);
+        
     }
 
     /**
@@ -357,7 +420,7 @@ private static void goEndScene() {
         
     	
     	endRoot.getChildren().addAll(bL);
-    	endRoot.setStyle("-fx-background-color: #FFF6DA;");;
+    	endRoot.setStyle("-fx-background-color: #FFF6DA;");
     	
         mainStage.setScene(endScene);
     	
@@ -504,8 +567,11 @@ private static void goEndScene() {
 
         singleShot.setOnAction(e -> {
             selectedTowerType = 1;
-            selectedTower = new SingleShotTower(0, 0);
+            selectedTower = new SingleShotTower(0, 0, gameOverlay);
             draggingTower = true;
+            
+            Circle circle = selectedTower.getRangeCircle();
+            circle.setVisible(true);
 
             // Menzil ve kule sahneye ekleniyor
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
@@ -513,24 +579,30 @@ private static void goEndScene() {
         });
         laser.setOnAction(e -> {
             selectedTowerType = 2;
-            selectedTower = new LaserTower(0, 0);
+            selectedTower = new LaserTower(0, 0, gameOverlay);
             draggingTower = true;
+            Circle circle = selectedTower.getRangeCircle();
+            circle.setVisible(true);
 
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
         });
         tripleShot.setOnAction(e -> {
             selectedTowerType = 3;
-            selectedTower = new TripleShotTower(0, 0);
+            selectedTower = new TripleShotTower(0, 0, gameOverlay);
             draggingTower = true;
+            Circle circle = selectedTower.getRangeCircle();
+            circle.setVisible(true);
 
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
         });
         missile.setOnAction(e -> {
             selectedTowerType = 4;
-            selectedTower = new MissileLauncherTower(0, 0);
+            selectedTower = new MissileLauncherTower(0, 0, gameOverlay);
             draggingTower = true;
+            Circle circle = selectedTower.getRangeCircle();
+            circle.setVisible(true);
 
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
@@ -591,6 +663,29 @@ private static void goEndScene() {
                 int row = (int)((clickY - offsetY) / gridUnit);
                 // (istersen path ve placedTowerCells kontrolü yap)
                 
+                boolean invalid = false;
+                if (clickX < offsetX || clickY < offsetY
+                 || col < 0 || col >= gridSize || row < 0 || row >= gridSize) {
+                    invalid = true;
+                }
+                for (int[] p : pathCoordinates) {
+                    if (p[0]==row && p[1]==col) { invalid = true; break; }
+                }
+                
+                for (int[] p : placedTowerCells) {
+                    if (p[0]==row && p[1]==col) { invalid = true; break; }
+                }
+                if (invalid) {
+                    // Preview’u sahneden kaldır
+                    gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
+                    gameOverlay.getChildren().remove(selectedTower.getNode());
+                    // Dragging bitir
+                    draggingTower = false;
+                    selectedTower = null;
+                    selectedTowerType = 0;
+                    return;
+                }
+                
                 
                 if (clickX >= 1520)
                     return;
@@ -632,7 +727,9 @@ private static void goEndScene() {
                 gameOverlay.getChildren().remove(selectedTower.getNode());
                 
                 gameOverlay.getChildren().add(selectedTower.getNode());
-                gameOverlay.getChildren().add(selectedTower.getRangeCircle());
+                Circle placedCircle = selectedTower.getRangeCircle();
+                gameOverlay.getChildren().add(placedCircle);
+                placedCircle.setVisible(false);
 
                 // 3) gerçek kuleyi oyuna ekle
                 Game.addTower(selectedTower);
@@ -661,6 +758,7 @@ private static void goEndScene() {
                 });
                 placed.getNode().setOnMouseReleased(ev -> {
                     if (draggingTower && selectedTower==placed) {
+                    	draggingTower = false;
                     	placed.getRangeCircle().setVisible(false);
 
                         // 2) Sahne koordinatlarını al
@@ -674,29 +772,45 @@ private static void goEndScene() {
                         
 
                         // 4) Geçersiz mi kontrol et?
-                        boolean invalid = false;
+                        boolean invalid1 = false;
                         if (row1 < 0 || row1 >= gridSize || col1 < 0 || col1 >= gridSize) {
-                            invalid = true; // grid dışı
+                        	increaseMoney(placed.getPrice());
+                            // görselleri sahneden kaldır
+                            gameOverlay.getChildren().removeAll(
+                                placed.getNode(), placed.getRangeCircle()
+                            );
+                            
+                            placedTowerCells.removeIf(p ->
+                            p[0] == placed.getGridPosition()[0]
+                         && p[1] == placed.getGridPosition()[1]
+                        );
+                        Game.removeTower(placed);
+                        // seçimi temizle
+                        selectedTower = null;
+                        selectedTowerType = 0;
+                        return;
                         }
-                        // yol hücresi mi?
+                        boolean invalidPlacement = false;
+                        
                         for (int[] p : pathCoordinates) {
                             if (p[0] == row1 && p[1] == col1) {
-                                invalid = true;
+                            	invalidPlacement = true;
                                 break;
                             }
                         }
-                        // başka kule var mı? (kendisi hariç)
-                        for (int[] p : placedTowerCells) {
-                            if (p[0] == row1 && p[1] == col1
-                             && !(p[0] == placed.getGridPosition()[0]
-                               && p[1] == placed.getGridPosition()[1])) {
-                                invalid = true;
-                                break;
+                        if (!invalidPlacement) {
+                            for (int[] p : placedTowerCells) {
+                                if (p[0] == row1 && p[1] == col1
+                                 && !(p[0] == placed.getGridPosition()[0]
+                                   && p[1] == placed.getGridPosition()[1])) {
+                                    invalidPlacement = true;
+                                    break;
+                                } 
+                              } 
                             }
-                        }
 
-                        if (invalid) {
-                            // 5a) Hatalıysa geri eski hücresine dön
+                        if (invalidPlacement) {
+                            // 5a) Hatalıysa orijinal hücresine dön
                             double origX = offsetX
                                          + placed.getGridPosition()[1] * gridUnit
                                          + TILE_SIZE/2;
@@ -705,10 +819,12 @@ private static void goEndScene() {
                                          + TILE_SIZE/2;
                             placed.setPosition(origX, origY);
                         } else {
-                            // 5b) Geçerliyse eski kaydı sil, yeniyi ekle
+                        	// 6) geçerli yeni hücreye taşı
+                            // önce eski kaydı sil
                             placedTowerCells.removeIf(p ->
-                                p[0] == placed.getGridPosition()[0] &&
-                                p[1] == placed.getGridPosition()[1]);
+                            p[0] == placed.getGridPosition()[0]
+                                    && p[1] == placed.getGridPosition()[1]
+                                   );
                             
                             double newX = offsetX + col1 * gridUnit + TILE_SIZE/2;
                             double newY = offsetY + row1 * gridUnit + TILE_SIZE/2;
@@ -719,8 +835,7 @@ private static void goEndScene() {
                             placedTowerCells.add(new int[]{row1, col1});
                         }
 
-                        // 6) Dragging flag’ını sıfırla
-                        draggingTower = false;
+                        
                         selectedTower = null;
                         selectedTowerType = 0;
                     }
@@ -755,10 +870,10 @@ private static void goEndScene() {
 
             // Create tower based on selected type
             Tower tower = switch (selectedTowerType) {
-                case 1 -> new SingleShotTower(cellCenterX, cellCenterY);
-                case 2 -> new LaserTower(cellCenterX, cellCenterY);
-                case 3 -> new TripleShotTower(cellCenterX, cellCenterY);
-                case 4 -> new MissileLauncherTower(cellCenterX, cellCenterY);
+                case 1 -> new SingleShotTower(cellCenterX, cellCenterY, gameOverlay);
+                case 2 -> new LaserTower(cellCenterX, cellCenterY, gameOverlay);
+                case 3 -> new TripleShotTower(cellCenterX, cellCenterY, gameOverlay);
+                case 4 -> new MissileLauncherTower(cellCenterX, cellCenterY, gameOverlay);
                 default -> null;
             };
 
@@ -919,6 +1034,15 @@ private static void goEndScene() {
         // Start enemy movement along the path
         currentEnemy.moveAlongPath(pathCoordinates);
     }
+    
+    public void spawnEnemyArcher() {
+		currentEnemy = new Archer(30, gameOverlay); // 100:health
+		enemies.add(currentEnemy);
+		Game.enemies.add(currentEnemy);
+
+		// Start enemy movement along the path
+		currentEnemy.moveAlongPath(pathCoordinates);
+	}
 
     /**
      * Damage the current enemy for testing
@@ -1001,6 +1125,9 @@ private static void goEndScene() {
     	        gameOverlay.getChildren().remove(m.getNode());
     	    }
     	    Game.getMissiles().clear();
+    	    
+    	    if (waveTimeLine != null)    waveTimeLine.stop();
+    	    if (countdownTimer != null)  countdownTimer.stop();
 
     	    // Yerleşim yerlerini sıfırla
     	    placedTowerCells.clear();
@@ -1080,7 +1207,7 @@ private static void goEndScene() {
     
     private static Button getloseButton() {
     	if(loseButton==null) {
-        loseButton = new Button("Back to Main Menu");
+        loseButton = new Button("Restart Game");
     	}
         loseButton.setPrefWidth(400);
         loseButton.setPrefHeight(150);
@@ -1108,6 +1235,8 @@ private static void goEndScene() {
                             "-fx-border-radius: 40;"
             );
     	continueButton.setOnAction(e->{ 
+    		
+    			
     		try { 
     			Scene nextLevelScene = getGameScene(new StackPane()); 
     			mainStage.setScene(nextLevelScene); 
@@ -1117,11 +1246,60 @@ private static void goEndScene() {
     		}
     		catch(Exception ex) {
     			System.out.println("continue exeption");
+    			
     		}
+    		
     	});
     	
             return continueButton;
     //e
     }
+    
+    public class AudioPlayer {
+        private Clip clip;
+
+        public void playLoop(String filepath) {
+            try (AudioInputStream ais = AudioSystem.getAudioInputStream(new File(filepath))) {
+                clip = AudioSystem.getClip();
+                clip.open(ais);
+                clip.loop(Clip.LOOP_CONTINUOUSLY);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void stop() {
+            if (clip != null && clip.isRunning()) clip.stop();
+        }
+    }
+    private Button getWonButton() {
+    	if(wonButton==null) {
+    		wonButton = new Button("Play Again!");
+        	}
+    	wonButton.setPrefWidth(400);
+    	wonButton.setPrefHeight(150);
+    	wonButton.setStyle(
+                    "-fx-font-size: 32px;" +
+                            "-fx-background-color: #c29b57;" +
+                            "-fx-text-fill: black;" +
+                            "-fx-background-radius: 40;" +
+                            "-fx-border-radius: 40;");
+    	return wonButton;
+    	
+    }
+    private void goWonScene() {
+    	Label nextLabel=new Label("You Won The Game!");
+    	StackPane paneWon=new StackPane();
+    	VBox won=new VBox(10);
+    	won.setAlignment(Pos.CENTER);
+    	won.getChildren().addAll(nextLabel,wonButton);
+    	paneWon.getChildren().add(won);
+    	Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);
+    	paneWon.setStyle("-fx-background-color: #FFF6DA;");
+    	mainStage.setScene(wonScene);
+
+    }
+    
+    
     
 }

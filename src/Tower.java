@@ -1,104 +1,113 @@
 import java.util.List;
+
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Circle;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
+import javafx.scene.effect.BoxBlur;
+import javafx.scene.layout.Pane;
+
 
 public abstract class Tower {
-    public double x, y; // Kule konumu
-    public double range; // Mesafe
-    public double price; // kule fiyatı
-    public Enemy target;
-    public boolean selected;
-    protected Node body;
+	public double x, y; // Kule konumu
+	public double range; // Mesafe
+	public double price; // kule fiyatı
+	public Enemy target;
+	public boolean selected;
+	public Node body;
 
-    public Circle rangeCircle;
-    private int currentRow = -1;
-    private int currentCol = -1;
+	public Circle rangeCircle;
+	private int currentRow = -1;
+	private int currentCol = -1;
+	public final Rectangle healthBar = null;
 
-    public Tower() {
+	public Tower() {
 
-    }
+	}
 
+	public Tower(double x, double y, double range, double price, Color color) { // Base Constructor
+		this.x = x;
+		this.y = y;
+		this.range = range;
+		this.price = price;
 
-    public Tower (double x, double y, double range, double price, Color color) { // Base Constructor
-        this.x =x;
-        this.y = y;
-        this.range = range;
-        this.price = price;
+		body = new Rectangle(20, 20, color);
+		body.setLayoutX(x - 10);
+		body.setLayoutY(y - 10);
 
-        body = new Rectangle(20, 20, color);
-        body.setLayoutX(x - 10);
-        body.setLayoutY(y - 10);
+		rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.5)); // yarı saydam kırmızı
+		rangeCircle.setStroke(Color.RED);
+		rangeCircle.setFill(Color.rgb(255, 0, 0, 0.5));
+		rangeCircle.setLayoutX(x);
+		rangeCircle.setLayoutY(y);
+		rangeCircle.setVisible(false);
+	}
 
-        rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.2)); // yarı saydam kırmızı
-        rangeCircle.setStroke(Color.RED);
-        rangeCircle.setFill(Color.rgb(255, 0, 0, 0.1));
-        rangeCircle.setLayoutX(x);
-        rangeCircle.setLayoutY(y);
-        rangeCircle.setVisible(false);
-    }
+	public Node getNode() {
+		return body;
+	}
 
-    public Node getNode() {
-        return body;
-    }
+	public double getPrice() {
+		return price;
+	}
 
-    public double getPrice() {
-        return price;
-    }
+	public void setPosition(double newX, double newY) {
+		this.x = newX;
+		this.y = newY;
+		body.setLayoutX(x - 20);
+		body.setLayoutY(y - 20);
 
-    public void setPosition(double newX, double newY) {
-        this.x = newX;
-        this.y = newY;
-        body.setLayoutX(x - 20 );
-        body.setLayoutY(y - 20 );
+		rangeCircle.setLayoutX(x);
+		rangeCircle.setLayoutY(y);
+	}
 
-        rangeCircle.setLayoutX(x);
-        rangeCircle.setLayoutY(y);
-    }
+	public Circle getRangeCircle() {
+		return rangeCircle;
+	}
 
-    public Circle getRangeCircle() {
-        return rangeCircle;
-    }
+	public void remove() {
+		// Varsayılan: sadece sahneden görseli siler
+		Game.gameOverlay.getChildren().remove(getNode());
+		Game.gameOverlay.getChildren().remove(rangeCircle);
+	}
 
-    public void remove() {
-        // Varsayılan: sadece sahneden görseli siler
-        Game.gameOverlay.getChildren().remove(getNode());
-        Game.gameOverlay.getChildren().remove(rangeCircle);
-    }
+	public boolean contains(double px, double py) {
+		return body.getBoundsInParent().contains(px, py);
+	}
 
-    public boolean contains(double px, double py) {
-        return body.getBoundsInParent().contains(px, py);
-    }
+	public boolean isRange(Enemy e) {
+		double dx = e.getX() - x;
+		double dy = e.getY() - y;
 
-    public boolean isRange(Enemy e) {
-        double dx = e.getX()- x;
-        double dy = e.getY()- y;
+		double enemyRange = Math.sqrt((dy * dy) + (dx * dx));
 
-        double enemyRange = Math.sqrt((dy*dy)+(dx*dx));
+		if (enemyRange <= range)
+			return true;
+		else
+			return false;
 
+	}
 
-        if (enemyRange <= range)
-            return true;
-        else
-            return false;
+	public void setGridPosition(int row, int col) {
+		this.currentRow = row;
+		this.currentCol = col;
+	}
 
-    }
+	public int[] getGridPosition() {
+		return new int[] { currentRow, currentCol };
+	}
 
-    public void setGridPosition(int row, int col) {
-        this.currentRow = row;
-        this.currentCol = col;
-    }
-
-    public int[] getGridPosition() {
-        return new int[]{currentRow, currentCol};
-    }
-
-
-
-    public abstract void update(List<Enemy> enemies); // her karede ne yapacak?
-
+	public abstract void update(List<Enemy> enemies); // her karede ne yapacak?
+	public abstract void damage(int damageValue);
+	
+	public Node getHealthBar() {
+		return healthBar;
+	}
 
 }

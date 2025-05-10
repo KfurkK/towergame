@@ -27,8 +27,8 @@ public class Enemy {
     private final Pane gamePane;
 
     // Constants
-    private static final int TILE_SIZE = 45;
-    private static final double SPACING   = 2.5;
+    public static final int TILE_SIZE = 45;
+    public static final double SPACING   = 2.5;
 
     /**
      * Create a new enemy
@@ -140,7 +140,7 @@ public class Enemy {
     /**
      * Play death animation and remove
      */
-    private void die() {
+    protected void die() {
         FadeTransition fadeSprite = new FadeTransition(Duration.millis(300), enemyView);
         fadeSprite.setFromValue(1.0);
         fadeSprite.setToValue(0.0);
@@ -187,7 +187,7 @@ public class Enemy {
      * Remove enemy from the game
      */
  
-    private void removeFromGame() {
+    protected void removeFromGame() {
         gamePane.getChildren().removeAll(enemyView, healthBar);
     }
     public Rectangle getHealthBar() {
