@@ -1159,7 +1159,7 @@ private static void goEndScene() {
     
     private static Button getloseButton() {
     	if(loseButton==null) {
-        loseButton = new Button("Back to Main Menu");
+        loseButton = new Button("Restart Game");
     	}
         loseButton.setPrefWidth(400);
         loseButton.setPrefHeight(150);
