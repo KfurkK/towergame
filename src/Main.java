@@ -30,6 +30,9 @@ import javafx.util.Duration;
  * Main game application class
  */
 public class Main extends Application {
+	private Timeline countdownTimer;
+	private Timeline waveTimeLine;
+	private Label waveCountdownLabel;
 	private static Stage mainStage;
 	private static Button continueButton;
 	private static Button loseButton;
@@ -101,7 +104,7 @@ public class Main extends Application {
                 if (tools.getWaveData(currentLevel).length == finishedWaveCount
                         && Game.enemies.isEmpty()
                         && lives > 0) {
-
+                	waveCountdownLabel.setText("Next wave: 0s");
                     System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
 
                     finishedWaveCount = 0;     // Dalga sayacını sıfırla
@@ -175,36 +178,67 @@ public class Main extends Application {
      * Schedule enemy waves to spawn at specific intervals
      */
     private void scheduleWaves(int level) {
-        double[][] waveData = tools.getWaveData(level);
-
-        Timeline master = new Timeline();
-        double delay = 2.0;  // initial delay before Wave 1
-
-        for (int i = 0; i < waveData.length; i++) {
-            int    count = (int) waveData[i][0];
-            double rate  = waveData[i][1];
-
-            // schedule this wave at absolute time "delay"
-            master.getKeyFrames().add(
-                    new KeyFrame(
-                            Duration.seconds(delay),
-                            e -> spawnWave(count, rate)
-                    )
-            );
-
-            // compute when this wave's last enemy spawns
-            double end = delay + (count - 1) * rate;
-
-            // use the **next** wave's buffer value (or 0 if last wave)
-            double buffer = (i + 1 < waveData.length)
-                    ? waveData[i + 1][2]
-                    : 0;
-
-            delay = end + buffer;
-            System.out.printf("Next wave scheduled at t=%.3fs%n", delay);
+        if (waveTimeLine != null) {
+            waveTimeLine.stop();
         }
 
-        master.play();
+        double[][] waveData = tools.getWaveData(level);
+        waveTimeLine = new Timeline();
+
+        // İlk wave'in buffer'ına göre ilk countdown
+        if (waveData.length > 0) {
+            int firstBuffer = (int) waveData[0][2];
+            startWaveCountdown(firstBuffer);
+        }
+
+        double delay = waveData[0][2];  // ilk wave başlamadan önceki bekleme
+
+        for (int i = 0; i < waveData.length; i++) {
+            int count = (int) waveData[i][0];
+            double rate = waveData[i][1];
+
+            // Yeni wave başlamadan 5 saniye önce geri sayımı başlat
+            if (delay >= 5) {
+                int seconds = 5;
+                waveTimeLine.getKeyFrames().add(
+                    new KeyFrame(Duration.seconds(delay - seconds),
+                        e -> startWaveCountdown(seconds)
+                    )
+                );
+            }
+
+            // Asıl wave başlatma
+            waveTimeLine.getKeyFrames().add(
+                new KeyFrame(Duration.seconds(delay),
+                    e -> spawnWave(count, rate)
+                )
+            );
+
+            double end = delay + (count - 1) * rate;
+            double buffer = (i + 1 < waveData.length) ? waveData[i + 1][2] : 0;
+            delay = end + buffer;
+        }
+
+        waveTimeLine.play();
+        System.out.printf("Next wave scheduled at t=%.3fs%n", delay);
+    }
+
+    private void startWaveCountdown(int seconds) {
+        // Mevcut timer varsa durdur
+        if (countdownTimer != null) {
+            countdownTimer.stop();
+        }
+
+        countdownTimer = new Timeline();
+        for (int i = 0; i <= seconds; i++) {
+            int remaining = seconds - i;
+            countdownTimer.getKeyFrames().add(
+                new KeyFrame(Duration.seconds(i),
+                    e -> waveCountdownLabel.setText("Next wave: " + remaining + "s")
+                )
+            );
+        }
+        countdownTimer.play();
     }
 
     /**
@@ -519,8 +553,9 @@ private static void goEndScene() {
         livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
         moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
         debugLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #333;");
-
-        hud.getChildren().addAll(livesLabel, moneyLabel, debugLabel, singleShot, laser, tripleShot, missile);
+        waveCountdownLabel = new Label("Next wave: --");
+        waveCountdownLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #333;");
+        hud.getChildren().addAll(livesLabel, moneyLabel, waveCountdownLabel, singleShot, laser, tripleShot, missile);
         return hud;
     }
 
