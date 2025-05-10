@@ -1,10 +1,18 @@
 import java.util.List;
+
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Circle;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
+import javafx.scene.effect.BoxBlur;
+import javafx.scene.layout.Pane;
+
 
 public abstract class Tower {
 	public double x, y; // Kule konumu
@@ -17,6 +25,7 @@ public abstract class Tower {
 	public Circle rangeCircle;
 	private int currentRow = -1;
 	private int currentCol = -1;
+	public final Rectangle healthBar = null;
 
 	public Tower() {
 
@@ -95,5 +104,10 @@ public abstract class Tower {
 	}
 
 	public abstract void update(List<Enemy> enemies); // her karede ne yapacak?
+	public abstract void damage(int damageValue);
+	
+	public Node getHealthBar() {
+		return healthBar;
+	}
 
 }

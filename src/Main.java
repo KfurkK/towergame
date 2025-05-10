@@ -1,5 +1,7 @@
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
@@ -24,6 +26,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
 import javafx.util.Duration;
+import javafx.scene.shape.Arc;
 
 
 /**
@@ -528,7 +531,7 @@ private static void goEndScene() {
 
         singleShot.setOnAction(e -> {
             selectedTowerType = 1;
-            selectedTower = new SingleShotTower(0, 0);
+            selectedTower = new SingleShotTower(0, 0, gameOverlay);
             draggingTower = true;
             
             Circle circle = selectedTower.getRangeCircle();
@@ -540,7 +543,7 @@ private static void goEndScene() {
         });
         laser.setOnAction(e -> {
             selectedTowerType = 2;
-            selectedTower = new LaserTower(0, 0);
+            selectedTower = new LaserTower(0, 0, gameOverlay);
             draggingTower = true;
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
@@ -550,7 +553,7 @@ private static void goEndScene() {
         });
         tripleShot.setOnAction(e -> {
             selectedTowerType = 3;
-            selectedTower = new TripleShotTower(0, 0);
+            selectedTower = new TripleShotTower(0, 0, gameOverlay);
             draggingTower = true;
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
@@ -560,7 +563,7 @@ private static void goEndScene() {
         });
         missile.setOnAction(e -> {
             selectedTowerType = 4;
-            selectedTower = new MissileLauncherTower(0, 0);
+            selectedTower = new MissileLauncherTower(0, 0, gameOverlay);
             draggingTower = true;
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
@@ -831,10 +834,10 @@ private static void goEndScene() {
 
             // Create tower based on selected type
             Tower tower = switch (selectedTowerType) {
-                case 1 -> new SingleShotTower(cellCenterX, cellCenterY);
-                case 2 -> new LaserTower(cellCenterX, cellCenterY);
-                case 3 -> new TripleShotTower(cellCenterX, cellCenterY);
-                case 4 -> new MissileLauncherTower(cellCenterX, cellCenterY);
+                case 1 -> new SingleShotTower(cellCenterX, cellCenterY, gameOverlay);
+                case 2 -> new LaserTower(cellCenterX, cellCenterY, gameOverlay);
+                case 3 -> new TripleShotTower(cellCenterX, cellCenterY, gameOverlay);
+                case 4 -> new MissileLauncherTower(cellCenterX, cellCenterY, gameOverlay);
                 default -> null;
             };
 
@@ -995,6 +998,15 @@ private static void goEndScene() {
         // Start enemy movement along the path
         currentEnemy.moveAlongPath(pathCoordinates);
     }
+    
+    public void spawnEnemyArcher() {
+		currentEnemy = new Archer(30, gameOverlay); // 100:health
+		enemies.add(currentEnemy);
+		Game.enemies.add(currentEnemy);
+
+		// Start enemy movement along the path
+		currentEnemy.moveAlongPath(pathCoordinates);
+	}
 
     /**
      * Damage the current enemy for testing
