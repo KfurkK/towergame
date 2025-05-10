@@ -570,7 +570,7 @@ public class Main extends Application {
 					if (ev.isSecondaryButtonDown()) {
 						// sat
 						increaseMoney(placed.getPrice());
-						gameOverlay.getChildren().removeAll(placed.getNode(), placed.getRangeCircle());
+						gameOverlay.getChildren().removeAll(placed.getNode(), placed.getRangeCircle(), placed.getHealthBar());
 						int[] g = placed.getGridPosition();
 						placedTowerCells.removeIf(p -> p[0] == g[0] && p[1] == g[1]);
 						Game.removeTower(placed);
@@ -715,8 +715,9 @@ public class Main extends Application {
 						increaseMoney(tower.getPrice());
 
 						// Remove tower from display
-						gameOverlay.getChildren().removeAll(tower.getNode(), tower.getRangeCircle());
-						gameOverlay.getChildren().remove((tower).getHealthBar());
+						gameOverlay.getChildren().removeAll(tower.getNode(), tower.getRangeCircle(), tower.getHealthBar());
+
+
 
 						// Remove tower from grid tracking
 						int[] gridPos = tower.getGridPosition();
