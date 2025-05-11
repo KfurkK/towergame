@@ -163,7 +163,7 @@ public class Enemy {
      */
     private void createExplosionEffect() {
         for (int i = 0; i < 20; i++) {
-            javafx.scene.shape.Circle p = new javafx.scene.shape.Circle(3, Color.ORANGE);
+            javafx.scene.shape.Circle p = new javafx.scene.shape.Circle(4, Color.RED);
             p.setTranslateX(enemyView.getTranslateX());
             p.setTranslateY(enemyView.getTranslateY());
             gamePane.getChildren().add(p);
