@@ -44,7 +44,7 @@ public class Main extends Application {
 	private Label waveCountdownLabel;
 	private static Stage mainStage;
 	private static Button continueButton;
-	private static Button wonButton;
+	private Button wonButton;
 	private static Button loseButton;
 	public boolean draggingTower = false;
 	private MediaPlayer mediaPlayer;
@@ -184,32 +184,6 @@ public class Main extends Application {
             scheduleWaves(currentLevel);
 			
         });
-         getWonButton().setOnAction(e->{
-        	 currentLevel=1;
-          	finishedWaveCount=0;
-          	resetGame();
-
-         	if (waveTimeLine != null)    
-         		waveTimeLine.stop();
-             if (countdownTimer != null)  
-             	countdownTimer.stop();
-             
-             StackPane newGameRoot = new StackPane();
-             Scene newGameScene;
-             try {
-                 newGameScene = getGameScene(newGameRoot);
-             } catch (FileNotFoundException ex) {
-                 ex.printStackTrace();
-                 return;
-             }
-             
-             primaryStage.setScene(newGameScene);
-             transitions.forEach(Animation::play);
-             
-             addGameButtons();
-             setupTowerPlacement();
-             scheduleWaves(currentLevel);
-         });
 
     }
 
@@ -1273,26 +1247,50 @@ private static void goEndScene() {
         }
     }
     private Button getWonButton() {
-    	if(wonButton==null) {
-    		wonButton = new Button("Play Again!");
-        	}
-    	wonButton.setPrefWidth(400);
-    	wonButton.setPrefHeight(150);
-    	wonButton.setStyle(
-                    "-fx-font-size: 32px;" +
-                            "-fx-background-color: #c29b57;" +
-                            "-fx-text-fill: black;" +
-                            "-fx-background-radius: 40;" +
-                            "-fx-border-radius: 40;");
-    	return wonButton;
-    	
+        wonButton = new Button("Play Again!");
+    
+        wonButton.setPrefWidth(400);
+        wonButton.setPrefHeight(150);
+        wonButton.setStyle(
+            "-fx-font-size: 32px;" +
+            "-fx-background-color: #c29b57;" +
+            "-fx-text-fill: black;" +
+            "-fx-background-radius: 40;" +
+            "-fx-border-radius: 40;"
+        );
+        wonButton.setOnAction(e -> {
+            currentLevel = 1;
+            finishedWaveCount = 0;
+            resetGame();
+
+            if (waveTimeLine != null) waveTimeLine.stop();
+            if (countdownTimer != null) countdownTimer.stop();
+
+            StackPane newGameRoot = new StackPane();
+            Scene newGameScene;
+            try {
+                newGameScene = getGameScene(newGameRoot);
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+                return;
+            }
+
+            mainStage.setScene(newGameScene);
+            transitions.forEach(Animation::play);
+            addGameButtons();
+            setupTowerPlacement();
+            scheduleWaves(currentLevel);
+        });
+
+
+        return wonButton;
     }
     private void goWonScene() {
     	Label nextLabel=new Label("You Won The Game!");
     	StackPane paneWon=new StackPane();
     	VBox won=new VBox(10);
     	won.setAlignment(Pos.CENTER);
-    	won.getChildren().addAll(nextLabel,wonButton);
+    	won.getChildren().addAll(nextLabel,getWonButton());
     	paneWon.getChildren().add(won);
     	Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);
     	paneWon.setStyle("-fx-background-color: #FFF6DA;");
