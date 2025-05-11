@@ -1,6 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
-
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
@@ -8,6 +6,10 @@ import javafx.scene.Node;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
+
+import java.util.HashMap;
 import javafx.scene.shape.Line;
 import java.util.List;
 import java.util.Map;
@@ -16,15 +18,12 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.util.Duration;
 
 public class LaserTower extends Tower {
 	double damagePerSecond = 1.0;
 	Map<Enemy, Double> targetTimers = new HashMap<>();
 	public Line laserBeam = new Line();
 	private List<Line> laserBeams = new ArrayList<>();
-
 
 	public int towerHealth = 30; // when enemy attacks to tower's health
 	public static int maxTowerHealth = 30; // when enemy attacks to tower's health
@@ -39,6 +38,9 @@ public class LaserTower extends Tower {
 	public LaserTower(double x, double y, Pane gameOverlay) {
 		super(x, y, 100, 120, Color.ORANGERED); // 120$
 		this.overlay = gameOverlay;
+
+
+
 		Image img = new Image("assets/towers/lasertower.png");
 		imageView = new ImageView(img);
 		imageView.setFitWidth(40);
@@ -49,7 +51,6 @@ public class LaserTower extends Tower {
 
 		this.body = imageView;
 
-
 		healthBar = new Rectangle(Enemy.TILE_SIZE, 5);
 		healthBar.setFill(Color.GREEN);
 		healthBar.layoutXProperty().bind(
@@ -58,7 +59,6 @@ public class LaserTower extends Tower {
 		healthBar.layoutYProperty().bind(
 				imageView.layoutYProperty().subtract(healthBar.getHeight() + 2)
 		);
-		
 	}
 
 	@Override
@@ -70,8 +70,9 @@ public class LaserTower extends Tower {
 			Game.gameOverlay.getChildren().remove(beam);
 		}
 		laserBeams.clear();
+		List<Enemy> snapshot = new ArrayList<>(enemies);
+		for (Enemy e : snapshot) {
 
-		for (Enemy e : enemies) {
 			if (isRange(e) && e.isAlive()) {
 
 				targetTimers.putIfAbsent(e, instanceTime * 1.0);
@@ -93,14 +94,13 @@ public class LaserTower extends Tower {
 				laserBeams.add(beam);
 
 			} else {
+
 				laserBeam.setVisible(false);
 				targetTimers.remove(e);
 			}
 		}
 	}
 
-
-	@Override
 	public void damage(int damageValue) {
 		// decrease the healthbar displayd of the tower
 		this.towerHealth -= damageValue;
@@ -117,6 +117,8 @@ public class LaserTower extends Tower {
 			this.die();
 		}
 	}
+
+
 
 	@Override
 	public void remove() {
@@ -186,7 +188,5 @@ public class LaserTower extends Tower {
 	public Node getHealthBar() {
 		return healthBar;
 	}
-	
-	
 
 }

@@ -148,6 +148,8 @@ public class Enemy {
 		ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
 		deathAnim.setOnFinished(e -> removeFromGame());
 		deathAnim.play();
+		Game.enemies.remove(this);
+
 	}
 
 	/**

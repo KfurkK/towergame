@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -77,14 +78,19 @@ public class Missile {
 	}
 
 	private void explode(List<Enemy> enemies) {
+		List<Enemy> toDamage = new ArrayList<>();
 		for (Enemy e : enemies) {
 			if (e.isAlive()) {
 				double dist = Math.sqrt((e.getX() - x) * (e.getX() - x) + (e.getY() - y) * (e.getY() - y));
 				if (dist <= effectRadius) {
-					e.damage(damage);
+					toDamage.add(e);
 				}
 			}
 		}
+		for (Enemy e : toDamage) {
+			e.damage(damage);
+		}
+
 
 	}
 

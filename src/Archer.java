@@ -254,6 +254,7 @@ public class Archer extends Enemy {
             attackTimer.stop(); //
         }
         super.die(); //
+        Game.enemies.remove(this);
     }
 
     /**

@@ -75,13 +75,14 @@ public class Game {
 		towers.add(t);
 	}
 
-	public static void removeTower(Tower t) { //
+	public static void removeTower(Tower t) {
 		if (t != null) {
 			towers.remove(t);
 			Game.forceClearAllLaserBeams();
 
 		}
 	}
+
 	public static void addEnemy(Enemy e) {
 		enemies.add(e);
 	}
