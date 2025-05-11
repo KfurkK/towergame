@@ -94,8 +94,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-    	Image roadImg = new Image(getClass().getResourceAsStream("/assets/road5.png"));
-    	roadPattern = new ImagePattern(roadImg);
+    	
     	
     	Image alternateRoadImg = new Image(getClass().getResourceAsStream("/assets/main_road.png"));
     	alternateRoadPattern = new ImagePattern(alternateRoadImg);
@@ -504,6 +503,10 @@ private static void goEndScene() {
                 System.err.println("Warning: Invalid coordinate in path data: [" + coord[0] + "," + coord[1] + "]");
             }
         }
+        Image side1 = new Image(getClass().getResourceAsStream("/assets/road5.png"));
+    	roadPattern = new ImagePattern(side1);
+    	
+    	Image side2 = new Image(getClass().getResourceAsStream("/assets/alternate_road.png"));
 
         // Create and animate grid tiles
         for (int row = 0; row < gridSize; row++) {
@@ -512,7 +515,9 @@ private static void goEndScene() {
                 if (isPath[row][col]) {
                 	tile.setFill(alternateRoadPattern);
                 } else {
-                    tile.setFill(roadPattern);
+                	 ImagePattern pattern = new ImagePattern(
+                             Math.random() < 0.5 ? side1 : side2);
+                    tile.setFill(pattern);
                 }
                 tile.setOpacity(0);
                 tile.setScaleX(0.1);
