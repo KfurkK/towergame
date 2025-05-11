@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.effect.GaussianBlur;
 
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
@@ -15,8 +16,8 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -28,6 +29,8 @@ import javax.sound.sampled.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
 import javafx.util.Duration;
@@ -37,7 +40,9 @@ import javafx.scene.shape.Arc;
 /**
  * Main game application class
  */
-public class Main extends Application {              
+public class Main extends Application { 
+	private ImagePattern roadPattern;
+	private ImagePattern alternateRoadPattern;
     private Pane initialGameOverlay;
 	private Timeline countdownTimer;
 	private Timeline waveTimeLine;
@@ -45,6 +50,7 @@ public class Main extends Application {
 	private static Stage mainStage;
 	private static Button continueButton;
 	private static Button loseButton;
+	private Button wonButton;
 	public boolean draggingTower = false;
 	private MediaPlayer mediaPlayer;
     private final static int WIDTH = 1920;
@@ -87,6 +93,15 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+    	Image roadImg = new Image(getClass().getResourceAsStream("/assets/road5.png"));
+    	roadPattern = new ImagePattern(roadImg);
+    	
+    	Image alternateRoadImg = new Image(getClass().getResourceAsStream("/assets/main_road.png"));
+    	alternateRoadPattern = new ImagePattern(alternateRoadImg);
+    	
+    	Image bgImage = new Image(getClass().getResource("/assets/background.png").toExternalForm());
+    	ImageView bgView = new ImageView(bgImage);
+    	
     	
     	AudioPlayer bgMusic = new AudioPlayer();
     	bgMusic.playLoop("src/assets/sounds/Muzik1.wav");
@@ -101,9 +116,11 @@ public class Main extends Application {
         StackPane gameRoot = new StackPane();
         Scene gameScene = getGameScene(gameRoot);
         initialGameOverlay = gameOverlay;
+        
+        root.getChildren().addAll(bgView, startButton); 
 
-        root.setStyle("-fx-background-color: #FFF6DA;");
-        root.getChildren().add(startButton);
+        //root.setStyle("-fx-background-color: #FFF6DA;");
+        //root.getChildren().add(startButton);
 
         primaryStage.setTitle("Tower Defense Game");
         primaryStage.setScene(scene);
@@ -116,17 +133,34 @@ public class Main extends Application {
             public void handle(long now) {
                 Game.update();
                 
+                if (lives <= 0) {
+                    this.stop(); // timer durdurulmalı
+                    goEndScene(); // sahneye geçilmeli
+                    return;
+                }
+                
                 if (tools.getWaveData(currentLevel).length == finishedWaveCount
                         && Game.enemies.isEmpty()
                         && lives > 0) {
-                	waveCountdownLabel.setText("Next wave: 0s");
-                    System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
+                	System.out.println("🎉 Tüm wave'ler tamamlandı! Level: " + currentLevel);
+                	 if (currentLevel == 5) {
+                		 this.stop();// 🎉 5. level bitti, oyun kazanıldı
+                         goWonScene();
+                     } else {
+                         // ⏭ Diğer levellere geçiş
+                         waveCountdownLabel.setText("Next wave: 0s");
+                         System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
 
-                    finishedWaveCount = 0;     // Dalga sayacını sıfırla
-                    currentLevel++;            // Bir sonraki levele geç
-                    OtherResetGame();          // Ekranı temizle, resetle
-                    goContinueScene();         // "Continue" ekranına geç
-                    System.out.println(currentLevel);
+                         finishedWaveCount = 0;
+                         currentLevel++;
+                         OtherResetGame();
+                         goContinueScene();
+                         System.out.println(currentLevel);
+                     }
+                	
+                    
+
+                    
                 }
             }
             
@@ -178,9 +212,7 @@ public class Main extends Application {
 			
         });
          
-         /*getContinueButton().setOnAction(wea ->{
-        	 
-         }*/
+         
 
     }
 
@@ -189,12 +221,12 @@ public class Main extends Application {
      */
     private void addGameButtons() {
         // Spawn Enemy button
-        Button spawnEnemyButton = createGameButton("Spawn Enemy", 520, 500);
-        spawnEnemyButton.setOnAction(event -> spawnEnemy());
-        gameOverlay.getChildren().add(spawnEnemyButton);
+        /*Button spawnEnemyButton = createGameButton("Spawn Enemy", 520, 500);
+        spawnEnemyButton.setOnAction(event -> spawnEnemyArcher());
+        gameOverlay.getChildren().add(spawnEnemyButton); */
 
         // Debug Path button
-        Button debugButton = createGameButton("Debug Path", 520, 550);
+        /*Button debugButton = createGameButton("Debug Path", 520, 550);
         debugButton.setOnAction(we -> {
             try {
                 visualizePathPoints();
@@ -204,7 +236,7 @@ public class Main extends Application {
         });
         gameOverlay.getChildren().add(debugButton);
 
-        // Damage Enemy button
+        // Damage Enemy button */
         
     }
 
@@ -323,12 +355,22 @@ public class Main extends Application {
         // Use a relative path or allow path to be configurable
         pathCoordinates = tools.readCoordinates("src\\levels\\level"+currentLevel+".txt");
         gridSize=tools.getMapSize("src\\levels\\level"+currentLevel+".txt");
+        
+        Image bgImage = new Image(getClass()
+                .getResource("/assets/background.png")
+                .toExternalForm());
+            ImageView bgView = new ImageView(bgImage);
+            bgView.setFitWidth(WIDTH);
+            bgView.setFitHeight(HEIGHT);
+            bgView.setPreserveRatio(false);
+            bgView.setEffect(new GaussianBlur(12));  // 8–15 arası radius deneyebilirsiniz
+            gameRoot.getChildren().add(0, bgView);
 
         // Update debug label with path info
         updatePathDebugInfo();
 
         Scene gameScene = new Scene(gameRoot, WIDTH, HEIGHT);
-        gameRoot.setStyle("-fx-background-color: #FFF6DA;");
+        //gameRoot.setStyle("-fx-background-color: #FFF6DA;");
 
         GridPane grid = createGameGrid();
 
@@ -361,17 +403,28 @@ public class Main extends Application {
     public void goContinueScene() {
     	StackPane nextRoot=new StackPane();
     	Scene nextScene=new Scene(nextRoot,WIDTH,HEIGHT);
-    	Label nextLabel=new Label("You won!");
-    	nextLabel.setStyle("-fx-font-size: 24px;");
+    	
+    	Image bgImage = new Image(getClass().getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
+    	
+        Label nextLabel=new Label("You won!");
+        nextLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
+        nextLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+    	
     	VBox bL=new VBox(20);//ButtonAndLabel
-    	 bL.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
+    	 bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" + // şeffaf amber tonu
+    		        "-fx-background-radius: 12;" +
+    		        "-fx-padding: 16px;");
          bL.setPrefWidth(240);
          bL.setAlignment(Pos.CENTER);
          bL.getChildren().addAll(nextLabel,getContinueButton());
         
     	
-         nextRoot.getChildren().addAll(bL);
-         nextRoot.setStyle("-fx-background-color: #FFF6DA;");;
+         nextRoot.getChildren().addAll(bgView, bL);
          mainStage.setScene(nextScene);
          
          
@@ -381,17 +434,32 @@ private static void goEndScene() {
     	
     	StackPane endRoot=new StackPane();
     	Scene endScene=new Scene(endRoot,WIDTH,HEIGHT);
+    	
+    	Image bgImage = new Image(Main.class.getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
+        
     	Label endLabel=new Label("GAME OVER! ");
-    	endLabel.setStyle("-fx-font-size: 24px;");
+    	endLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
+    	endLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+    	
+    	Button restartButton = getloseButton();
+    	
     	VBox bL=new VBox(20);//ButtonAndLabel
-    	 bL.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
-         bL.setPrefWidth(240);
+    	 bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +  // Şeffaf amber tonu
+    		        "-fx-background-radius: 12;" +
+    		        "-fx-padding: 16px;");
+         bL.setPrefWidth(400);
+         bL.setPrefHeight(300);
          bL.setAlignment(Pos.CENTER);
-         bL.getChildren().addAll(endLabel,getloseButton());
+         bL.getChildren().addAll(endLabel,restartButton);
         
     	
-    	endRoot.getChildren().addAll(bL);
-    	endRoot.setStyle("-fx-background-color: #FFF6DA;");;
+         endRoot.getChildren().addAll(bgView, bL);
+         StackPane.setAlignment(bL, Pos.CENTER);
     	
         mainStage.setScene(endScene);
     	
@@ -441,9 +509,9 @@ private static void goEndScene() {
             for (int col = 0; col < gridSize; col++) {
                 Rectangle tile = new Rectangle(TILE_SIZE, TILE_SIZE);
                 if (isPath[row][col]) {
-                    tile.setFill(PATH_COLOR);
+                	tile.setFill(alternateRoadPattern);
                 } else {
-                    tile.setFill(YELLOW_TONES[(int)(Math.random() * YELLOW_TONES.length)]);
+                    tile.setFill(roadPattern);
                 }
                 tile.setOpacity(0);
                 tile.setScaleX(0.1);
@@ -478,7 +546,9 @@ private static void goEndScene() {
      */
     private VBox createHudPanel() {
         VBox hud = new VBox(10);
-        hud.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
+        hud.setStyle("-fx-background-color: rgba(251,209,139,0.0); " +
+                "-fx-background-radius: 12; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.3, 0, 4);");
         hud.setPrefWidth(240);
         hud.setAlignment(Pos.CENTER);
         
@@ -489,7 +559,9 @@ private static void goEndScene() {
         VBox vbox1 = new VBox();
         vbox1.setAlignment(Pos.CENTER);
         Label label1 = new Label("Single Shot Tower");
+        label1.setStyle("-fx-text-fill: #FFE09A");
         Label label2 = new Label("50$");
+        label2.setStyle("-fx-text-fill: #FFE09A");
         vbox1.getChildren().addAll(image,label1, label2);
         Button singleShot = new Button();
         singleShot.setGraphic(vbox1); 
@@ -502,7 +574,9 @@ private static void goEndScene() {
         VBox vbox2= new VBox(5);
         vbox2.setAlignment(Pos.CENTER);
         Label label3 = new Label("Laser Tower");
+        label3.setStyle("-fx-text-fill: #FFE09A");
         Label label4 = new Label("120$");
+        label4.setStyle("-fx-text-fill: #FFE09A");
         vbox2.getChildren().addAll(image2,label3, label4);
         Button laser= new Button();
         laser.setGraphic(vbox2);
@@ -516,7 +590,9 @@ private static void goEndScene() {
         VBox vbox3 = new VBox();
         vbox3.setAlignment(Pos.CENTER);
         Label label5 = new Label("Triple Shot Tower");
+        label5.setStyle("-fx-text-fill: #FFE09A");
         Label label6 = new Label("150$");
+        label6.setStyle("-fx-text-fill: #FFE09A");
         vbox3.getChildren().addAll(image3,label5, label6);
         Button tripleShot = new Button();
         tripleShot.setGraphic(vbox3);
@@ -528,7 +604,9 @@ private static void goEndScene() {
 		image4.setFitHeight(30);
         vbox4.setAlignment(Pos.CENTER);
         Label label7 = new Label("Missile Launcher Tower");
+        label7.setStyle("-fx-text-fill: #FFE09A");
         Label label8 = new Label("200$");
+        label8.setStyle("-fx-text-fill: #FFE09A");
         vbox4.getChildren().addAll(image4,label7, label8);
         Button missile= new Button();
         missile.setGraphic(vbox4);
@@ -584,20 +662,21 @@ private static void goEndScene() {
             b.setPrefWidth(150);
             b.setPrefHeight(90);
             b.setStyle(
-                    "-fx-font-size: 16px;" +
-                            "-fx-background-color: #FBD18B;" +
-                            "-fx-border-radius: 12;" +
-                            "-fx-background-radius: 12;" +
-                            "-fx-text-fill: black;"
+            		"-fx-font-size: 16px;" +
+            				"-fx-background-color: rgba(251,209,139,0.1);" +  // FBD18B'nin %80 saydam hali
+            				"-fx-border-radius: 12;" +
+            				"-fx-background-radius: 12;" +
+            				"-fx-text-fill: #3E2F20;"
             );
+            b.setTextFill(Color.web("#3E2F20"));
         }
 
         // Style labels
-        livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
-        moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
-        debugLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #333;");
+        livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
+        moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
+        debugLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #FFE09A;");
         waveCountdownLabel = new Label("Next wave: --");
-        waveCountdownLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #333;");
+        waveCountdownLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #FFE09A;");
         hud.getChildren().addAll(livesLabel, moneyLabel, waveCountdownLabel, singleShot, laser, tripleShot, missile);
         return hud;
     }
@@ -1033,6 +1112,9 @@ private static void goEndScene() {
 
         // Game over condition
         if (lives <= 0) {
+        	 System.out.println("💀 Can 0 oldu, oyun bitti.");
+             Game.enemies.clear(); // Düşmanları da sıfırla
+             mainStage.getScene().getRoot().setDisable(true);
         	goEndScene();
         }
     }
@@ -1058,6 +1140,12 @@ private static void goEndScene() {
      */
     private static Button getStartButton() {
         Button startButton = new Button("Start Game");
+        Image bg = new Image(Main.class.getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bg);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
         startButton.setPrefWidth(300);
         startButton.setPrefHeight(150);
         startButton.setStyle(
@@ -1180,15 +1268,22 @@ private static void goEndScene() {
     	if(loseButton==null) {
         loseButton = new Button("Restart Game");
     	}
+    	
+       
+        
         loseButton.setPrefWidth(400);
         loseButton.setPrefHeight(150);
         loseButton.setStyle(
-                "-fx-font-size: 32px;" +
-                        "-fx-background-color: #c29b57;" +
-                        "-fx-text-fill: black;" +
-                        "-fx-background-radius: 40;" +
-                        "-fx-border-radius: 40;"
+        		"-fx-font-size: 32px;" +
+        			    "-fx-background-color: #c29b57;" +
+        			    "-fx-text-fill: black;" +
+        			    "-fx-border-color: black;" +
+        			    "-fx-border-width: 2px;" +
+        			    "-fx-background-radius: 40;" +
+        			    "-fx-border-radius: 40;"
         );
+        
+        
         return loseButton;
     }
     
@@ -1196,6 +1291,14 @@ private static void goEndScene() {
     	if(continueButton==null) {
     		continueButton = new Button("Continue To Next Level");
         	}
+    	Image bg = new Image(getClass().getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bg);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
+        StackPane root = new StackPane();
+        root.getChildren().add(bgView);
     	continueButton.setPrefWidth(400);
     	continueButton.setPrefHeight(150);
     	continueButton.setStyle(
@@ -1229,6 +1332,10 @@ private static void goEndScene() {
             try (AudioInputStream ais = AudioSystem.getAudioInputStream(new File(filepath))) {
                 clip = AudioSystem.getClip();
                 clip.open(ais);
+                
+                FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                gainControl.setValue(-10.0f); // desibel cinsinden → 0.0f = tam ses, -80f = sessiz
+                
                 clip.loop(Clip.LOOP_CONTINUOUSLY);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1238,6 +1345,89 @@ private static void goEndScene() {
         public void stop() {
             if (clip != null && clip.isRunning()) clip.stop();
         }
+    }
+    private Button getWonButton() {
+    	wonButton = new Button("Play Again!");
+    	Image bg = new Image(getClass().getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bg);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
+        StackPane root = new StackPane();
+        root.getChildren().add(bgView);
+        
+        wonButton.setPrefWidth(400);
+        wonButton.setPrefHeight(150);
+        wonButton.setStyle(
+            "-fx-font-size: 32px;" +
+            "-fx-background-color: #c29b57;" +
+            "-fx-text-fill: black;" +
+            "-fx-background-radius: 40;" +
+            "-fx-border-radius: 40;"
+        );
+        wonButton.setOnAction(e -> {
+            currentLevel = 1;
+            finishedWaveCount = 0;
+            resetGame();
+
+            if (waveTimeLine != null) waveTimeLine.stop();
+            if (countdownTimer != null) countdownTimer.stop();
+
+            StackPane newGameRoot = new StackPane();
+            Scene newGameScene;
+            try {
+                newGameScene = getGameScene(newGameRoot);
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+                return;
+            }
+
+            mainStage.setScene(newGameScene);
+            transitions.forEach(Animation::play);
+            addGameButtons();
+            setupTowerPlacement();
+            scheduleWaves(currentLevel);
+        });
+
+
+        return wonButton;
+    	
+    }
+    
+    private void goWonScene() {
+    	Label nextLabel=new Label("You Won The Game!");
+    	nextLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
+    	nextLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+    	
+    	Image bg = new Image(getClass().getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bg);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
+        
+        
+    	
+    	
+    	VBox won=new VBox(10);
+    	won.setAlignment(Pos.CENTER);
+    	won.setPrefWidth(400);
+    	won.setStyle(
+    	        "-fx-background-color: rgba(251,209,139,0.0);" +
+    	        "-fx-background-radius: 12;" +
+    	        "-fx-padding: 20px;"
+    	    );
+    	won.getChildren().addAll(nextLabel,getWonButton());
+    	
+    	StackPane paneWon=new StackPane();
+    	paneWon.getChildren().addAll(bgView, won); // önce arka plan, sonra UI
+    	StackPane.setAlignment(won, Pos.CENTER);
+        
+    	Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);
+    	
+    	mainStage.setScene(wonScene);
+
     }
     
     
