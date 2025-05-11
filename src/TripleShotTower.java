@@ -17,7 +17,7 @@ import javafx.util.Duration;
 
 public class TripleShotTower extends Tower {
 	public long lastShotTime = 0;
-	public long shootInterval = 300;
+	public long shootInterval = 1000;   // 1 saniye
 	public int damage = 10;
 	public ImageView imageView;
 

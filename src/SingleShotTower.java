@@ -16,7 +16,7 @@ import javafx.util.Duration;
 
 public class SingleShotTower extends Tower {
 	private long lastShotTime = 0;
-	private long shootInterval = 300;
+	private long shootInterval = 750;  // 0.75 saniye
 	public int damage = 10;
 	public ImageView image;
 

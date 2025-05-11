@@ -17,7 +17,7 @@ import javafx.util.Duration;
 
 public class MissileLauncherTower extends Tower {
 	public long lastShotTime = 0;
-	public long shootInterval = 600; // 2 saniye
+	public long shootInterval = 1500; // 1,5 saniye
 	public int missileDamage = 100;
 	public double effectRadius = 50;
 

@@ -51,6 +51,7 @@ public class Main extends Application {
 	private static Button continueButton;
 	private static Button loseButton;
 	private Button wonButton;
+	private static AnimationTimer gameLoop;
 	public boolean draggingTower = false;
 	private MediaPlayer mediaPlayer;
     private final static int WIDTH = 1920;
@@ -128,7 +129,7 @@ public class Main extends Application {
         
         
         // Set up game loop
-        AnimationTimer gameLoop = new AnimationTimer() {
+         gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 Game.update();
@@ -1205,6 +1206,7 @@ private static void goEndScene() {
     	    if (livesLabel != null) {
     	        livesLabel.setText("Lives: " + lives);
     	    }
+    	    gameLoop.start();
         
         
     }
@@ -1253,6 +1255,7 @@ private static void goEndScene() {
    	    if (livesLabel != null) {
    	        livesLabel.setText("Lives: " + lives);
    	    }
+   	    gameLoop.start();
    	/* if (waveTimeline != null) { 
    		 waveTimeline.stop();
    	 }*/
