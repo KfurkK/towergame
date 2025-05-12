@@ -1,6 +1,9 @@
+//restart yapınca animasyon bozuk
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.List;
+
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.effect.GaussianBlur;
@@ -42,6 +45,7 @@ import java.util.Random;
  * Main game application class
  */
 public class Main extends Application {
+	public double maxDelay=1188;
     private ImagePattern roadPattern;
     private ImagePattern alternateRoadPattern;
     private Pane initialGameOverlay;
@@ -75,6 +79,8 @@ public class Main extends Application {
     // Game state variables
     private static int money = 100;
     private static int lives = 5;
+    private static int score = 0;
+    
     private ArrayList<Enemy> enemies = new ArrayList<>();
     private ArrayList<int[]> pathCoordinates;
     private Pane gameOverlay;
@@ -83,6 +89,7 @@ public class Main extends Application {
     private static Label livesLabel = new Label("Lives: " + lives);
     private static Label moneyLabel = new Label("Money: $" + money);
     private static Label debugLabel = new Label("Debug: No path loaded");
+    private static Label scoreLabel = new Label("Score: 0");
 
     public Enemy currentEnemy = null;
 
@@ -117,8 +124,27 @@ public class Main extends Application {
         StackPane gameRoot = new StackPane();
         Scene gameScene = getGameScene(gameRoot);
         initialGameOverlay = gameOverlay;
+        
+        VBox topScoreBox = new VBox(5);
+        topScoreBox.setStyle("-fx-background-color: rgba(0,0,0,0.0); -fx-background-radius: 10;");
+        topScoreBox.setAlignment(Pos.TOP_RIGHT);
+        topScoreBox.setMaxWidth(300);
+        topScoreBox.setTranslateX(700); // sağa
+        topScoreBox.setTranslateY(50);  // yukarı
 
-        root.getChildren().addAll(bgView, startButton);
+        Label title = new Label("Top Scores:");
+        title.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 18px;");
+        topScoreBox.getChildren().add(title);
+
+        List<ScoreManager.ScoreEntry> entries = ScoreManager.loadEntries();
+        for (int i = 0; i < entries.size(); i++) {
+            ScoreManager.ScoreEntry entry = entries.get(i);
+            Label scoreLabel = new Label((i + 1) + ". " + entry.score + " pts (" + entry.timestamp + ")");
+            scoreLabel.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+            topScoreBox.getChildren().add(scoreLabel);
+        }
+
+        root.getChildren().addAll(bgView, topScoreBox, startButton);
 
         //root.setStyle("-fx-background-color: #FFF6DA;");
         //root.getChildren().add(startButton);
@@ -175,7 +201,7 @@ public class Main extends Application {
             transitions.forEach(Animation::play);
 
             // Add game buttons and start wave scheduling after animations
-            double maxDelay = 1188; // Time for rightmost animation to complete in ms
+            // Time for rightmost animation to complete in ms
 
             Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
                 addGameButtons();
@@ -208,10 +234,12 @@ public class Main extends Application {
 
             primaryStage.setScene(newGameScene);
             transitions.forEach(Animation::play);
-
-            addGameButtons();
-            setupTowerPlacement();
-            scheduleWaves(currentLevel);
+            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
+                addGameButtons();
+                setupTowerPlacement();
+                scheduleWaves(currentLevel);
+            }));
+            delayTimeline.play();
 
         });
 
@@ -428,6 +456,10 @@ public class Main extends Application {
         Label nextLabel=new Label("You won!");
         nextLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
         nextLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+        
+        Label scoreLabel = new Label("Score: " + score);
+        scoreLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 32));
+        scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.3, 0, 2);");
 
         VBox bL=new VBox(20);//ButtonAndLabel
         bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" + // şeffaf amber tonu
@@ -435,7 +467,7 @@ public class Main extends Application {
                 "-fx-padding: 16px;");
         bL.setPrefWidth(240);
         bL.setAlignment(Pos.CENTER);
-        bL.getChildren().addAll(nextLabel,getContinueButton());
+        bL.getChildren().addAll(nextLabel, scoreLabel, getContinueButton());
 
 
         nextRoot.getChildren().addAll(bgView, bL);
@@ -459,8 +491,28 @@ public class Main extends Application {
         Label endLabel=new Label("GAME OVER! ");
         endLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
         endLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+        
+        Label scoreLabel = new Label("Score: " + score);
+        scoreLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 32));
+        scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.3, 0, 2);");
 
         Button restartButton = getloseButton();
+        
+        VBox scoreList = new VBox(5);
+        scoreList.setAlignment(Pos.CENTER);
+        Label header = new Label("Top 5 Scores:");
+        header.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 20px;");
+        scoreList.getChildren().add(header);
+
+        List<ScoreManager.ScoreEntry> entries = ScoreManager.loadEntries();
+        for (int i = 0; i < entries.size(); i++) {
+        	ScoreManager.ScoreEntry entry = entries.get(i);
+            Label l = new Label((i + 1) + ". " + entry.score + " pts (" +entry.timestamp + ")");
+            l.setStyle("-fx-text-fill: #FFE09A;");
+            scoreList.getChildren().add(l);
+        }
+        
+        
 
         VBox bL=new VBox(20);//ButtonAndLabel
         bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +  // Şeffaf amber tonu
@@ -469,11 +521,13 @@ public class Main extends Application {
         bL.setPrefWidth(400);
         bL.setPrefHeight(300);
         bL.setAlignment(Pos.CENTER);
-        bL.getChildren().addAll(endLabel,restartButton);
+        bL.getChildren().addAll(endLabel, scoreLabel, scoreList, restartButton);
 
 
         endRoot.getChildren().addAll(bgView, bL);
         StackPane.setAlignment(bL, Pos.CENTER);
+        
+        ScoreManager.saveScore(score);
 
         mainStage.setScene(endScene);
 
@@ -700,9 +754,10 @@ public class Main extends Application {
         livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
         moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
         debugLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #FFE09A;");
+        scoreLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
         waveCountdownLabel = new Label("Next wave: --");
         waveCountdownLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #FFE09A;");
-        hud.getChildren().addAll(livesLabel, moneyLabel, waveCountdownLabel, singleShot, laser, tripleShot, missile);
+        hud.getChildren().addAll(livesLabel, moneyLabel, waveCountdownLabel, scoreLabel, singleShot, laser, tripleShot, missile);
         return hud;
     }
 
@@ -1220,6 +1275,9 @@ public class Main extends Application {
         // Oyun değişkenlerini sıfırla
         money = 100;
         lives = 5;
+        score = 0;
+        if (scoreLabel != null)
+            scoreLabel.setText("Score: " + score);
 
         if (Main.transitions != null) {
             Main.transitions.forEach(Animation::stop);
@@ -1330,23 +1388,28 @@ public class Main extends Application {
                             "-fx-background-radius: 40;" +
                             "-fx-border-radius: 40;"
             );
-            continueButton.setOnAction(e -> {
-                try {
-                    // build the new game scene for the next level
-                    StackPane nextRoot = new StackPane();
-                    Scene nextLevelScene = getGameScene(nextRoot);
-                    // swap it in
-                    mainStage.setScene(nextLevelScene);
-                    // re-play the tile drop animations
-                    transitions.forEach(Animation::play);
-                    // now add your tower buttons and begin spawning
-                    addGameButtons();
-                    setupTowerPlacement();
-                    scheduleWaves(currentLevel);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            });
+            continueButton.setOnAction(e->{ 
+        		try { 
+        			Scene nextLevelScene = getGameScene(new StackPane()); 
+        			mainStage.setScene(nextLevelScene); 
+        			transitions.forEach(Animation::play);//Start animation again from scratch
+        			
+        			if (currentLevel==4 || currentLevel==5) {
+                    	maxDelay=2688;
+                    }// from scratch start we 
+
+        	            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
+        	                addGameButtons();
+        	                setupTowerPlacement();
+        	                scheduleWaves(currentLevel);
+        	            }));
+        	            delayTimeline.play();
+        			// Animasyonları yeniden başlat transitions.forEach(Animation::play); // Yeni leveli başlat scheduleWaves(currentLevel); } catch(Exception ex) { System.out.println("exception found"); } }); return continueButton;
+        		}
+        		catch(Exception ex) {
+        			System.out.println("continue exeption");
+        		}
+     	});
         }
         return continueButton;
     }
@@ -1427,6 +1490,10 @@ public class Main extends Application {
         Label nextLabel=new Label("You Won The Game!");
         nextLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
         nextLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+        
+        Label scoreLabel = new Label("Score: " + score);
+        scoreLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 32));
+        scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.3, 0, 2);");
 
         Image bg = new Image(getClass().getResource("/assets/background.png").toExternalForm());
         ImageView bgView = new ImageView(bg);
@@ -1434,6 +1501,20 @@ public class Main extends Application {
         bgView.setFitHeight(HEIGHT);
         bgView.setPreserveRatio(false);
         bgView.setEffect(new GaussianBlur(12));
+        
+        VBox scoreList = new VBox(5);
+        scoreList.setAlignment(Pos.CENTER);
+        Label header = new Label("Top 5 Scores:");
+        header.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 20px;");
+        scoreList.getChildren().add(header);
+
+        List<ScoreManager.ScoreEntry> entries = ScoreManager.loadEntries();
+        for (int i = 0; i < entries.size(); i++) {
+            ScoreManager.ScoreEntry entry = entries.get(i);
+            Label l = new Label((i + 1) + ". " + entry.score + " pts (" + entry.timestamp + ")");
+            l.setStyle("-fx-text-fill: #FFE09A;");
+            scoreList.getChildren().add(l);
+        }
 
 
 
@@ -1446,16 +1527,23 @@ public class Main extends Application {
                         "-fx-background-radius: 12;" +
                         "-fx-padding: 20px;"
         );
-        won.getChildren().addAll(nextLabel,getWonButton());
+        won.getChildren().addAll(nextLabel, scoreLabel, scoreList, getWonButton());
 
         StackPane paneWon=new StackPane();
         paneWon.getChildren().addAll(bgView, won); // önce arka plan, sonra UI
         StackPane.setAlignment(won, Pos.CENTER);
 
         Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);
+        
+        ScoreManager.saveScore(score);
 
         mainStage.setScene(wonScene);
 
+    }
+    
+    public static void increaseScore(int amount) {
+        score += amount;
+        scoreLabel.setText("Score: " + score);
     }
 
 
