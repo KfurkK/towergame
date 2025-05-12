@@ -17,7 +17,7 @@ import javafx.util.Duration;
 
 public class MissileLauncherTower extends Tower {
 	public long lastShotTime = 0;
-	public long shootInterval = 600; // 2 saniye
+	public long shootInterval = 1500; // 1,5 saniye
 	public int missileDamage = 100;
 	public double effectRadius = 50;
 
@@ -43,7 +43,7 @@ public class MissileLauncherTower extends Tower {
 
 		this.body = imageView;
 		
-		healthBar = new Rectangle(Enemy.CELL_SIZE, 5);
+		healthBar = new Rectangle(Enemy.TILE_SIZE, 5);
 		healthBar.setFill(Color.GREEN);
 		healthBar.layoutXProperty().bind(
 				imageView.layoutXProperty().add((imageView.getFitWidth() - healthBar.getWidth()) / 2)
@@ -70,7 +70,7 @@ public class MissileLauncherTower extends Tower {
 		// decrease the healthbar displayd of the tower
 		this.towerHealth -= damageValue;
 		double percent = (double) this.towerHealth / maxTowerHealth;
-		healthBar.setWidth(Enemy.CELL_SIZE * percent);
+		healthBar.setWidth(Enemy.TILE_SIZE * percent);
 
 		if (percent < 0.3) {
 			healthBar.setFill(Color.RED);

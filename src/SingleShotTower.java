@@ -16,7 +16,7 @@ import javafx.util.Duration;
 
 public class SingleShotTower extends Tower {
 	private long lastShotTime = 0;
-	private long shootInterval = 300;
+	private long shootInterval = 750;  // 0.75 saniye
 	public int damage = 10;
 	public ImageView image;
 
@@ -38,7 +38,7 @@ public class SingleShotTower extends Tower {
 		image.setLayoutY(y - image.getFitHeight() / 2);
 		image.setPickOnBounds(true);
 		this.body = image;
-		healthBar = new Rectangle(Enemy.CELL_SIZE, 5);
+		healthBar = new Rectangle(Enemy.TILE_SIZE, 5);
 		healthBar.setFill(Color.GREEN);
 		healthBar.layoutXProperty().bind(
 				image.layoutXProperty().add((image.getFitWidth() - healthBar.getWidth()) / 2)
@@ -93,7 +93,7 @@ public class SingleShotTower extends Tower {
 		// decrease the healthbar displayd of the tower
 		this.towerHealth -= damageValue;
 		double percent = (double) this.towerHealth / maxTowerHealth;
-		healthBar.setWidth(Enemy.CELL_SIZE * percent);
+		healthBar.setWidth(Enemy.TILE_SIZE * percent);
 
 		if (percent < 0.3) {
 			healthBar.setFill(Color.RED);

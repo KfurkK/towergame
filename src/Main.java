@@ -1,8 +1,10 @@
+//restart yapınca animasyon bozuk
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.effect.GaussianBlur;
 
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
@@ -15,8 +17,8 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -28,33 +30,39 @@ import javax.sound.sampled.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
 import javafx.util.Duration;
-import javafx.scene.shape.Arc;
+import java.util.Random;
+
 
 
 /**
  * Main game application class
  */
-public class Main extends Application {         
+public class Main extends Application {
 	public double maxDelay=1188;
+    private ImagePattern roadPattern;
+    private ImagePattern alternateRoadPattern;
     private Pane initialGameOverlay;
-	private Timeline countdownTimer;
-	private Timeline waveTimeLine;
-	private Label waveCountLabel;
-	private static Stage mainStage;
-	private static Button continueButton;
-	private Button wonButton;
-	private static Button loseButton;
-	public boolean draggingTower = false;
-	private MediaPlayer mediaPlayer;
+    private Timeline countdownTimer;
+    private Timeline waveTimeLine;
+    private Label waveCountdownLabel;
+    private static Stage mainStage;
+    private static Button continueButton;
+    private static Button loseButton;
+    private Button wonButton;
+    private static AnimationTimer gameLoop;
+    public boolean draggingTower = false;
+    private MediaPlayer mediaPlayer;
     private final static int WIDTH = 1920;
     private final static int HEIGHT = 1080;
     private int gridSize=10;
-    private static final int CELL_SIZE = 45;
+    private static final int TILE_SIZE = 45;
     private static final double SPACING = 2.5; // Grid spacing
-    private static final Color[] DARK_TONES = {
+    private static final Color[] YELLOW_TONES = {
             Color.web("FFCF50"), Color.web("FBC518")
     };
     private static final Color PATH_COLOR = Color.web("FBEBE0");
@@ -64,7 +72,7 @@ public class Main extends Application {
     // Grid positioning variables
     private double offsetX;
     private double offsetY;
-    private final double gridUnit = CELL_SIZE + SPACING;
+    private final double gridUnit = TILE_SIZE + SPACING;
 
     // Game state variables
     private static int money = 100;
@@ -84,16 +92,24 @@ public class Main extends Application {
     public int selectedTowerType = 1; // 1: Single, 2: Laser, 3: Triple, 4: Missile
     public Tower selectedTower = null;
     public boolean dragging = false;
-	private int currentLevel=1;
-	private int finishedWaveCount=0;
+    private int currentLevel=1;
+    private int finishedWaveCount=0;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-    	
-    	AudioPlayer bgMusic = new AudioPlayer();
-    	bgMusic.playLoop("src/assets/sounds/Muzik1.wav");
-    	
-    	mainStage=primaryStage;
+
+
+        Image alternateRoadImg = new Image(getClass().getResourceAsStream("/assets/main_road.png"));
+        alternateRoadPattern = new ImagePattern(alternateRoadImg);
+
+        Image bgImage = new Image(getClass().getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bgImage);
+
+
+        AudioPlayer bgMusic = new AudioPlayer();
+        bgMusic.playLoop("src/assets/sounds/Muzik1.wav");
+
+        mainStage=primaryStage;
         Button startButton = getStartButton();
         Game.root = new Pane();
 
@@ -104,41 +120,55 @@ public class Main extends Application {
         Scene gameScene = getGameScene(gameRoot);
         initialGameOverlay = gameOverlay;
 
-        root.setStyle("-fx-background-color: #FFF6DA;");
-        root.getChildren().add(startButton);
+        root.getChildren().addAll(bgView, startButton);
+
+        //root.setStyle("-fx-background-color: #FFF6DA;");
+        //root.getChildren().add(startButton);
 
         primaryStage.setTitle("Tower Defense Game");
         primaryStage.setScene(scene);
         primaryStage.show();
-        
-        
+
+
         // Set up game loop
-        AnimationTimer gameLoop = new AnimationTimer() {
+        gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 Game.update();
+
+                if (lives <= 0) {
+                    this.stop(); // timer durdurulmalı
+                    goEndScene(); // sahneye geçilmeli
+                    return;
+                }
                 if (tools.getWaveData(currentLevel).length == finishedWaveCount
                         && Game.enemies.isEmpty()
                         && lives > 0) {
-
+                    System.out.println("🎉 Tüm wave'ler tamamlandı! Level: " + currentLevel);
                     if (currentLevel == 5) {
-                    	this.stop();
-                        // 🎉 5. level bitti, oyun kazanıldı
+                        this.stop();// 🎉 5. level bitti, oyun kazanıldı
                         goWonScene();
                     } else {
                         // ⏭ Diğer levellere geçiş
-                        waveCountLabel.setText("Next wave: 0s");
+                        waveCountdownLabel.setText("Next wave: 0s");
                         System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
 
                         finishedWaveCount = 0;
                         currentLevel++;
+                        System.out.println("BURDA");
                         OtherResetGame();
+                        System.out.println("BURDA2");
                         goContinueScene();
+                        System.out.println("BURDA3");
                         System.out.println(currentLevel);
                     }
+
+
+
+
                 }
             }
-            
+
         };
         gameLoop.start();
 
@@ -156,19 +186,19 @@ public class Main extends Application {
             }));
             delayTimeline.play();
         });
-        
-         getloseButton().setOnAction(we ->{
-        	 currentLevel=1;
-        	finishedWaveCount=0;
-        	resetGame();
-        	
-        	
-        	
-        	if (waveTimeLine != null)    
-        		waveTimeLine.stop();
-            if (countdownTimer != null)  
-            	countdownTimer.stop();
-            
+
+        getloseButton().setOnAction(we ->{
+            currentLevel=1;
+            finishedWaveCount=0;
+            resetGame();
+
+
+
+            if (waveTimeLine != null)
+                waveTimeLine.stop();
+            if (countdownTimer != null)
+                countdownTimer.stop();
+
             StackPane newGameRoot = new StackPane();
             Scene newGameScene;
             try {
@@ -177,15 +207,19 @@ public class Main extends Application {
                 e.printStackTrace();
                 return;
             }
-            
+
             primaryStage.setScene(newGameScene);
             transitions.forEach(Animation::play);
-            
-            addGameButtons();
-            setupTowerPlacement();
-            scheduleWaves(currentLevel);
-			
+            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
+                addGameButtons();
+                setupTowerPlacement();
+                scheduleWaves(currentLevel);
+            }));
+            delayTimeline.play();
+
         });
+
+
 
     }
 
@@ -194,12 +228,12 @@ public class Main extends Application {
      */
     private void addGameButtons() {
         // Spawn Enemy button
-        Button spawnEnemyButton = createGameButton("Spawn Enemy", 520, 500);
-        spawnEnemyButton.setOnAction(event -> spawnEnemy());
-        gameOverlay.getChildren().add(spawnEnemyButton);
+        /*Button spawnEnemyButton = createGameButton("Spawn Enemy", 520, 500);
+        spawnEnemyButton.setOnAction(event -> spawnEnemyArcher());
+        gameOverlay.getChildren().add(spawnEnemyButton); */
 
         // Debug Path button
-        Button debugButton = createGameButton("Debug Path", 520, 550);
+        /*Button debugButton = createGameButton("Debug Path", 520, 550);
         debugButton.setOnAction(we -> {
             try {
                 visualizePathPoints();
@@ -209,8 +243,8 @@ public class Main extends Application {
         });
         gameOverlay.getChildren().add(debugButton);
 
-        // Damage Enemy button
-        
+        // Damage Enemy button */
+
     }
 
     /**
@@ -240,17 +274,17 @@ public class Main extends Application {
             if (delay >= 5) {
                 int seconds = 5;
                 waveTimeLine.getKeyFrames().add(
-                    new KeyFrame(Duration.seconds(delay - seconds),
-                        e -> startWaveCountdown(seconds)
-                    )
+                        new KeyFrame(Duration.seconds(delay - seconds),
+                                e -> startWaveCountdown(seconds)
+                        )
                 );
             }
 
             // Asıl wave başlatma
             waveTimeLine.getKeyFrames().add(
-                new KeyFrame(Duration.seconds(delay),
-                    e -> spawnWave(count, rate)
-                )
+                    new KeyFrame(Duration.seconds(delay),
+                            e -> spawnWave(count, rate)
+                    )
             );
 
             double end = delay + (count - 1) * rate;
@@ -272,9 +306,9 @@ public class Main extends Application {
         for (int i = 0; i <= seconds; i++) {
             int remaining = seconds - i;
             countdownTimer.getKeyFrames().add(
-                new KeyFrame(Duration.seconds(i),
-                    e -> waveCountLabel.setText("Next wave: " + remaining + "s")
-                )
+                    new KeyFrame(Duration.seconds(i),
+                            e -> waveCountdownLabel.setText("Next wave: " + remaining + "s")
+                    )
             );
         }
         countdownTimer.play();
@@ -290,15 +324,26 @@ public class Main extends Application {
         Timeline timeline = new Timeline();
         for (int i = 0; i < enemyCount; i++) {
             int finalI = i;
-            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(finalI * intervalSeconds), e -> spawnEnemy()));
+            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(finalI * intervalSeconds), e -> {
+                
+                Random random = new Random();
+                double randomValue = random.nextDouble(); // or Math.random()
+
+                // Check if the random value is less than 0.3 (30% chance)
+                if (randomValue < 0.3) {
+                    spawnEnemyArcher();
+                }else {
+                	spawnEnemy();
+                }
+            }));
         }
         timeline.play();
-       
+
         timeline.setOnFinished(e -> {
             ++finishedWaveCount;
             System.out.println(finishedWaveCount);
         });
-       
+
     }
 
     /**
@@ -329,23 +374,33 @@ public class Main extends Application {
         pathCoordinates = tools.readCoordinates("src\\levels\\level"+currentLevel+".txt");
         gridSize=tools.getMapSize("src\\levels\\level"+currentLevel+".txt");
 
+        Image bgImage = new Image(getClass()
+                .getResource("/assets/background.png")
+                .toExternalForm());
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));  // 8–15 arası radius deneyebilirsiniz
+        gameRoot.getChildren().add(0, bgView);
+
         // Update debug label with path info
         updatePathDebugInfo();
 
         Scene gameScene = new Scene(gameRoot, WIDTH, HEIGHT);
-        gameRoot.setStyle("-fx-background-color: #FFF6DA;");
+        //gameRoot.setStyle("-fx-background-color: #FFF6DA;");
 
         GridPane grid = createGameGrid();
 
         // Create HUD panel
-        VBox panel= createPanel();
+        VBox hud = createHudPanel();
 
         // Create overlay pane for enemies and UI elements
         gameOverlay = new Pane();
-        panel.setLayoutX(1520);
-        panel.setLayoutY(280);
+        hud.setLayoutX(1520);
+        hud.setLayoutY(280);
 
-        gameOverlay.getChildren().add(panel);
+        gameOverlay.getChildren().add(hud);
         gameRoot.getChildren().add(grid);
         gameRoot.getChildren().add(gameOverlay);
         Game.gameOverlay = gameOverlay;
@@ -362,44 +417,70 @@ public class Main extends Application {
 
         return gameScene;
     }
-    
+
     public void goContinueScene() {
-    	StackPane nextRoot=new StackPane();
-    	Scene nextScene=new Scene(nextRoot,WIDTH,HEIGHT);
-    	Label nextLabel=new Label("You won!");
-    	nextLabel.setStyle("-fx-font-size: 24px;");
-    	VBox bL=new VBox(20);//ButtonAndLabel
-    	 bL.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
-         bL.setPrefWidth(240);
-         bL.setAlignment(Pos.CENTER);
-         bL.getChildren().addAll(nextLabel,getContinueButton());
-        
-    	
-         nextRoot.getChildren().addAll(bL);
-         nextRoot.setStyle("-fx-background-color: #FFF6DA;");;
-         mainStage.setScene(nextScene);
-         
-         
+        StackPane nextRoot=new StackPane();
+        Scene nextScene=new Scene(nextRoot,WIDTH,HEIGHT);
+
+        Image bgImage = new Image(getClass().getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
+
+        Label nextLabel=new Label("You won!");
+        nextLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
+        nextLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+
+        VBox bL=new VBox(20);//ButtonAndLabel
+        bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" + // şeffaf amber tonu
+                "-fx-background-radius: 12;" +
+                "-fx-padding: 16px;");
+        bL.setPrefWidth(240);
+        bL.setAlignment(Pos.CENTER);
+        bL.getChildren().addAll(nextLabel,getContinueButton());
+
+
+        nextRoot.getChildren().addAll(bgView, bL);
+        mainStage.setScene(nextScene);
+
+
     }
-    
-private static void goEndScene() {
-    	
-    	StackPane endRoot=new StackPane();
-    	Scene endScene=new Scene(endRoot,WIDTH,HEIGHT);
-    	Label endLabel=new Label("GAME OVER! ");
-    	endLabel.setStyle("-fx-font-size: 24px;");
-    	VBox bL=new VBox(20);//ButtonAndLabel
-    	 bL.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
-         bL.setPrefWidth(240);
-         bL.setAlignment(Pos.CENTER);
-         bL.getChildren().addAll(endLabel,getloseButton());
-        
-    	
-    	endRoot.getChildren().addAll(bL);
-    	endRoot.setStyle("-fx-background-color: #FFF6DA;");
-    	
+
+    private static void goEndScene() {
+
+        StackPane endRoot=new StackPane();
+        Scene endScene=new Scene(endRoot,WIDTH,HEIGHT);
+
+        Image bgImage = new Image(Main.class.getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
+
+        Label endLabel=new Label("GAME OVER! ");
+        endLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
+        endLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+
+        Button restartButton = getloseButton();
+
+        VBox bL=new VBox(20);//ButtonAndLabel
+        bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +  // Şeffaf amber tonu
+                "-fx-background-radius: 12;" +
+                "-fx-padding: 16px;");
+        bL.setPrefWidth(400);
+        bL.setPrefHeight(300);
+        bL.setAlignment(Pos.CENTER);
+        bL.getChildren().addAll(endLabel,restartButton);
+
+
+        endRoot.getChildren().addAll(bgView, bL);
+        StackPane.setAlignment(bL, Pos.CENTER);
+
         mainStage.setScene(endScene);
-    	
+
     }
 
     /**
@@ -421,12 +502,12 @@ private static void goEndScene() {
      */
     private GridPane createGameGrid() {
         GridPane grid = new GridPane();
-        grid.setHgap(SPACING); //Adjusting space part
+        grid.setHgap(SPACING);
         grid.setVgap(SPACING);
         grid.setAlignment(Pos.CENTER);
 
-        // Create the path
-        boolean[][] isPath = new boolean[gridSize][gridSize]; //isPath for
+        // Define the path
+        boolean[][] isPath = new boolean[gridSize][gridSize];
 
         if (pathCoordinates.isEmpty()) {
             System.err.println("Error: Coordinates could not be loaded.");
@@ -440,37 +521,43 @@ private static void goEndScene() {
                 System.err.println("Warning: Invalid coordinate in path data: [" + coord[0] + "," + coord[1] + "]");
             }
         }
+        Image side1 = new Image(getClass().getResourceAsStream("/assets/road5.png"));
+        roadPattern = new ImagePattern(side1);
+
+        Image side2 = new Image(getClass().getResourceAsStream("/assets/alternate_road.png"));
 
         // Create and animate grid tiles
         for (int row = 0; row < gridSize; row++) {
             for (int col = 0; col < gridSize; col++) {
-                Rectangle cell = new Rectangle(CELL_SIZE, CELL_SIZE);
-                if (isPath[row][col]) {// is it an enemy path?
-                    cell.setFill(PATH_COLOR);// if so paint with enemy path color.
+                Rectangle tile = new Rectangle(TILE_SIZE, TILE_SIZE);
+                if (isPath[row][col]) {
+                    tile.setFill(alternateRoadPattern);
                 } else {
-                    cell.setFill(DARK_TONES[(int)(Math.random() * DARK_TONES.length)]);
+                    ImagePattern pattern = new ImagePattern(
+                            Math.random() < 0.5 ? side1 : side2);
+                    tile.setFill(pattern);
                 }
-                cell.setOpacity(0); //Start with no see
-                cell.setScaleX(0.1); // Start with small
-                cell.setScaleY(0.1);
+                tile.setOpacity(0);
+                tile.setScaleX(0.1);
+                tile.setScaleY(0.1);
 
-                grid.add(cell, col, row);//Add this rectangle object to GridPane
+                grid.add(tile, col, row);
 
                 // Fade animation
-                FadeTransition ft = new FadeTransition(Duration.millis(500), cell);// For each cell adjust 0.5s 
-                ft.setFromValue(0);//Start with %0 visibility
-                ft.setToValue(1);//End with %100 visibility
+                FadeTransition ft = new FadeTransition(Duration.millis(500), tile);
+                ft.setFromValue(0);
+                ft.setToValue(1);
 
                 // Scale animation
-                ScaleTransition st = new ScaleTransition(Duration.millis(500), cell);
-                st.setFromX(0.1);//Start with small
+                ScaleTransition st = new ScaleTransition(Duration.millis(500), tile);
+                st.setFromX(0.1);
                 st.setFromY(0.1);
-                st.setToX(1.0);//End with cell size
+                st.setToX(1.0);
                 st.setToY(1.0);
 
-                // Parallel animation in order to combine fade and scale animation
+                // Parallel animation
                 ParallelTransition pt = new ParallelTransition(ft, st);
-                pt.setDelay(Duration.millis((row * gridSize + col) * 12));//Each cell's animation start 12ms after previous cell
+                pt.setDelay(Duration.millis((row * gridSize + col) * 12));
                 transitions.add(pt);
             }
         }
@@ -481,48 +568,55 @@ private static void goEndScene() {
     /**
      * Create the HUD panel with game stats and tower options
      */
-    private VBox createPanel() {
-        VBox panel = new VBox(10);
-        panel.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
-        panel.setPrefWidth(240);
-        panel.setAlignment(Pos.CENTER);
-        
+    private VBox createHudPanel() {
+        VBox hud = new VBox(10);
+        hud.setStyle("-fx-background-color: rgba(251,209,139,0.0); " +
+                "-fx-background-radius: 12; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.3, 0, 4);");
+        hud.setPrefWidth(240);
+        hud.setAlignment(Pos.CENTER);
+
         Image singleShotImage = new Image("/assets/towers/singleshottower.png");
         ImageView image=new ImageView(singleShotImage);
         image.setFitWidth(30);
-		image.setFitHeight(30);
+        image.setFitHeight(30);
         VBox vbox1 = new VBox();
         vbox1.setAlignment(Pos.CENTER);
         Label label1 = new Label("Single Shot Tower");
+        label1.setStyle("-fx-text-fill: #FFE09A");
         Label label2 = new Label("50$");
+        label2.setStyle("-fx-text-fill: #FFE09A");
         vbox1.getChildren().addAll(image,label1, label2);
         Button singleShot = new Button();
-        singleShot.setGraphic(vbox1); 
-        
-        
+        singleShot.setGraphic(vbox1);
+
+
         Image laserImage = new Image("/assets/towers/lasertower.png");
         ImageView image2=new ImageView(laserImage);
         image2.setFitWidth(30);
-		image2.setFitHeight(30);
-        VBox vbox2= new VBox();
+        image2.setFitHeight(30);
+        VBox vbox2= new VBox(5);
         vbox2.setAlignment(Pos.CENTER);
         Label label3 = new Label("Laser Tower");
-        
+        label3.setStyle("-fx-text-fill: #FFE09A");
         Label label4 = new Label("120$");
+        label4.setStyle("-fx-text-fill: #FFE09A");
         vbox2.getChildren().addAll(image2,label3, label4);
         Button laser= new Button();
         laser.setGraphic(vbox2);
-        
-        
+
+
         Image TripleShotImage = new Image("/assets/towers/tripleshottower.png");
         ImageView image3=new ImageView(TripleShotImage);
-        
+
         image3.setFitWidth(30);
-		image3.setFitHeight(30);
+        image3.setFitHeight(30);
         VBox vbox3 = new VBox();
         vbox3.setAlignment(Pos.CENTER);
         Label label5 = new Label("Triple Shot Tower");
+        label5.setStyle("-fx-text-fill: #FFE09A");
         Label label6 = new Label("150$");
+        label6.setStyle("-fx-text-fill: #FFE09A");
         vbox3.getChildren().addAll(image3,label5, label6);
         Button tripleShot = new Button();
         tripleShot.setGraphic(vbox3);
@@ -531,28 +625,32 @@ private static void goEndScene() {
         ImageView image4=new ImageView(MissileTowerImage);
         VBox vbox4= new VBox();
         image4.setFitWidth(30);
-		image4.setFitHeight(30);
+        image4.setFitHeight(30);
         vbox4.setAlignment(Pos.CENTER);
         Label label7 = new Label("Missile Launcher Tower");
+        label7.setStyle("-fx-text-fill: #FFE09A");
         Label label8 = new Label("200$");
+        label8.setStyle("-fx-text-fill: #FFE09A");
         vbox4.getChildren().addAll(image4,label7, label8);
         Button missile= new Button();
         missile.setGraphic(vbox4);
 
-        
-        
+
+
 
         singleShot.setOnAction(e -> {
             selectedTowerType = 1;
             selectedTower = new SingleShotTower(0, 0, gameOverlay);
             draggingTower = true;
-            
+
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
 
             // Menzil ve kule sahneye ekleniyor
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
+            gameOverlay.getChildren().add((selectedTower).getHealthBar());
+
         });
         laser.setOnAction(e -> {
             selectedTowerType = 2;
@@ -563,6 +661,7 @@ private static void goEndScene() {
 
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
+            gameOverlay.getChildren().add((selectedTower).getHealthBar());
         });
         tripleShot.setOnAction(e -> {
             selectedTowerType = 3;
@@ -573,6 +672,7 @@ private static void goEndScene() {
 
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
+            gameOverlay.getChildren().add((selectedTower).getHealthBar());
         });
         missile.setOnAction(e -> {
             selectedTowerType = 4;
@@ -583,74 +683,75 @@ private static void goEndScene() {
 
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
+            gameOverlay.getChildren().add((selectedTower).getHealthBar());
         });
 
-        Button[] buttonArray={singleShot, laser, tripleShot, missile};
-        
-        for (Button b : buttonArray) {
-        	b.setFocusTraversable(false);
+        for (Button b : new Button[]{singleShot, laser, tripleShot, missile}) {
+            b.setFocusTraversable(false);
             b.setPrefWidth(150);
             b.setPrefHeight(90);
             b.setStyle(
                     "-fx-font-size: 16px;" +
-                            "-fx-background-color: #FBD18B;" +
+                            "-fx-background-color: rgba(251,209,139,0.1);" +  // FBD18B'nin %80 saydam hali
                             "-fx-border-radius: 12;" +
                             "-fx-background-radius: 12;" +
-                            "-fx-text-fill: black;"
+                            "-fx-text-fill: #3E2F20;"
             );
+            b.setTextFill(Color.web("#3E2F20"));
         }
 
         // Style labels
-        livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
-        moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
-        debugLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #333;");
-        waveCountLabel = new Label("Next wave: --");
-        waveCountLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #333;");
-        panel.getChildren().addAll(livesLabel, moneyLabel, waveCountLabel, singleShot, laser, tripleShot, missile);
-        return panel;
+        livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
+        moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
+        debugLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #FFE09A;");
+        waveCountdownLabel = new Label("Next wave: --");
+        waveCountdownLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #FFE09A;");
+        hud.getChildren().addAll(livesLabel, moneyLabel, waveCountdownLabel, singleShot, laser, tripleShot, missile);
+        return hud;
     }
 
     /**
      * Setup tower placement and dragging functionality
      */
     public void setupTowerPlacement() {
-    	gameOverlay.setOnMouseMoved(e -> {
+        gameOverlay.setOnMouseMoved(e -> {
             if (draggingTower && selectedTower != null) {
                 // Sahne koordinatlarıyla güncelle
                 selectedTower.setPosition(e.getSceneX(), e.getSceneY());
-                
-                
+
+
             }
         });
         gameOverlay.setOnMouseClicked(e -> {
-        	if (draggingTower && selectedTower != null) {
-        		
-        		int price = (int) selectedTower.getPrice();
-        	    if (money < price) {
-        	        System.out.println("❌ Yetersiz para! Kule elden gitti.");
-        	        gameOverlay.getChildren().remove(selectedTower.getNode());
-        	        gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
-        	        draggingTower = false;
-        	        selectedTower = null;
-        	        selectedTowerType = 0;
-        	        return;
-        	    }
+            if (draggingTower && selectedTower != null) {
+
+                int price = (int) selectedTower.getPrice();
+                if (money < price) {
+                    System.out.println("❌ Yetersiz para! Kule elden gitti.");
+                    gameOverlay.getChildren().remove(selectedTower.getNode());
+                    gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
+                    gameOverlay.getChildren().remove(selectedTower.getHealthBar());
+                    draggingTower = false;
+                    selectedTower = null;
+                    selectedTowerType = 0;
+                    return;
+                }
                 // col,row hesaplamanı buraya al
                 double clickX = e.getSceneX();
                 double clickY = e.getSceneY();
                 int col = (int)((clickX - offsetX) / gridUnit);
                 int row = (int)((clickY - offsetY) / gridUnit);
                 // (istersen path ve placedTowerCells kontrolü yap)
-                
+
                 boolean invalid = false;
                 if (clickX < offsetX || clickY < offsetY
-                 || col < 0 || col >= gridSize || row < 0 || row >= gridSize) {
+                        || col < 0 || col >= gridSize || row < 0 || row >= gridSize) {
                     invalid = true;
                 }
                 for (int[] p : pathCoordinates) {
                     if (p[0]==row && p[1]==col) { invalid = true; break; }
                 }
-                
+
                 for (int[] p : placedTowerCells) {
                     if (p[0]==row && p[1]==col) { invalid = true; break; }
                 }
@@ -658,21 +759,22 @@ private static void goEndScene() {
                     // Preview’u sahneden kaldır
                     gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
                     gameOverlay.getChildren().remove(selectedTower.getNode());
+                    gameOverlay.getChildren().remove(selectedTower.getHealthBar());
                     // Dragging bitir
                     draggingTower = false;
                     selectedTower = null;
                     selectedTowerType = 0;
                     return;
                 }
-                
-                
+
+
                 if (clickX >= 1520)
                     return;
 
                 // Prevent tower placement outside grid
                 if (clickX < offsetX || clickY < offsetY)
                     return;
-                
+
                 if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {
                     return;
                 }
@@ -690,13 +792,13 @@ private static void goEndScene() {
                         return;
                     }
                 }
-                
-                
+
+
                 decreaseMoney(price);
 
                 // 1) preview zaten sahnede: artık final pozisyona al
-                double centerX = offsetX + col * gridUnit + CELL_SIZE / 2;
-                double centerY = offsetY + row * gridUnit + CELL_SIZE / 2;
+                double centerX = offsetX + col * gridUnit + TILE_SIZE / 2;
+                double centerY = offsetY + row * gridUnit + TILE_SIZE / 2;
                 selectedTower.setPosition(centerX, centerY);
                 selectedTower.setGridPosition(row, col);
                 placedTowerCells.add(new int[]{row, col});
@@ -704,7 +806,7 @@ private static void goEndScene() {
                 // 2) preview node’larını sahneden temizle
                 gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
                 gameOverlay.getChildren().remove(selectedTower.getNode());
-                
+
                 gameOverlay.getChildren().add(selectedTower.getNode());
                 Circle placedCircle = selectedTower.getRangeCircle();
                 gameOverlay.getChildren().add(placedCircle);
@@ -712,14 +814,14 @@ private static void goEndScene() {
 
                 // 3) gerçek kuleyi oyuna ekle
                 Game.addTower(selectedTower);
-                
+
                 Tower placed = selectedTower;
                 // Sağ tık satma ve sol tık sürükleme handler’ları:
                 placed.getNode().setOnMousePressed(ev -> {
                     if (ev.isSecondaryButtonDown()) {
                         // sat
                         increaseMoney(placed.getPrice());
-                        gameOverlay.getChildren().removeAll(placed.getNode(), placed.getRangeCircle());
+                        gameOverlay.getChildren().removeAll(placed.getNode(), placed.getRangeCircle(), placed.getHealthBar());
                         int[] g = placed.getGridPosition();
                         placedTowerCells.removeIf(p -> p[0]==g[0] && p[1]==g[1]);
                         Game.removeTower(placed);
@@ -737,84 +839,82 @@ private static void goEndScene() {
                 });
                 placed.getNode().setOnMouseReleased(ev -> {
                     if (draggingTower && selectedTower==placed) {
-                    	draggingTower = false;
-                    	placed.getRangeCircle().setVisible(false);
+                        draggingTower = false;
+                        placed.getRangeCircle().setVisible(false);
 
                         // 2) Sahne koordinatlarını al
                         double mouseX = ev.getSceneX();
                         double mouseY = ev.getSceneY();
-                        
+
                         int col1 = (int)((mouseX - offsetX) / gridUnit);
                         int row1 = (int)((mouseY - offsetY) / gridUnit);
 
                         // 3) Hücre indeksine dönüştür
-                        
+
 
                         // 4) Geçersiz mi kontrol et?
                         boolean invalid1 = false;
                         if (row1 < 0 || row1 >= gridSize || col1 < 0 || col1 >= gridSize) {
-                        	increaseMoney(placed.getPrice());
+                            increaseMoney(placed.getPrice());
                             // görselleri sahneden kaldır
-                            gameOverlay.getChildren().removeAll(
-                                placed.getNode(), placed.getRangeCircle()
-                            );
-                            
+                            gameOverlay.getChildren().removeAll(placed.getNode(), placed.getRangeCircle(), selectedTower.getHealthBar());
+
                             placedTowerCells.removeIf(p ->
-                            p[0] == placed.getGridPosition()[0]
-                         && p[1] == placed.getGridPosition()[1]
-                        );
-                        Game.removeTower(placed);
-                        // seçimi temizle
-                        selectedTower = null;
-                        selectedTowerType = 0;
-                        return;
+                                    p[0] == placed.getGridPosition()[0]
+                                            && p[1] == placed.getGridPosition()[1]
+                            );
+                            Game.removeTower(placed);
+                            // seçimi temizle
+                            selectedTower = null;
+                            selectedTowerType = 0;
+                            return;
                         }
                         boolean invalidPlacement = false;
-                        
+
                         for (int[] p : pathCoordinates) {
                             if (p[0] == row1 && p[1] == col1) {
-                            	invalidPlacement = true;
+                                invalidPlacement = true;
                                 break;
                             }
                         }
                         if (!invalidPlacement) {
                             for (int[] p : placedTowerCells) {
                                 if (p[0] == row1 && p[1] == col1
-                                 && !(p[0] == placed.getGridPosition()[0]
-                                   && p[1] == placed.getGridPosition()[1])) {
+                                        && !(p[0] == placed.getGridPosition()[0]
+                                        && p[1] == placed.getGridPosition()[1])) {
                                     invalidPlacement = true;
                                     break;
-                                } 
-                              } 
+                                }
                             }
+                        }
 
                         if (invalidPlacement) {
                             // 5a) Hatalıysa orijinal hücresine dön
                             double origX = offsetX
-                                         + placed.getGridPosition()[1] * gridUnit
-                                         + CELL_SIZE/2;
+                                    + placed.getGridPosition()[1] * gridUnit
+                                    + TILE_SIZE/2;
                             double origY = offsetY
-                                         + placed.getGridPosition()[0] * gridUnit
-                                         + CELL_SIZE/2;
+                                    + placed.getGridPosition()[0] * gridUnit
+                                    + TILE_SIZE/2;
                             placed.setPosition(origX, origY);
                         } else {
-                        	// 6) geçerli yeni hücreye taşı
+                            // 6) geçerli yeni hücreye taşı
                             // önce eski kaydı sil
                             placedTowerCells.removeIf(p ->
-                            p[0] == placed.getGridPosition()[0]
-                                    && p[1] == placed.getGridPosition()[1]
-                                   );
-                            
-                            double newX = offsetX + col1 * gridUnit + CELL_SIZE/2;
-                            double newY = offsetY + row1 * gridUnit + CELL_SIZE/2;
+                                    p[0] == placed.getGridPosition()[0]
+                                            && p[1] == placed.getGridPosition()[1]
+                            );
 
-                            
+                            double newX = offsetX + col1 * gridUnit + TILE_SIZE/2;
+                            double newY = offsetY + row1 * gridUnit + TILE_SIZE/2;
+
+
                             placed.setPosition(newX, newY);
                             placed.setGridPosition(row1, col1);
                             placedTowerCells.add(new int[]{row1, col1});
                         }
 
-                        
+
                         selectedTower = null;
                         selectedTowerType = 0;
                     }
@@ -826,26 +926,26 @@ private static void goEndScene() {
                 selectedTowerType = 0;
                 return;  // buradan çık, alt kod çalışmasın
             }
-        	
-        	
+
+
 
             // Convert click coordinates to grid position
-            
+
 
             // Check if grid position is valid
-            
-            
+
+
             if (selectedTowerType < 1 || selectedTowerType > 4) return;
-            
+
             double clickX = e.getSceneX();
             double clickY = e.getSceneY();
-            
+
             int col = (int)((clickX - offsetX) / gridUnit);
             int row = (int)((clickY - offsetY) / gridUnit);
 
             // Calculate center of grid cell for tower placement
-            double cellCenterX = offsetX + col * gridUnit + CELL_SIZE / 2;
-            double cellCenterY = offsetY + row * gridUnit + CELL_SIZE / 2;
+            double cellCenterX = offsetX + col * gridUnit + TILE_SIZE / 2;
+            double cellCenterY = offsetY + row * gridUnit + TILE_SIZE / 2;
 
             // Create tower based on selected type
             Tower tower = switch (selectedTowerType) {
@@ -855,7 +955,6 @@ private static void goEndScene() {
                 case 4 -> new MissileLauncherTower(cellCenterX, cellCenterY, gameOverlay);
                 default -> null;
             };
-
             if (tower != null) {
                 // Check if player has enough money
                 if (money < tower.getPrice()) {
@@ -863,16 +962,16 @@ private static void goEndScene() {
                 }
 
                 // Deduct tower cost
-                
+
 
                 // Add tower to game
-                
-                
-                
-                
-                
-                
-                
+
+
+
+
+
+
+
 
                 // Set tower grid position
                 tower.setGridPosition(row, col);
@@ -880,18 +979,18 @@ private static void goEndScene() {
 
                 // Handle tower selection and right-click to sell
                 tower.getNode().setOnMousePressed(ev -> {
-                	if (ev.isPrimaryButtonDown()) {
+                    if (ev.isPrimaryButtonDown()) {
                         draggingTower = true;
                         selectedTower = tower;
                         tower.getRangeCircle().setVisible(true);
                     }
-                    
-                	if (ev.isSecondaryButtonDown()) {
+
+                    if (ev.isSecondaryButtonDown()) {
                         // Sell tower on right-click
                         increaseMoney(tower.getPrice());
 
                         // Remove tower from display
-                        gameOverlay.getChildren().removeAll(tower.getNode(), tower.getRangeCircle());
+                        gameOverlay.getChildren().removeAll(tower.getNode(), tower.getRangeCircle(), tower.getHealthBar());
 
                         // Remove tower from grid tracking
                         int[] gridPos = tower.getGridPosition();
@@ -912,7 +1011,7 @@ private static void goEndScene() {
                 // Handle tower dragging
                 tower.getNode().setOnMouseDragged(ev -> {
                     if (dragging) {
-                    	tower.setPosition(ev.getSceneX(), ev.getSceneY());
+                        tower.setPosition(ev.getSceneX(), ev.getSceneY());
                     }
                 });
 
@@ -927,27 +1026,28 @@ private static void goEndScene() {
 
                     int col1 = (int)((mouseX - offsetX) / gridUnit);
                     int row1 = (int)((mouseY - offsetY) / gridUnit);
-                    
+
                     boolean invalid = false;
 
                     // Check if new position is on path
                     for (int[] coord : pathCoordinates) {
                         if (coord[0] == row1 && coord[1] == col1) {
-                        	invalid = true;
-                            
+                            invalid = true;
+
                         }
                     }
-                    
+
                     for (int[] placed : placedTowerCells) {
-                        if (placed[0] == row1 && placed[1] == col1) 
-                        	invalid = true;
+                        if (placed[0] == row1 && placed[1] == col1)
+                            invalid = true;
                     }
-                    
+
                     if (invalid) {
                         // geri koy
-                        double origX = offsetX + tower.getGridPosition()[1] * gridUnit + CELL_SIZE/2;
-                        double origY = offsetY + tower.getGridPosition()[0] * gridUnit + CELL_SIZE/2;
+                        double origX = offsetX + tower.getGridPosition()[1] * gridUnit + TILE_SIZE/2;
+                        double origY = offsetY + tower.getGridPosition()[0] * gridUnit + TILE_SIZE/2;
                         tower.setPosition(origX, origY);
+                        gameOverlay.getChildren().remove((tower).getHealthBar());
                         return;
                     }
 
@@ -955,8 +1055,8 @@ private static void goEndScene() {
                     placedTowerCells.removeIf(p -> p[0] == tower.getGridPosition()[0] && p[1] == tower.getGridPosition()[1]);
 
                     // Apply new position
-                    double centerX = offsetX + col1 * gridUnit + CELL_SIZE / 2;
-                    double centerY = offsetY + row1 * gridUnit + CELL_SIZE / 2;
+                    double centerX = offsetX + col1 * gridUnit + TILE_SIZE / 2;
+                    double centerY = offsetY + row1 * gridUnit + TILE_SIZE / 2;
 
                     tower.setPosition(centerX, centerY);
                     tower.setGridPosition(row1, col1);
@@ -975,14 +1075,14 @@ private static void goEndScene() {
         }
 
         // Calculate grid dimensions
-        double gridWidth = (CELL_SIZE + SPACING) * gridSize - SPACING;
-        double gridHeight = (CELL_SIZE + SPACING) * gridSize - SPACING;
+        double gridWidth = (TILE_SIZE + SPACING) * gridSize - SPACING;
+        double gridHeight = (TILE_SIZE + SPACING) * gridSize - SPACING;
 
         // Create a circle at each path point
         for (int i = 0; i < pathCoordinates.size(); i++) {
             int[] point = pathCoordinates.get(i);
-            double x = offsetX + point[1] * (CELL_SIZE + SPACING) + CELL_SIZE / 2;
-            double y = offsetY + point[0] * (CELL_SIZE + SPACING) + CELL_SIZE / 2;
+            double x = offsetX + point[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
+            double y = offsetY + point[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
 
             Circle marker = new Circle(5);
             marker.setFill(i == 0 ? Color.GREEN : (i == pathCoordinates.size() - 1 ? Color.RED : Color.BLUE));
@@ -1005,32 +1105,32 @@ private static void goEndScene() {
     /**
      * Spawn a single enemy on the path
      */
+
+
+
     private void spawnEnemy() {
         currentEnemy = new Enemy(30, gameOverlay); // 100:health
+        double randn = Math.random();
+        //if (randn < 0.4) {
+        //    spawnEnemyArcher();
+//
+        //}
         enemies.add(currentEnemy);
         Game.enemies.add(currentEnemy);
 
         // Start enemy movement along the path
         currentEnemy.moveAlongPath(pathCoordinates);
     }
-    
+
     public void spawnEnemyArcher() {
-		currentEnemy = new Archer(30, gameOverlay); // 100:health
-		enemies.add(currentEnemy);
-		Game.enemies.add(currentEnemy);
+        currentEnemy = new Archer(30, gameOverlay); // 100:health
+        enemies.add(currentEnemy);
+        Game.enemies.add(currentEnemy);
 
-		// Start enemy movement along the path
-		currentEnemy.moveAlongPath(pathCoordinates);
-	}
-
-    /**
-     * Damage the current enemy for testing
-     */
-    private void damageEnemy() {
-        if (currentEnemy != null && currentEnemy.isAlive()) {
-            currentEnemy.damage(10);
-        }
+        // Start enemy movement along the path
+        currentEnemy.moveAlongPath(pathCoordinates);
     }
+
 
     /**
      * Static method to decrease player lives
@@ -1041,7 +1141,10 @@ private static void goEndScene() {
 
         // Game over condition
         if (lives <= 0) {
-        	goEndScene();
+            System.out.println("💀 Can 0 oldu, oyun bitti.");
+            Game.enemies.clear(); // Düşmanları da sıfırla
+            mainStage.getScene().getRoot().setDisable(true);
+            goEndScene();
         }
     }
 
@@ -1066,6 +1169,12 @@ private static void goEndScene() {
      */
     private static Button getStartButton() {
         Button startButton = new Button("Start Game");
+        Image bg = new Image(Main.class.getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bg);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
         startButton.setPrefWidth(300);
         startButton.setPrefHeight(150);
         startButton.setStyle(
@@ -1078,171 +1187,181 @@ private static void goEndScene() {
         return startButton;
     }
     public void resetGame() {
-    	 for (Enemy e : enemies) {
-    	        e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
-    	        gameOverlay.getChildren().remove(e.getView());
-    	        gameOverlay.getChildren().remove(e.getHealthBar());
-    	    }
+        for (Enemy e : enemies) {
+            e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
+            gameOverlay.getChildren().remove(e.getView());
+            gameOverlay.getChildren().remove(e.getHealthBar());
+        }
 
-    	    Game.enemies.clear();
-    	    enemies.clear();
+        Game.enemies.clear();
+        enemies.clear();
 
-    	    // Kuleleri sahneden kaldır
-    	    for (Tower t : Game.getTowers()) {
-    	        gameOverlay.getChildren().remove(t.getNode());
-    	        gameOverlay.getChildren().remove(t.getRangeCircle());
-    	    }
-    	    Game.getTowers().clear();
+        // Kuleleri sahneden kaldır
+        for (Tower t : Game.getTowers()) {
+            gameOverlay.getChildren().remove(t.getNode());
+            gameOverlay.getChildren().remove(t.getRangeCircle());
+            gameOverlay.getChildren().remove(t.getHealthBar());
+        }
+        Game.getTowers().clear();
 
-    	    // Mermileri sahneden kaldır
-    	    for (Bullet b : Game.getBullets()) {
-    	        gameOverlay.getChildren().remove(b.getNode());
-    	    }
-    	    Game.getBullets().clear();
+        // Mermileri sahneden kaldır
+        for (Bullet b : Game.getBullets()) {
+            gameOverlay.getChildren().remove(b.getNode());
+        }
+        Game.getBullets().clear();
 
-    	    for (Missile m : Game.getMissiles()) {
-    	        gameOverlay.getChildren().remove(m.getNode());
-    	    }
-    	    Game.getMissiles().clear();
-    	    
-    	    if (waveTimeLine != null)    waveTimeLine.stop();
-    	    if (countdownTimer != null)  countdownTimer.stop();
+        for (Missile m : Game.getMissiles()) {
+            gameOverlay.getChildren().remove(m.getNode());
+        }
+        Game.getMissiles().clear();
 
-    	    // Yerleşim yerlerini sıfırla
-    	    placedTowerCells.clear();
+        if (waveTimeLine != null)    waveTimeLine.stop();
+        if (countdownTimer != null)  countdownTimer.stop();
 
-    	    // Oyun değişkenlerini sıfırla
-    	    money = 100;
-    	    lives = 5;
+        // Yerleşim yerlerini sıfırla
+        placedTowerCells.clear();
 
-    	    if (Main.transitions != null) {
-    	        Main.transitions.forEach(Animation::stop);
-    	    }
+        // Oyun değişkenlerini sıfırla
+        money = 100;
+        lives = 5;
 
-    	    if (moneyLabel != null) {
-    	        moneyLabel.setText("Money: $" + money);
-    	    }
-    	    if (livesLabel != null) {
-    	        livesLabel.setText("Lives: " + lives);
-    	    }
-    	    if (waveTimeLine != null) { 
-    	   		 waveTimeLine.stop();
-    	   	 }
-        
-        
+        if (Main.transitions != null) {
+            Main.transitions.forEach(Animation::stop);
+        }
+
+        if (moneyLabel != null) {
+            moneyLabel.setText("Money: $" + money);
+        }
+        if (livesLabel != null) {
+            livesLabel.setText("Lives: " + lives);
+        }
+        gameLoop.start();
+
+
     }
     public void OtherResetGame() {
-   	 for (Enemy e : enemies) {
-   	        e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
-   	        gameOverlay.getChildren().remove(e.getView());
-   	        gameOverlay.getChildren().remove(e.getHealthBar());
-   	    }
+        System.out.println("BURAYA GİRİYO!");
+        for (Enemy e : enemies) {
+            e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
+            gameOverlay.getChildren().remove(e.getView());
+            gameOverlay.getChildren().remove(e.getHealthBar());
+        }
 
-   	    Game.enemies.clear();
-   	    enemies.clear();
+        Game.enemies.clear();
+        enemies.clear();
 
-   	    // Kuleleri sahneden kaldır
-   	    for (Tower t : Game.getTowers()) {
-   	        gameOverlay.getChildren().remove(t.getNode());
-   	        gameOverlay.getChildren().remove(t.getRangeCircle());
-   	    }
-   	    Game.getTowers().clear();
+        // Kuleleri sahneden kaldır
+        for (Tower t : Game.getTowers()) {
+            gameOverlay.getChildren().remove(t.getNode());
+            gameOverlay.getChildren().remove(t.getRangeCircle());
+            gameOverlay.getChildren().remove(t.getHealthBar());
+        }
+        Game.getTowers().clear();
 
-   	    // Mermileri sahneden kaldır
-   	    for (Bullet b : Game.getBullets()) {
-   	        gameOverlay.getChildren().remove(b.getNode());
-   	    }
-   	    Game.getBullets().clear();
+        // Mermileri sahneden kaldır
+        for (Bullet b : Game.getBullets()) {
+            gameOverlay.getChildren().remove(b.getNode());
+        }
+        Game.getBullets().clear();
 
-   	    for (Missile m : Game.getMissiles()) {
-   	        gameOverlay.getChildren().remove(m.getNode());
-   	    }
-   	    Game.getMissiles().clear();
+        for (Missile m : Game.getMissiles()) {
+            gameOverlay.getChildren().remove(m.getNode());
+        }
+        Game.getMissiles().clear();
 
-   	    // Yerleşim yerlerini sıfırla
-   	    placedTowerCells.clear();
+        // Yerleşim yerlerini sıfırla
+        placedTowerCells.clear();
 
-   	    // Oyun değişkenlerini sıfırla
-   	    lives = 5;
-   	    finishedWaveCount=0;
+        // Oyun değişkenlerini sıfırla
+        lives = 5;
+        finishedWaveCount=0;
 
-   	    if (Main.transitions != null) {
-   	        Main.transitions.forEach(Animation::stop);
-   	    }
+        if (Main.transitions != null) {
+            Main.transitions.forEach(Animation::stop);
+        }
 
-   	    if (moneyLabel != null) {
-   	        moneyLabel.setText("Money: $" + money);
-   	    }
-   	    if (livesLabel != null) {
-   	        livesLabel.setText("Lives: " + lives);
-   	    }
-   	if (waveTimeLine != null) { 
-   		 waveTimeLine.stop();
-   	 }
-       
-       
-   }
+        if (moneyLabel != null) {
+            moneyLabel.setText("Money: $" + money);
+        }
+        if (livesLabel != null) {
+            livesLabel.setText("Lives: " + lives);
+        }
+        gameLoop.start();
+   	/* if (waveTimeline != null) {
+   		 waveTimeline.stop();
+   	 }*/
+
+
+    }
 
     public static void main(String[] args) throws FileNotFoundException {
         launch(args);
     }
-    
+
     private static Button getloseButton() {
-    	if(loseButton==null) {
-        loseButton = new Button("Restart Game");
-    	}
+        if(loseButton==null) {
+            loseButton = new Button("Restart Game");
+        }
+
+
+
         loseButton.setPrefWidth(400);
         loseButton.setPrefHeight(150);
         loseButton.setStyle(
                 "-fx-font-size: 32px;" +
                         "-fx-background-color: #c29b57;" +
                         "-fx-text-fill: black;" +
+                        "-fx-border-color: black;" +
+                        "-fx-border-width: 2px;" +
                         "-fx-background-radius: 40;" +
                         "-fx-border-radius: 40;"
         );
+
+
         return loseButton;
     }
-    
+
+
     private Button getContinueButton() {
-    	if(continueButton==null) {
-    		continueButton = new Button("Continue To Next Level");
-        	}
-    	continueButton.setPrefWidth(400);
-    	continueButton.setPrefHeight(150);
-    	continueButton.setStyle(
+        if (continueButton == null) {
+            continueButton = new Button("Continue To Next Level");
+            continueButton.setPrefWidth(400);
+            continueButton.setPrefHeight(150);
+            continueButton.setStyle(
                     "-fx-font-size: 32px;" +
                             "-fx-background-color: #c29b57;" +
                             "-fx-text-fill: black;" +
                             "-fx-background-radius: 40;" +
                             "-fx-border-radius: 40;"
             );
-    	continueButton.setOnAction(e->{ 
-    		try { 
-    			Scene nextLevelScene = getGameScene(new StackPane()); 
-    			mainStage.setScene(nextLevelScene); 
-    			transitions.forEach(Animation::play);//Start animation again from scratch
-    			
-    			if (currentLevel==4 || currentLevel==5) {
-                	maxDelay=2688;
-                }// from scratch start we 
+            continueButton.setOnAction(e->{ 
+        		try { 
+        			Scene nextLevelScene = getGameScene(new StackPane()); 
+        			mainStage.setScene(nextLevelScene); 
+        			transitions.forEach(Animation::play);//Start animation again from scratch
+        			
+        			if (currentLevel==4 || currentLevel==5) {
+                    	maxDelay=2688;
+                    }// from scratch start we 
 
-    	            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
-    	                addGameButtons();
-    	                setupTowerPlacement();
-    	                scheduleWaves(currentLevel);
-    	            }));
-    	            delayTimeline.play();
-    			// Animasyonları yeniden başlat transitions.forEach(Animation::play); // Yeni leveli başlat scheduleWaves(currentLevel); } catch(Exception ex) { System.out.println("exception found"); } }); return continueButton;
-    		}
-    		catch(Exception ex) {
-    			System.out.println("continue exeption");
-    		}
- 	});
-    	
-            return continueButton;
-    //e
+        	            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
+        	                addGameButtons();
+        	                setupTowerPlacement();
+        	                scheduleWaves(currentLevel);
+        	            }));
+        	            delayTimeline.play();
+        			// Animasyonları yeniden başlat transitions.forEach(Animation::play); // Yeni leveli başlat scheduleWaves(currentLevel); } catch(Exception ex) { System.out.println("exception found"); } }); return continueButton;
+        		}
+        		catch(Exception ex) {
+        			System.out.println("continue exeption");
+        		}
+     	});
+        }
+        return continueButton;
     }
-    
+
+
+
     public class AudioPlayer {
         private Clip clip;
 
@@ -1250,6 +1369,10 @@ private static void goEndScene() {
             try (AudioInputStream ais = AudioSystem.getAudioInputStream(new File(filepath))) {
                 clip = AudioSystem.getClip();
                 clip.open(ais);
+
+                FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                gainControl.setValue(-10.0f); // desibel cinsinden → 0.0f = tam ses, -80f = sessiz
+
                 clip.loop(Clip.LOOP_CONTINUOUSLY);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1262,15 +1385,23 @@ private static void goEndScene() {
     }
     private Button getWonButton() {
         wonButton = new Button("Play Again!");
-    
+        Image bg = new Image(getClass().getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bg);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
+        StackPane root = new StackPane();
+        root.getChildren().add(bgView);
+
         wonButton.setPrefWidth(400);
         wonButton.setPrefHeight(150);
         wonButton.setStyle(
-            "-fx-font-size: 32px;" +
-            "-fx-background-color: #c29b57;" +
-            "-fx-text-fill: black;" +
-            "-fx-background-radius: 40;" +
-            "-fx-border-radius: 40;"
+                "-fx-font-size: 32px;" +
+                        "-fx-background-color: #c29b57;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-background-radius: 40;" +
+                        "-fx-border-radius: 40;"
         );
         wonButton.setOnAction(e -> {
             currentLevel = 1;
@@ -1298,20 +1429,44 @@ private static void goEndScene() {
 
 
         return wonButton;
-    }
-    private void goWonScene() {
-    	Label nextLabel=new Label("You Won The Game!");
-    	StackPane paneWon=new StackPane();
-    	VBox won=new VBox(10);
-    	won.setAlignment(Pos.CENTER);
-    	won.getChildren().addAll(nextLabel,getWonButton());
-    	paneWon.getChildren().add(won);
-    	Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);
-    	paneWon.setStyle("-fx-background-color: #FFF6DA;");
-    	mainStage.setScene(wonScene);
 
     }
-    
-    
-    
+
+    private void goWonScene() {
+        Label nextLabel=new Label("You Won The Game!");
+        nextLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
+        nextLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+
+        Image bg = new Image(getClass().getResource("/assets/background.png").toExternalForm());
+        ImageView bgView = new ImageView(bg);
+        bgView.setFitWidth(WIDTH);
+        bgView.setFitHeight(HEIGHT);
+        bgView.setPreserveRatio(false);
+        bgView.setEffect(new GaussianBlur(12));
+
+
+
+
+        VBox won=new VBox(10);
+        won.setAlignment(Pos.CENTER);
+        won.setPrefWidth(400);
+        won.setStyle(
+                "-fx-background-color: rgba(251,209,139,0.0);" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-padding: 20px;"
+        );
+        won.getChildren().addAll(nextLabel,getWonButton());
+
+        StackPane paneWon=new StackPane();
+        paneWon.getChildren().addAll(bgView, won); // önce arka plan, sonra UI
+        StackPane.setAlignment(won, Pos.CENTER);
+
+        Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);
+
+        mainStage.setScene(wonScene);
+
+    }
+
+
+
 }

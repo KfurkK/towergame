@@ -118,6 +118,5 @@ public class Game {
 	public static List<Missile> getMissiles() {
 		return missiles;
 	}
-	
 
 }
