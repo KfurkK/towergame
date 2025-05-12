@@ -37,11 +37,12 @@ import javafx.scene.shape.Arc;
 /**
  * Main game application class
  */
-public class Main extends Application {              
+public class Main extends Application {         
+	public double maxDelay=1188;
     private Pane initialGameOverlay;
 	private Timeline countdownTimer;
 	private Timeline waveTimeLine;
-	private Label waveCountdownLabel;
+	private Label waveCountLabel;
 	private static Stage mainStage;
 	private static Button continueButton;
 	private Button wonButton;
@@ -51,9 +52,9 @@ public class Main extends Application {
     private final static int WIDTH = 1920;
     private final static int HEIGHT = 1080;
     private int gridSize=10;
-    private static final int TILE_SIZE = 45;
+    private static final int CELL_SIZE = 45;
     private static final double SPACING = 2.5; // Grid spacing
-    private static final Color[] YELLOW_TONES = {
+    private static final Color[] DARK_TONES = {
             Color.web("FFCF50"), Color.web("FBC518")
     };
     private static final Color PATH_COLOR = Color.web("FBEBE0");
@@ -63,7 +64,7 @@ public class Main extends Application {
     // Grid positioning variables
     private double offsetX;
     private double offsetY;
-    private final double gridUnit = TILE_SIZE + SPACING;
+    private final double gridUnit = CELL_SIZE + SPACING;
 
     // Game state variables
     private static int money = 100;
@@ -121,11 +122,12 @@ public class Main extends Application {
                         && lives > 0) {
 
                     if (currentLevel == 5) {
+                    	this.stop();
                         // 🎉 5. level bitti, oyun kazanıldı
                         goWonScene();
                     } else {
                         // ⏭ Diğer levellere geçiş
-                        waveCountdownLabel.setText("Next wave: 0s");
+                        waveCountLabel.setText("Next wave: 0s");
                         System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
 
                         finishedWaveCount = 0;
@@ -145,7 +147,7 @@ public class Main extends Application {
             transitions.forEach(Animation::play);
 
             // Add game buttons and start wave scheduling after animations
-            double maxDelay = 1188; // Time for rightmost animation to complete in ms
+            // Time for rightmost animation to complete in ms
 
             Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
                 addGameButtons();
@@ -271,7 +273,7 @@ public class Main extends Application {
             int remaining = seconds - i;
             countdownTimer.getKeyFrames().add(
                 new KeyFrame(Duration.seconds(i),
-                    e -> waveCountdownLabel.setText("Next wave: " + remaining + "s")
+                    e -> waveCountLabel.setText("Next wave: " + remaining + "s")
                 )
             );
         }
@@ -336,14 +338,14 @@ public class Main extends Application {
         GridPane grid = createGameGrid();
 
         // Create HUD panel
-        VBox hud = createHudPanel();
+        VBox panel= createPanel();
 
         // Create overlay pane for enemies and UI elements
         gameOverlay = new Pane();
-        hud.setLayoutX(1520);
-        hud.setLayoutY(280);
+        panel.setLayoutX(1520);
+        panel.setLayoutY(280);
 
-        gameOverlay.getChildren().add(hud);
+        gameOverlay.getChildren().add(panel);
         gameRoot.getChildren().add(grid);
         gameRoot.getChildren().add(gameOverlay);
         Game.gameOverlay = gameOverlay;
@@ -419,12 +421,12 @@ private static void goEndScene() {
      */
     private GridPane createGameGrid() {
         GridPane grid = new GridPane();
-        grid.setHgap(SPACING);
+        grid.setHgap(SPACING); //Adjusting space part
         grid.setVgap(SPACING);
         grid.setAlignment(Pos.CENTER);
 
-        // Define the path
-        boolean[][] isPath = new boolean[gridSize][gridSize];
+        // Create the path
+        boolean[][] isPath = new boolean[gridSize][gridSize]; //isPath for
 
         if (pathCoordinates.isEmpty()) {
             System.err.println("Error: Coordinates could not be loaded.");
@@ -442,33 +444,33 @@ private static void goEndScene() {
         // Create and animate grid tiles
         for (int row = 0; row < gridSize; row++) {
             for (int col = 0; col < gridSize; col++) {
-                Rectangle tile = new Rectangle(TILE_SIZE, TILE_SIZE);
-                if (isPath[row][col]) {
-                    tile.setFill(PATH_COLOR);
+                Rectangle cell = new Rectangle(CELL_SIZE, CELL_SIZE);
+                if (isPath[row][col]) {// is it an enemy path?
+                    cell.setFill(PATH_COLOR);// if so paint with enemy path color.
                 } else {
-                    tile.setFill(YELLOW_TONES[(int)(Math.random() * YELLOW_TONES.length)]);
+                    cell.setFill(DARK_TONES[(int)(Math.random() * DARK_TONES.length)]);
                 }
-                tile.setOpacity(0);
-                tile.setScaleX(0.1);
-                tile.setScaleY(0.1);
+                cell.setOpacity(0); //Start with no see
+                cell.setScaleX(0.1); // Start with small
+                cell.setScaleY(0.1);
 
-                grid.add(tile, col, row);
+                grid.add(cell, col, row);//Add this rectangle object to GridPane
 
                 // Fade animation
-                FadeTransition ft = new FadeTransition(Duration.millis(500), tile);
-                ft.setFromValue(0);
-                ft.setToValue(1);
+                FadeTransition ft = new FadeTransition(Duration.millis(500), cell);// For each cell adjust 0.5s 
+                ft.setFromValue(0);//Start with %0 visibility
+                ft.setToValue(1);//End with %100 visibility
 
                 // Scale animation
-                ScaleTransition st = new ScaleTransition(Duration.millis(500), tile);
-                st.setFromX(0.1);
+                ScaleTransition st = new ScaleTransition(Duration.millis(500), cell);
+                st.setFromX(0.1);//Start with small
                 st.setFromY(0.1);
-                st.setToX(1.0);
+                st.setToX(1.0);//End with cell size
                 st.setToY(1.0);
 
-                // Parallel animation
+                // Parallel animation in order to combine fade and scale animation
                 ParallelTransition pt = new ParallelTransition(ft, st);
-                pt.setDelay(Duration.millis((row * gridSize + col) * 12));
+                pt.setDelay(Duration.millis((row * gridSize + col) * 12));//Each cell's animation start 12ms after previous cell
                 transitions.add(pt);
             }
         }
@@ -479,11 +481,11 @@ private static void goEndScene() {
     /**
      * Create the HUD panel with game stats and tower options
      */
-    private VBox createHudPanel() {
-        VBox hud = new VBox(10);
-        hud.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
-        hud.setPrefWidth(240);
-        hud.setAlignment(Pos.CENTER);
+    private VBox createPanel() {
+        VBox panel = new VBox(10);
+        panel.setStyle("-fx-background-color: #FFF6DA; -fx-padding: 3px;");
+        panel.setPrefWidth(240);
+        panel.setAlignment(Pos.CENTER);
         
         Image singleShotImage = new Image("/assets/towers/singleshottower.png");
         ImageView image=new ImageView(singleShotImage);
@@ -502,9 +504,10 @@ private static void goEndScene() {
         ImageView image2=new ImageView(laserImage);
         image2.setFitWidth(30);
 		image2.setFitHeight(30);
-        VBox vbox2= new VBox(5);
+        VBox vbox2= new VBox();
         vbox2.setAlignment(Pos.CENTER);
         Label label3 = new Label("Laser Tower");
+        
         Label label4 = new Label("120$");
         vbox2.getChildren().addAll(image2,label3, label4);
         Button laser= new Button();
@@ -582,7 +585,9 @@ private static void goEndScene() {
             gameOverlay.getChildren().add(selectedTower.getNode());
         });
 
-        for (Button b : new Button[]{singleShot, laser, tripleShot, missile}) {
+        Button[] buttonArray={singleShot, laser, tripleShot, missile};
+        
+        for (Button b : buttonArray) {
         	b.setFocusTraversable(false);
             b.setPrefWidth(150);
             b.setPrefHeight(90);
@@ -599,10 +604,10 @@ private static void goEndScene() {
         livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
         moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #333;");
         debugLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #333;");
-        waveCountdownLabel = new Label("Next wave: --");
-        waveCountdownLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #333;");
-        hud.getChildren().addAll(livesLabel, moneyLabel, waveCountdownLabel, singleShot, laser, tripleShot, missile);
-        return hud;
+        waveCountLabel = new Label("Next wave: --");
+        waveCountLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #333;");
+        panel.getChildren().addAll(livesLabel, moneyLabel, waveCountLabel, singleShot, laser, tripleShot, missile);
+        return panel;
     }
 
     /**
@@ -690,8 +695,8 @@ private static void goEndScene() {
                 decreaseMoney(price);
 
                 // 1) preview zaten sahnede: artık final pozisyona al
-                double centerX = offsetX + col * gridUnit + TILE_SIZE / 2;
-                double centerY = offsetY + row * gridUnit + TILE_SIZE / 2;
+                double centerX = offsetX + col * gridUnit + CELL_SIZE / 2;
+                double centerY = offsetY + row * gridUnit + CELL_SIZE / 2;
                 selectedTower.setPosition(centerX, centerY);
                 selectedTower.setGridPosition(row, col);
                 placedTowerCells.add(new int[]{row, col});
@@ -787,10 +792,10 @@ private static void goEndScene() {
                             // 5a) Hatalıysa orijinal hücresine dön
                             double origX = offsetX
                                          + placed.getGridPosition()[1] * gridUnit
-                                         + TILE_SIZE/2;
+                                         + CELL_SIZE/2;
                             double origY = offsetY
                                          + placed.getGridPosition()[0] * gridUnit
-                                         + TILE_SIZE/2;
+                                         + CELL_SIZE/2;
                             placed.setPosition(origX, origY);
                         } else {
                         	// 6) geçerli yeni hücreye taşı
@@ -800,8 +805,8 @@ private static void goEndScene() {
                                     && p[1] == placed.getGridPosition()[1]
                                    );
                             
-                            double newX = offsetX + col1 * gridUnit + TILE_SIZE/2;
-                            double newY = offsetY + row1 * gridUnit + TILE_SIZE/2;
+                            double newX = offsetX + col1 * gridUnit + CELL_SIZE/2;
+                            double newY = offsetY + row1 * gridUnit + CELL_SIZE/2;
 
                             
                             placed.setPosition(newX, newY);
@@ -839,8 +844,8 @@ private static void goEndScene() {
             int row = (int)((clickY - offsetY) / gridUnit);
 
             // Calculate center of grid cell for tower placement
-            double cellCenterX = offsetX + col * gridUnit + TILE_SIZE / 2;
-            double cellCenterY = offsetY + row * gridUnit + TILE_SIZE / 2;
+            double cellCenterX = offsetX + col * gridUnit + CELL_SIZE / 2;
+            double cellCenterY = offsetY + row * gridUnit + CELL_SIZE / 2;
 
             // Create tower based on selected type
             Tower tower = switch (selectedTowerType) {
@@ -940,8 +945,8 @@ private static void goEndScene() {
                     
                     if (invalid) {
                         // geri koy
-                        double origX = offsetX + tower.getGridPosition()[1] * gridUnit + TILE_SIZE/2;
-                        double origY = offsetY + tower.getGridPosition()[0] * gridUnit + TILE_SIZE/2;
+                        double origX = offsetX + tower.getGridPosition()[1] * gridUnit + CELL_SIZE/2;
+                        double origY = offsetY + tower.getGridPosition()[0] * gridUnit + CELL_SIZE/2;
                         tower.setPosition(origX, origY);
                         return;
                     }
@@ -950,8 +955,8 @@ private static void goEndScene() {
                     placedTowerCells.removeIf(p -> p[0] == tower.getGridPosition()[0] && p[1] == tower.getGridPosition()[1]);
 
                     // Apply new position
-                    double centerX = offsetX + col1 * gridUnit + TILE_SIZE / 2;
-                    double centerY = offsetY + row1 * gridUnit + TILE_SIZE / 2;
+                    double centerX = offsetX + col1 * gridUnit + CELL_SIZE / 2;
+                    double centerY = offsetY + row1 * gridUnit + CELL_SIZE / 2;
 
                     tower.setPosition(centerX, centerY);
                     tower.setGridPosition(row1, col1);
@@ -970,14 +975,14 @@ private static void goEndScene() {
         }
 
         // Calculate grid dimensions
-        double gridWidth = (TILE_SIZE + SPACING) * gridSize - SPACING;
-        double gridHeight = (TILE_SIZE + SPACING) * gridSize - SPACING;
+        double gridWidth = (CELL_SIZE + SPACING) * gridSize - SPACING;
+        double gridHeight = (CELL_SIZE + SPACING) * gridSize - SPACING;
 
         // Create a circle at each path point
         for (int i = 0; i < pathCoordinates.size(); i++) {
             int[] point = pathCoordinates.get(i);
-            double x = offsetX + point[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
-            double y = offsetY + point[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
+            double x = offsetX + point[1] * (CELL_SIZE + SPACING) + CELL_SIZE / 2;
+            double y = offsetY + point[0] * (CELL_SIZE + SPACING) + CELL_SIZE / 2;
 
             Circle marker = new Circle(5);
             marker.setFill(i == 0 ? Color.GREEN : (i == pathCoordinates.size() - 1 ? Color.RED : Color.BLUE));
@@ -1120,6 +1125,9 @@ private static void goEndScene() {
     	    if (livesLabel != null) {
     	        livesLabel.setText("Lives: " + lives);
     	    }
+    	    if (waveTimeLine != null) { 
+    	   		 waveTimeLine.stop();
+    	   	 }
         
         
     }
@@ -1168,9 +1176,9 @@ private static void goEndScene() {
    	    if (livesLabel != null) {
    	        livesLabel.setText("Lives: " + lives);
    	    }
-   	/* if (waveTimeline != null) { 
-   		 waveTimeline.stop();
-   	 }*/
+   	if (waveTimeLine != null) { 
+   		 waveTimeLine.stop();
+   	 }
        
        
    }
@@ -1209,21 +1217,27 @@ private static void goEndScene() {
                             "-fx-border-radius: 40;"
             );
     	continueButton.setOnAction(e->{ 
-    		
-    			
     		try { 
     			Scene nextLevelScene = getGameScene(new StackPane()); 
     			mainStage.setScene(nextLevelScene); 
-    			transitions.forEach(Animation::play);
-    			scheduleWaves(currentLevel);
+    			transitions.forEach(Animation::play);//Start animation again from scratch
+    			
+    			if (currentLevel==4 || currentLevel==5) {
+                	maxDelay=2688;
+                }// from scratch start we 
+
+    	            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
+    	                addGameButtons();
+    	                setupTowerPlacement();
+    	                scheduleWaves(currentLevel);
+    	            }));
+    	            delayTimeline.play();
     			// Animasyonları yeniden başlat transitions.forEach(Animation::play); // Yeni leveli başlat scheduleWaves(currentLevel); } catch(Exception ex) { System.out.println("exception found"); } }); return continueButton;
     		}
     		catch(Exception ex) {
     			System.out.println("continue exeption");
-    			
     		}
-    		
-    	});
+ 	});
     	
             return continueButton;
     //e

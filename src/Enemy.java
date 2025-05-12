@@ -27,7 +27,7 @@ public class Enemy {
     private final Pane gamePane;
 
     // Constants
-    public static final int TILE_SIZE = 45;
+    public static final int CELL_SIZE = 45;
     public static final double SPACING   = 2.5;
 
     /**
@@ -42,10 +42,10 @@ public class Enemy {
 
         Image img = new Image(getClass().getResource("/assets/soldier.png").toExternalForm());
         this.enemyView = new ImageView(img);
-        enemyView.setFitWidth(TILE_SIZE * 0.8);
-        enemyView.setFitHeight(TILE_SIZE * 0.8);
+        enemyView.setFitWidth(CELL_SIZE * 0.8);
+        enemyView.setFitHeight(CELL_SIZE * 0.8);
 
-        this.healthBar = new Rectangle(TILE_SIZE, 5);
+        this.healthBar = new Rectangle(CELL_SIZE, 5);
         healthBar.setFill(Color.GREEN);
 
         healthBar.translateXProperty().bind(
@@ -74,15 +74,15 @@ public class Enemy {
         // Calculate grid positioning
         double gridCenterX = gamePane.getScene().getWidth() / 2;
         double gridCenterY = gamePane.getScene().getHeight() / 2;
-        double gridWidth   = (TILE_SIZE + SPACING) * gridSize - SPACING;
-        double gridHeight  = (TILE_SIZE + SPACING) * gridSize - SPACING;
+        double gridWidth   = (CELL_SIZE + SPACING) * gridSize - SPACING;
+        double gridHeight  = (CELL_SIZE + SPACING) * gridSize - SPACING;
         double offsetX     = gridCenterX - gridWidth  / 2;
         double offsetY     = gridCenterY - gridHeight / 2;
 
         // Initial position
         int[] firstPoint = path.get(0);
-        double startX = offsetX + firstPoint[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
-        double startY = offsetY + firstPoint[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
+        double startX = offsetX + firstPoint[1] * (CELL_SIZE + SPACING) + CELL_SIZE / 2;
+        double startY = offsetY + firstPoint[0] * (CELL_SIZE + SPACING) + CELL_SIZE / 2;
         enemyView.setTranslateX(startX);
         enemyView.setTranslateY(startY);
 
@@ -90,8 +90,8 @@ public class Enemy {
         movementPath.getElements().add(new MoveTo(startX, startY));
         for (int i = 1; i < path.size(); i++) {
             int[] pt = path.get(i);
-            double x = offsetX + pt[1] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
-            double y = offsetY + pt[0] * (TILE_SIZE + SPACING) + TILE_SIZE / 2;
+            double x = offsetX + pt[1] * (CELL_SIZE + SPACING) + CELL_SIZE / 2;
+            double y = offsetY + pt[0] * (CELL_SIZE + SPACING) + CELL_SIZE / 2;
             movementPath.getElements().add(new LineTo(x, y));
         }
 
@@ -124,7 +124,7 @@ public class Enemy {
     public void damage(double amount) {
         health -= amount;
         double percent = (double) health / maxHealth;
-        healthBar.setWidth(TILE_SIZE * percent);
+        healthBar.setWidth(CELL_SIZE * percent);
 
         if (percent < 0.3) {
             healthBar.setFill(Color.RED);
@@ -174,7 +174,7 @@ public class Enemy {
 
             TranslateTransition tr = new TranslateTransition(Duration.millis(500), p);
             double angle    = Math.random() * 2 * Math.PI;
-            double distance = Math.random() * TILE_SIZE;
+            double distance = Math.random() * CELL_SIZE;
             tr.setByX(Math.cos(angle) * distance);
             tr.setByY(Math.sin(angle) * distance);
 
