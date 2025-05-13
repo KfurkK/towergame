@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,10 +17,11 @@ import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -58,6 +60,7 @@ public class Main extends Application {
     private Button wonButton;
     private static AnimationTimer gameLoop;
     public boolean draggingTower = false;
+    private static boolean gameOverTriggered = false;
     private MediaPlayer mediaPlayer;
     private final static int WIDTH = 1920;
     private final static int HEIGHT = 1080;
@@ -90,6 +93,7 @@ public class Main extends Application {
     private static Label moneyLabel = new Label("Money: $" + money);
     private static Label debugLabel = new Label("Debug: No path loaded");
     private static Label scoreLabel = new Label("Score: 0");
+    
 
     public Enemy currentEnemy = null;
 
@@ -125,26 +129,40 @@ public class Main extends Application {
         Scene gameScene = getGameScene(gameRoot);
         initialGameOverlay = gameOverlay;
         
+        Button exitButton = getExitButton();
+        
+        
+        VBox gameNameBox = new VBox(50);
+        gameNameBox.setAlignment(Pos.TOP_CENTER);
+        gameNameBox.setTranslateY(300);
+        
+        Label gameName = new Label("Tower Defence Game");
+        gameName.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 70));
+        gameName.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+        gameNameBox.getChildren().addAll(gameName);
+        
+        
         VBox topScoreBox = new VBox(5);
         topScoreBox.setStyle("-fx-background-color: rgba(0,0,0,0.0); -fx-background-radius: 10;");
-        topScoreBox.setAlignment(Pos.TOP_RIGHT);
+        topScoreBox.setAlignment(Pos.TOP_LEFT);
         topScoreBox.setMaxWidth(300);
         topScoreBox.setTranslateX(700); // sağa
         topScoreBox.setTranslateY(50);  // yukarı
-
+        
         Label title = new Label("Top Scores:");
         title.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 18px;");
+        title.setTranslateX(0);
         topScoreBox.getChildren().add(title);
 
         List<ScoreManager.ScoreEntry> entries = ScoreManager.loadEntries();
         for (int i = 0; i < entries.size(); i++) {
             ScoreManager.ScoreEntry entry = entries.get(i);
-            Label scoreLabel = new Label((i + 1) + ". " + entry.score + " pts (" + entry.timestamp + ")");
-            scoreLabel.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+            Label scoreLabel = new Label((i + 1) + ". " + entry.username + " " + entry.score + " pts (" + entry.timestamp + ")");
+            scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 12px; -fx-alignment: CENTER_LEFT;");
             topScoreBox.getChildren().add(scoreLabel);
         }
 
-        root.getChildren().addAll(bgView, topScoreBox, startButton);
+        root.getChildren().addAll(bgView, gameNameBox, topScoreBox, startButton, exitButton);
 
         //root.setStyle("-fx-background-color: #FFF6DA;");
         //root.getChildren().add(startButton);
@@ -210,6 +228,10 @@ public class Main extends Application {
             }));
             delayTimeline.play();
         });
+        
+        exitButton.setOnAction(e -> {
+        	Platform.exit();
+            });
 
         getloseButton().setOnAction(we ->{
             currentLevel=1;
@@ -513,6 +535,7 @@ public class Main extends Application {
         }
         
         
+        
 
         VBox bL=new VBox(20);//ButtonAndLabel
         bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +  // Şeffaf amber tonu
@@ -521,13 +544,21 @@ public class Main extends Application {
         bL.setPrefWidth(400);
         bL.setPrefHeight(300);
         bL.setAlignment(Pos.CENTER);
-        bL.getChildren().addAll(endLabel, scoreLabel, scoreList, restartButton);
+        bL.getChildren().addAll(endLabel, scoreLabel, scoreList, restartButton, getExitButton());
 
 
         endRoot.getChildren().addAll(bgView, bL);
         StackPane.setAlignment(bL, Pos.CENTER);
         
-        ScoreManager.saveScore(score);
+        Platform.runLater(() -> {
+            TextInputDialog dialog = new TextInputDialog("Oyuncu");
+            dialog.setTitle("İsim Gir");
+            dialog.setHeaderText("Skorun kaydedilecek. Lütfen ismini yaz:");
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(name -> {
+                ScoreManager.saveScore(name, score);
+            });
+        });
 
         mainStage.setScene(endScene);
 
@@ -1191,11 +1222,17 @@ public class Main extends Application {
         livesLabel.setText("Lives: " + lives);
 
         // Game over condition
-        if (lives <= 0) {
+        if (lives <= 0 && !gameOverTriggered) {
+        	if (!gameOverTriggered) {
+                gameOverTriggered = true;
+                
+            }
             System.out.println("💀 Can 0 oldu, oyun bitti.");
             Game.enemies.clear(); // Düşmanları da sıfırla
             mainStage.getScene().getRoot().setDisable(true);
-            goEndScene();
+            
+            
+            
         }
     }
 
@@ -1220,12 +1257,7 @@ public class Main extends Application {
      */
     private static Button getStartButton() {
         Button startButton = new Button("Start Game");
-        Image bg = new Image(Main.class.getResource("/assets/background.png").toExternalForm());
-        ImageView bgView = new ImageView(bg);
-        bgView.setFitWidth(WIDTH);
-        bgView.setFitHeight(HEIGHT);
-        bgView.setPreserveRatio(false);
-        bgView.setEffect(new GaussianBlur(12));
+        
         startButton.setPrefWidth(300);
         startButton.setPrefHeight(150);
         startButton.setStyle(
@@ -1237,6 +1269,29 @@ public class Main extends Application {
         );
         return startButton;
     }
+    
+    private static Button getExitButton() {
+    	Button exitButton = new Button("Exit Game");
+    	exitButton.setAlignment(Pos.CENTER);
+        exitButton.setTranslateY(150);
+    	exitButton.setPrefWidth(200);
+    	exitButton.setPrefHeight(50);
+    	exitButton.setStyle(
+                "-fx-font-size: 32px;" +
+                        "-fx-background-color: #c29b57;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-background-radius: 40;" +
+                        "-fx-border-radius: 40;"
+        );
+    	
+    	exitButton.setOnAction(e -> {
+            Platform.exit();
+            
+        });
+    	
+    	return exitButton;
+    }
+    
     public void resetGame() {
         for (Enemy e : enemies) {
             e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
@@ -1268,6 +1323,7 @@ public class Main extends Application {
 
         if (waveTimeLine != null)    waveTimeLine.stop();
         if (countdownTimer != null)  countdownTimer.stop();
+        gameOverTriggered = false;
 
         // Yerleşim yerlerini sıfırla
         placedTowerCells.clear();
@@ -1527,7 +1583,7 @@ public class Main extends Application {
                         "-fx-background-radius: 12;" +
                         "-fx-padding: 20px;"
         );
-        won.getChildren().addAll(nextLabel, scoreLabel, scoreList, getWonButton());
+        won.getChildren().addAll(nextLabel, scoreLabel, scoreList, getWonButton(), getExitButton());
 
         StackPane paneWon=new StackPane();
         paneWon.getChildren().addAll(bgView, won); // önce arka plan, sonra UI
@@ -1535,7 +1591,13 @@ public class Main extends Application {
 
         Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);
         
-        ScoreManager.saveScore(score);
+        TextInputDialog dialog = new TextInputDialog("Oyuncu");
+        dialog.setTitle("İsim Gir");
+        dialog.setHeaderText("Skorun kaydedilecek. Lütfen ismini yaz:");
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(name -> {
+            ScoreManager.saveScore(name, score);
+        });
 
         mainStage.setScene(wonScene);
 

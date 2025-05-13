@@ -15,15 +15,21 @@ public class ScoreManager {
     private static final int MAX_SCORES = 5;
     private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    public static void saveScore(int score) {
+    public static void saveScore(String username, int score) {
         List<ScoreEntry> entries = loadEntries();
+        
+        for (ScoreEntry entry : entries) {
+            if (entry.username.equals(username) && entry.score == score) {
+                return; // Aynı kullanıcıdan aynı skor zaten var
+            }
+        }
         
         boolean duplicate = entries.stream().anyMatch(e -> e.score == score);
         if (duplicate) return;
 
         // Şu anki zamanı ekle
         String time = formatter.format(new Date());
-        entries.add(new ScoreEntry(score, time));
+        entries.add(new ScoreEntry(username, score, time));
 
         // Skorları büyükten küçüğe sırala
         entries.sort((a, b) -> Integer.compare(b.score, a.score));
@@ -31,7 +37,7 @@ public class ScoreManager {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
             for (int i = 0; i < Math.min(MAX_SCORES, entries.size()); i++) {
                 ScoreEntry entry = entries.get(i);
-                writer.write(entry.score + "@" + entry.timestamp);
+                writer.write(entry.username+ "@" + entry.score + "@" + entry.timestamp);
                 writer.newLine();
             }
         } catch (IOException e) {
@@ -49,10 +55,11 @@ public class ScoreManager {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("@");
-                if (parts.length == 2) {
-                    int score = Integer.parseInt(parts[0].trim());
-                    String timestamp = parts[1].trim();
-                    entries.add(new ScoreEntry(score, timestamp));
+                if (parts.length == 3) {
+                	String username = parts[0];
+                    int score = Integer.parseInt(parts[1]);
+                    String timestamp = parts[2];
+                    entries.add(new ScoreEntry(username, score, timestamp));
                 }
             }
         } catch (IOException | NumberFormatException e) {
@@ -64,10 +71,12 @@ public class ScoreManager {
 
     // Nested class for skor nesnesi
     public static class ScoreEntry {
+    	public String username;
         public int score;
         public String timestamp;
 
-        public ScoreEntry(int score, String timestamp) {
+        public ScoreEntry(String username, int score, String timestamp) {
+        	this.username = username;
             this.score = score;
             this.timestamp = timestamp;
         }

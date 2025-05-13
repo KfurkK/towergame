@@ -28,7 +28,7 @@ public class Game {
 	public static void update() {
 		// Kuleleri güncelle
 		for (Tower tower : towers) {
-			tower.update(Game.enemies);
+			tower.update(new ArrayList<>(Game.enemies));
 		}
 
 		// Düşmanları güncelle
