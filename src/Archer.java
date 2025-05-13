@@ -281,4 +281,9 @@ public class Archer extends Enemy {
     }
 
     // Removed the abstract findNearestTower() as it's now implemented by findNearestTowerInRange()
+    
+    @Override
+    public int getPointValue() {
+        return 20; // Okçular 2 kat puan
+    }
 }

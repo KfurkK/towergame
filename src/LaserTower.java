@@ -71,7 +71,7 @@ public class LaserTower extends Tower {
 		}
 		laserBeams.clear();
 
-		for (Enemy e : enemies) {
+		for (Enemy e : new ArrayList<>(enemies)) {
 			if (isRange(e) && e.isAlive()) {
 
 				targetTimers.putIfAbsent(e, instanceTime * 1.0);

@@ -105,7 +105,8 @@ public class Enemy {
         move.setOnFinished(e -> {
             if (health > 0) {
             	removeFromGame();
-            Main.decreaseLives();
+            	Game.enemies.remove(this); //EKLENEN KISIM
+                Main.decreaseLives();
             }
         });
         
@@ -151,6 +152,7 @@ public class Enemy {
 
         createExplosionEffect();
         Main.increaseMoney(10);
+        Main.increaseScore(this.getPointValue());
 
         ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
         deathAnim.setOnFinished(e -> removeFromGame());
@@ -215,5 +217,9 @@ public class Enemy {
 
     public double getY() {
         return enemyView.getTranslateY();
+    }
+    
+    public int getPointValue() {
+        return 10; // Normal düşmanlar 10 puan
     }
 }
