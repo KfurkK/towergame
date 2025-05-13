@@ -78,6 +78,9 @@ public class Main extends Application {
     private double offsetX;
     private double offsetY;
     private final double gridUnit = TILE_SIZE + SPACING;
+    
+    private StackPane gameRoot;
+    private Scene gameScene;
 
     // Game state variables
     private static int money = 100;
@@ -125,8 +128,8 @@ public class Main extends Application {
         StackPane root = new StackPane();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
 
-        StackPane gameRoot = new StackPane();
-        Scene gameScene = getGameScene(gameRoot);
+        gameRoot = new StackPane();
+        gameScene = getGameScene(gameRoot);
         initialGameOverlay = gameOverlay;
         
         Button exitButton = getExitButton();
@@ -215,17 +218,26 @@ public class Main extends Application {
         gameLoop.start();
 
         startButton.setOnAction(e -> {
-            primaryStage.setScene(gameScene);
-            transitions.forEach(Animation::play);
+            resetGame();
+            
+            gameRoot = new StackPane();
 
-            // Add game buttons and start wave scheduling after animations
-            // Time for rightmost animation to complete in ms
+            try {
+                gameScene = getGameScene(gameRoot); // yeniden yarat!
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+                return;
+            }
+            primaryStage.setScene(gameScene); // yeni sahneyi göster
+            transitions.forEach(Animation::play);
 
             Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
                 addGameButtons();
                 setupTowerPlacement();
                 scheduleWaves(currentLevel);
             }));
+            
+            
             delayTimeline.play();
         });
         
@@ -244,24 +256,10 @@ public class Main extends Application {
                 waveTimeLine.stop();
             if (countdownTimer != null)
                 countdownTimer.stop();
+            
+            primaryStage.setScene(scene);
 
-            StackPane newGameRoot = new StackPane();
-            Scene newGameScene;
-            try {
-                newGameScene = getGameScene(newGameRoot);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                return;
-            }
-
-            primaryStage.setScene(newGameScene);
-            transitions.forEach(Animation::play);
-            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
-                addGameButtons();
-                setupTowerPlacement();
-                scheduleWaves(currentLevel);
-            }));
-            delayTimeline.play();
+            
 
         });
 
@@ -529,7 +527,7 @@ public class Main extends Application {
         List<ScoreManager.ScoreEntry> entries = ScoreManager.loadEntries();
         for (int i = 0; i < entries.size(); i++) {
         	ScoreManager.ScoreEntry entry = entries.get(i);
-            Label l = new Label((i + 1) + ". " + entry.score + " pts (" +entry.timestamp + ")");
+            Label l = new Label((i + 1) + ". " + entry.username + " " + entry.score + " pts (" +entry.timestamp + ")");
             l.setStyle("-fx-text-fill: #FFE09A;");
             scoreList.getChildren().add(l);
         }
@@ -1385,6 +1383,7 @@ public class Main extends Application {
         // Oyun değişkenlerini sıfırla
         lives = 5;
         finishedWaveCount=0;
+        increaseScore((currentLevel - 1) * 100);
 
         if (Main.transitions != null) {
             Main.transitions.forEach(Animation::stop);
@@ -1465,6 +1464,7 @@ public class Main extends Application {
         		catch(Exception ex) {
         			System.out.println("continue exeption");
         		}
+        		increaseMoney(100);
      	});
         }
         return continueButton;
@@ -1481,7 +1481,7 @@ public class Main extends Application {
                 clip.open(ais);
 
                 FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                gainControl.setValue(-10.0f); // desibel cinsinden → 0.0f = tam ses, -80f = sessiz
+                gainControl.setValue(-15.0f); // desibel cinsinden → 0.0f = tam ses, -80f = sessiz
 
                 clip.loop(Clip.LOOP_CONTINUOUSLY);
             } catch (Exception e) {
@@ -1567,7 +1567,7 @@ public class Main extends Application {
         List<ScoreManager.ScoreEntry> entries = ScoreManager.loadEntries();
         for (int i = 0; i < entries.size(); i++) {
             ScoreManager.ScoreEntry entry = entries.get(i);
-            Label l = new Label((i + 1) + ". " + entry.score + " pts (" + entry.timestamp + ")");
+            Label l = new Label((i + 1) + ". " + entry.username + " " + entry.score + " pts (" + entry.timestamp + ")");
             l.setStyle("-fx-text-fill: #FFE09A;");
             scoreList.getChildren().add(l);
         }
@@ -1591,15 +1591,18 @@ public class Main extends Application {
 
         Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);
         
-        TextInputDialog dialog = new TextInputDialog("Oyuncu");
-        dialog.setTitle("İsim Gir");
-        dialog.setHeaderText("Skorun kaydedilecek. Lütfen ismini yaz:");
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(name -> {
-            ScoreManager.saveScore(name, score);
-        });
+        
 
         mainStage.setScene(wonScene);
+        Platform.runLater(() -> {
+            TextInputDialog dialog = new TextInputDialog("Oyuncu");
+            dialog.setTitle("İsim Gir");
+            dialog.setHeaderText("Skorun kaydedilecek. Lütfen ismini yaz:");
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(name -> {
+                ScoreManager.saveScore(name, score);
+            });
+        });
 
     }
     
