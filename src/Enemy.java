@@ -105,7 +105,8 @@ public class Enemy {
         move.setOnFinished(e -> {
             if (health > 0) {
             	removeFromGame();
-            Main.decreaseLives();
+            	Game.enemies.remove(this);
+                Main.decreaseLives();
             }
         });
         
