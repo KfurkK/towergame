@@ -1448,6 +1448,9 @@ public class Main extends Application {
             gameOverlay.getChildren().remove(m.getNode());
         }
         Game.getMissiles().clear();
+        
+        if (waveTimeLine != null)    waveTimeLine.stop();
+        if (countdownTimer != null)  countdownTimer.stop();
 
         // Yerleşim yerlerini sıfırla
         placedTowerCells.clear();
