@@ -24,6 +24,7 @@ public class SingleShotTower extends Tower {
 	public int towerHealth = 30; // when enemy attacks to tower's health
 	public static int maxTowerHealth = 30; // when enemy attacks to tower's health
 	public final Rectangle healthBar;
+	private boolean placed = false;
 
 	
 	public SingleShotTower(double x, double y, Pane gameOverlay) {
@@ -72,6 +73,8 @@ public class SingleShotTower extends Tower {
 	public void update(List<Enemy> enemies) {
 
 		long instantTime = System.currentTimeMillis();
+		if (!placed) 
+			return;
 		if (instantTime - lastShotTime >= shootInterval) {
 			Enemy closest = nearestEnemy(enemies);
 			if (closest != null && isRange(closest)) {
@@ -90,7 +93,7 @@ public class SingleShotTower extends Tower {
 	
 	@Override
 	public void damage(int damageValue) {
-		// decrease the healthbar displayd of the tower
+		// decrease the healthbar displayed of the tower
 		this.towerHealth -= damageValue;
 		double percent = (double) this.towerHealth / maxTowerHealth;
 		healthBar.setWidth(Enemy.TILE_SIZE * percent);
@@ -115,19 +118,31 @@ public class SingleShotTower extends Tower {
 		fadeBar.setFromValue(1.0);
 		fadeBar.setToValue(0.0);
 
-		createExplosionEffect();
+		createExplosionEffectAndChangeImage();
+
 		Main.increaseMoney(10);
 
 		ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
+
+
+		// set damaged tower image
+		Image damagedTower = new Image("/assets/towers/single_damaged.png");
+		image = new ImageView(damagedTower);
+		image.setFitWidth(40);
+		image.setFitHeight(40);
+		image.setLayoutX(x - image.getFitWidth() / 2);
+		image.setLayoutY(y - image.getFitHeight() / 2);
+		overlay.getChildren().add(image);
+
 	}
 
 
 	/**
 	 * Simple particle explosion
 	 */
-	private void createExplosionEffect() {
+	private void createExplosionEffectAndChangeImage() {
 		double cx = image.getLayoutX() + image.getFitWidth() / 2;
 		double cy = image.getLayoutY() + image.getFitHeight() / 2;
 
@@ -155,6 +170,7 @@ public class SingleShotTower extends Tower {
 
 			ParallelTransition pt = new ParallelTransition(move, fade);
 			pt.setOnFinished(e -> overlay.getChildren().remove(particle));
+
 			pt.play();
 		}
 	}
@@ -164,5 +180,14 @@ public class SingleShotTower extends Tower {
 	public Node getHealthBar() {
 		return healthBar;
 	}
+	
+	public void setPlaced(boolean placed) {
+	    this.placed = placed;
+	}
+	
+	public boolean isPlaced() {
+	    return placed;
+	}
+
 
 }

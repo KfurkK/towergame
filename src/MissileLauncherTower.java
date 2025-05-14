@@ -28,6 +28,7 @@ public class MissileLauncherTower extends Tower {
 	public static int maxTowerHealth = 30; // when enemy attacks to tower's health
 
 	public final Rectangle healthBar;
+	private boolean placed = false;
 
 
 	public MissileLauncherTower(double x, double y, Pane gameOverlay) {
@@ -56,6 +57,8 @@ public class MissileLauncherTower extends Tower {
 
 	public void update(List<Enemy> enemies) {
 		long instanceTime = System.currentTimeMillis();
+		if (!placed) 
+			return;
 		if (instanceTime - lastShotTime >= shootInterval) {
 			Enemy closest = nearestEnemy(enemies);
 			if (closest != null && isRange(closest)) {
@@ -99,6 +102,15 @@ public class MissileLauncherTower extends Tower {
 		ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
+
+		// set damaged tower image
+		Image damagedTower = new Image("/assets/towers/missile_damaged.png");
+		imageView = new ImageView(damagedTower);
+		imageView.setFitWidth(40);
+		imageView.setFitHeight(40);
+		imageView.setLayoutX(x - imageView.getFitWidth() / 2);
+		imageView.setLayoutY(y - imageView.getFitHeight() / 2);
+		overlay.getChildren().add(imageView);
 	}
 	
 	private void createExplosionEffect() {
@@ -150,6 +162,14 @@ public class MissileLauncherTower extends Tower {
 	
 	public Node getHealthBar() {
 		return healthBar;
+	}
+	
+	public void setPlaced(boolean placed) {
+	    this.placed = placed;
+	}
+	
+	public boolean isPlaced() {
+	    return placed;
 	}
 
 }

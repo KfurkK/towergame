@@ -26,6 +26,7 @@ public abstract class Tower {
 	private int currentRow = -1;
 	private int currentCol = -1;
 	public final Rectangle healthBar = null;
+	private boolean placed = false;
 
 	public Tower() {
 
@@ -108,6 +109,14 @@ public abstract class Tower {
 	
 	public Node getHealthBar() {
 		return healthBar;
+	}
+	
+	public void setPlaced(boolean placed) {
+	    this.placed = placed;
+	}
+	
+	public boolean isPlaced() {
+	    return placed;
 	}
 
 }
