@@ -1,11 +1,18 @@
 import java.util.List;
+
 import javafx.scene.Node;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Circle;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
+import javafx.scene.effect.BoxBlur;
+import javafx.scene.layout.Pane;
+
 
 public abstract class Tower {
 	public double x, y; // Kule konumu
@@ -18,12 +25,8 @@ public abstract class Tower {
 	public Circle rangeCircle;
 	private int currentRow = -1;
 	private int currentCol = -1;
-
 	public final Rectangle healthBar = null;
-
-
-
-
+	private boolean placed = false;
 
 	public Tower() {
 
@@ -39,9 +42,9 @@ public abstract class Tower {
 		body.setLayoutX(x - 10);
 		body.setLayoutY(y - 10);
 
-		rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.2)); // yarı saydam kırmızı
+		rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.5)); // yarı saydam kırmızı
 		rangeCircle.setStroke(Color.RED);
-		rangeCircle.setFill(Color.rgb(255, 0, 0, 0.1));
+		rangeCircle.setFill(Color.rgb(255, 0, 0, 0.5));
 		rangeCircle.setLayoutX(x);
 		rangeCircle.setLayoutY(y);
 		rangeCircle.setVisible(false);
@@ -50,7 +53,6 @@ public abstract class Tower {
 	public Node getNode() {
 		return body;
 	}
-
 
 	public double getPrice() {
 		return price;
@@ -103,10 +105,18 @@ public abstract class Tower {
 	}
 
 	public abstract void update(List<Enemy> enemies); // her karede ne yapacak?
-
 	public abstract void damage(int damageValue);
-
+	
 	public Node getHealthBar() {
 		return healthBar;
 	}
+	
+	public void setPlaced(boolean placed) {
+	    this.placed = placed;
+	}
+	
+	public boolean isPlaced() {
+	    return placed;
+	}
+
 }

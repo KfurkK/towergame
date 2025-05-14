@@ -20,11 +20,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
 public class LaserTower extends Tower {
-	double damagePerSecond = 1.0;
+	double damagePerSecond = 0.25;
 	Map<Enemy, Double> targetTimers = new HashMap<>();
 	public Line laserBeam = new Line();
 	private List<Line> laserBeams = new ArrayList<>();
-
+	
 	public int towerHealth = 30; // when enemy attacks to tower's health
 	public static int maxTowerHealth = 30; // when enemy attacks to tower's health
 
@@ -32,6 +32,7 @@ public class LaserTower extends Tower {
 
 	public final Rectangle healthBar;
 	public ImageView imageView;
+	private boolean placed = false;
 
 
 
@@ -39,7 +40,7 @@ public class LaserTower extends Tower {
 		super(x, y, 100, 120, Color.ORANGERED); // 120$
 		this.overlay = gameOverlay;
 
-
+	
 
 		Image img = new Image("assets/towers/lasertower.png");
 		imageView = new ImageView(img);
@@ -50,7 +51,7 @@ public class LaserTower extends Tower {
 		imageView.setPickOnBounds(true);
 
 		this.body = imageView;
-
+		
 		healthBar = new Rectangle(Enemy.TILE_SIZE, 5);
 		healthBar.setFill(Color.GREEN);
 		healthBar.layoutXProperty().bind(
@@ -64,15 +65,16 @@ public class LaserTower extends Tower {
 	@Override
 	public void update(List<Enemy> enemies) {
 		long instanceTime = System.currentTimeMillis();
+		if (!placed) 
+			return;
 
 		for (Line beam : laserBeams) {
 
 			Game.gameOverlay.getChildren().remove(beam);
 		}
 		laserBeams.clear();
-		List<Enemy> snapshot = new ArrayList<>(enemies);
-		for (Enemy e : snapshot) {
 
+		for (Enemy e : new ArrayList<>(enemies)) {
 			if (isRange(e) && e.isAlive()) {
 
 				targetTimers.putIfAbsent(e, instanceTime * 1.0);
@@ -94,13 +96,12 @@ public class LaserTower extends Tower {
 				laserBeams.add(beam);
 
 			} else {
-
 				laserBeam.setVisible(false);
 				targetTimers.remove(e);
 			}
 		}
 	}
-
+	
 	public void damage(int damageValue) {
 		// decrease the healthbar displayd of the tower
 		this.towerHealth -= damageValue;
@@ -117,8 +118,8 @@ public class LaserTower extends Tower {
 			this.die();
 		}
 	}
-
-
+	
+	
 
 	@Override
 	public void remove() {
@@ -132,7 +133,7 @@ public class LaserTower extends Tower {
 
 		targetTimers.clear();
 	}
-
+	
 	protected void die() {
 		FadeTransition fadeSprite = new FadeTransition(Duration.millis(300), imageView);
 		fadeSprite.setFromValue(1.0);
@@ -148,6 +149,15 @@ public class LaserTower extends Tower {
 		ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
+
+		// set damaged tower image
+		Image damagedTower = new Image("/assets/towers/laser_damaged.png");
+		imageView = new ImageView(damagedTower);
+		imageView.setFitWidth(40);
+		imageView.setFitHeight(40);
+		imageView.setLayoutX(x - imageView.getFitWidth() / 2);
+		imageView.setLayoutY(y - imageView.getFitHeight() / 2);
+		overlay.getChildren().add(imageView);
 	}
 
 	/**
@@ -187,6 +197,14 @@ public class LaserTower extends Tower {
 
 	public Node getHealthBar() {
 		return healthBar;
+	}
+	
+	public void setPlaced(boolean placed) {
+	    this.placed = placed;
+	}
+	
+	public boolean isPlaced() {
+	    return placed;
 	}
 
 }

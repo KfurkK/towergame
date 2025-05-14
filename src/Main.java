@@ -1,6 +1,10 @@
+//restart yapınca animasyon bozuk
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.effect.GaussianBlur;
@@ -10,13 +14,16 @@ import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -32,6 +39,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.util.Duration;
 import java.util.Random;
@@ -42,6 +50,7 @@ import java.util.Random;
  * Main game application class
  */
 public class Main extends Application {
+	public double maxDelay=1188;
     private ImagePattern roadPattern;
     private ImagePattern alternateRoadPattern;
     private Pane initialGameOverlay;
@@ -54,6 +63,7 @@ public class Main extends Application {
     private Button wonButton;
     private static AnimationTimer gameLoop;
     public boolean draggingTower = false;
+    private static boolean gameOverTriggered = false;
     private MediaPlayer mediaPlayer;
     private final static int WIDTH = 1920;
     private final static int HEIGHT = 1080;
@@ -71,10 +81,16 @@ public class Main extends Application {
     private double offsetX;
     private double offsetY;
     private final double gridUnit = TILE_SIZE + SPACING;
+    
+    private StackPane gameRoot;
+    private Scene gameScene;
 
     // Game state variables
     private static int money = 100;
     private static int lives = 5;
+    private static int score = 0;
+    private static int waveInLevel = 0;
+    
     private ArrayList<Enemy> enemies = new ArrayList<>();
     private ArrayList<int[]> pathCoordinates;
     private Pane gameOverlay;
@@ -83,6 +99,8 @@ public class Main extends Application {
     private static Label livesLabel = new Label("Lives: " + lives);
     private static Label moneyLabel = new Label("Money: $" + money);
     private static Label debugLabel = new Label("Debug: No path loaded");
+    private static Label scoreLabel = new Label("Score: 0");
+    
 
     public Enemy currentEnemy = null;
 
@@ -114,11 +132,44 @@ public class Main extends Application {
         StackPane root = new StackPane();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
 
-        StackPane gameRoot = new StackPane();
-        Scene gameScene = getGameScene(gameRoot);
+        gameRoot = new StackPane();
+        gameScene = getGameScene(gameRoot);
         initialGameOverlay = gameOverlay;
 
-        root.getChildren().addAll(bgView, startButton);
+        Button exitButton = getExitButton();
+        
+        
+        VBox gameNameBox = new VBox(50);
+        gameNameBox.setAlignment(Pos.TOP_CENTER);
+        gameNameBox.setTranslateY(300);
+        
+        Label gameName = new Label("Tower Defence Game");
+        gameName.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 70));
+        gameName.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+        gameNameBox.getChildren().addAll(gameName);
+        
+        
+        VBox topScoreBox = new VBox(5);
+        topScoreBox.setStyle("-fx-background-color: rgba(0,0,0,0.0); -fx-background-radius: 10;");
+        topScoreBox.setAlignment(Pos.TOP_LEFT);
+        topScoreBox.setMaxWidth(300);
+        topScoreBox.setTranslateX(700); // sağa
+        topScoreBox.setTranslateY(50);  // yukarı
+        
+        Label title = new Label("Top Scores:");
+        title.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 18px;");
+        title.setTranslateX(0);
+        topScoreBox.getChildren().add(title);
+
+        List<ScoreManager.ScoreEntry> entries = ScoreManager.loadEntries();
+        for (int i = 0; i < entries.size(); i++) {
+            ScoreManager.ScoreEntry entry = entries.get(i);
+            Label scoreLabel = new Label((i + 1) + ". " + entry.username + " " + entry.score + " pts (" + entry.timestamp + ")");
+            scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 12px; -fx-alignment: CENTER_LEFT;");
+            topScoreBox.getChildren().add(scoreLabel);
+        }
+
+        root.getChildren().addAll(bgView, gameNameBox, topScoreBox, startButton, exitButton);
 
         //root.setStyle("-fx-background-color: #FFF6DA;");
         //root.getChildren().add(startButton);
@@ -171,19 +222,32 @@ public class Main extends Application {
         gameLoop.start();
 
         startButton.setOnAction(e -> {
-            primaryStage.setScene(gameScene);
-            transitions.forEach(Animation::play);
+            resetGame();
+            
+            gameRoot = new StackPane();
 
-            // Add game buttons and start wave scheduling after animations
-            double maxDelay = 1188; // Time for rightmost animation to complete in ms
+            try {
+                gameScene = getGameScene(gameRoot); // yeniden yarat!
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+                return;
+            }
+            primaryStage.setScene(gameScene); // yeni sahneyi göster
+            transitions.forEach(Animation::play);
 
             Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
                 addGameButtons();
                 setupTowerPlacement();
                 scheduleWaves(currentLevel);
             }));
+            
+            
             delayTimeline.play();
         });
+        
+        exitButton.setOnAction(e -> {
+        	Platform.exit();
+            });
 
         getloseButton().setOnAction(we ->{
             currentLevel=1;
@@ -196,22 +260,10 @@ public class Main extends Application {
                 waveTimeLine.stop();
             if (countdownTimer != null)
                 countdownTimer.stop();
+            
+            primaryStage.setScene(scene);
 
-            StackPane newGameRoot = new StackPane();
-            Scene newGameScene;
-            try {
-                newGameScene = getGameScene(newGameRoot);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                return;
-            }
-
-            primaryStage.setScene(newGameScene);
-            transitions.forEach(Animation::play);
-
-            addGameButtons();
-            setupTowerPlacement();
-            scheduleWaves(currentLevel);
+            
 
         });
 
@@ -247,6 +299,7 @@ public class Main extends Application {
      * Schedule enemy waves to spawn at specific intervals
      */
     private void scheduleWaves(int level) {
+    	waveInLevel = 0;
         if (waveTimeLine != null) {
             waveTimeLine.stop();
         }
@@ -275,6 +328,15 @@ public class Main extends Application {
                         )
                 );
             }
+            
+            waveTimeLine.getKeyFrames().add(
+            	    new KeyFrame(Duration.seconds(delay - 0.5),
+            	        e -> {
+            	        	waveInLevel++;
+            	        	showWaveStartAnimation(currentLevel + waveInLevel);
+            	        	}
+            	    )
+            	);
 
             // Asıl wave başlatma
             waveTimeLine.getKeyFrames().add(
@@ -321,13 +383,17 @@ public class Main extends Application {
         for (int i = 0; i < enemyCount; i++) {
             int finalI = i;
             timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(finalI * intervalSeconds), e -> {
-                spawnEnemy();
+                
                 Random random = new Random();
                 double randomValue = random.nextDouble(); // or Math.random()
 
                 // Check if the random value is less than 0.3 (30% chance)
                 if (randomValue < 0.3) {
                     spawnEnemyArcher();
+                }else if (randomValue>=0.3 && randomValue< 0.4) {
+                    spawnEnemyGiant();
+                } else {
+                    spawnEnemy();
                 }
             }));
         }
@@ -406,6 +472,31 @@ public class Main extends Application {
         offsetX = (WIDTH - gridWidth) / 2;
         offsetY = (HEIGHT - gridHeight) / 2;
 
+        Label levelLabel = new Label("Level: " + currentLevel + "/5");
+        levelLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 24));
+        levelLabel.setTextFill(Color.web("#FFE09A"));
+        // position it flush to the top-left corner of your grid:
+        levelLabel.setLayoutX(offsetX);
+        levelLabel.setLayoutY(offsetY -  50);  // e.g. 30px above the grid
+        gameOverlay.getChildren().add(levelLabel);
+
+
+        int[] spawnCell = pathCoordinates.get(0);        // row, col of start
+        double houseX  = offsetX + spawnCell[1] * gridUnit;
+        double houseY  = offsetY + spawnCell[0] * gridUnit;
+
+        Image houseImg = new Image(
+                getClass().getResourceAsStream("/assets/base.png")
+        );
+        ImageView houseIcon = new ImageView(houseImg);
+        houseIcon.setFitWidth(TILE_SIZE);
+        houseIcon.setFitHeight(TILE_SIZE);
+        houseIcon.setLayoutX(houseX);
+        houseIcon.setLayoutY(houseY);
+
+        gameOverlay.getChildren().add(houseIcon);
+
+
         // Setup tower placement on click
         setupTowerPlacement();
 
@@ -426,6 +517,10 @@ public class Main extends Application {
         Label nextLabel=new Label("You won!");
         nextLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
         nextLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+        
+        Label scoreLabel = new Label("Score: " + score);
+        scoreLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 32));
+        scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.3, 0, 2);");
 
         VBox bL=new VBox(20);//ButtonAndLabel
         bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" + // şeffaf amber tonu
@@ -433,7 +528,7 @@ public class Main extends Application {
                 "-fx-padding: 16px;");
         bL.setPrefWidth(240);
         bL.setAlignment(Pos.CENTER);
-        bL.getChildren().addAll(nextLabel,getContinueButton());
+        bL.getChildren().addAll(nextLabel, scoreLabel, getContinueButton());
 
 
         nextRoot.getChildren().addAll(bgView, bL);
@@ -457,8 +552,29 @@ public class Main extends Application {
         Label endLabel=new Label("GAME OVER! ");
         endLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
         endLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+        
+        Label scoreLabel = new Label("Score: " + score);
+        scoreLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 32));
+        scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.3, 0, 2);");
 
         Button restartButton = getloseButton();
+        
+        VBox scoreList = new VBox(5);
+        scoreList.setAlignment(Pos.CENTER);
+        Label header = new Label("Top 5 Scores:");
+        header.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 20px;");
+        scoreList.getChildren().add(header);
+
+        List<ScoreManager.ScoreEntry> entries = ScoreManager.loadEntries();
+        for (int i = 0; i < entries.size(); i++) {
+        	ScoreManager.ScoreEntry entry = entries.get(i);
+            Label l = new Label((i + 1) + ". " + entry.username + " " + entry.score + " pts (" +entry.timestamp + ")");
+            l.setStyle("-fx-text-fill: #FFE09A;");
+            scoreList.getChildren().add(l);
+        }
+        
+        
+        
 
         VBox bL=new VBox(20);//ButtonAndLabel
         bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +  // Şeffaf amber tonu
@@ -467,11 +583,21 @@ public class Main extends Application {
         bL.setPrefWidth(400);
         bL.setPrefHeight(300);
         bL.setAlignment(Pos.CENTER);
-        bL.getChildren().addAll(endLabel,restartButton);
+        bL.getChildren().addAll(endLabel, scoreLabel, scoreList, restartButton, getExitButton());
 
 
         endRoot.getChildren().addAll(bgView, bL);
         StackPane.setAlignment(bL, Pos.CENTER);
+        
+        Platform.runLater(() -> {
+            TextInputDialog dialog = new TextInputDialog("Oyuncu");
+            dialog.setTitle("İsim Gir");
+            dialog.setHeaderText("Skorun kaydedilecek. Lütfen ismini yaz:");
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(name -> {
+                ScoreManager.saveScore(name, score);
+            });
+        });
 
         mainStage.setScene(endScene);
 
@@ -633,8 +759,13 @@ public class Main extends Application {
 
 
         singleShot.setOnAction(e -> {
+        	
+        	Bounds bounds = singleShot.localToScene(singleShot.getBoundsInLocal());
+        	double btnCenterX = bounds.getMinX() + bounds.getWidth() / 2;
+        	double btnCenterY = bounds.getMinY() + bounds.getHeight() / 2;
+        	
             selectedTowerType = 1;
-            selectedTower = new SingleShotTower(0, 0, gameOverlay);
+            selectedTower = new SingleShotTower(btnCenterX, btnCenterY, gameOverlay);
             draggingTower = true;
 
             Circle circle = selectedTower.getRangeCircle();
@@ -647,8 +778,13 @@ public class Main extends Application {
 
         });
         laser.setOnAction(e -> {
+        	
+        	Bounds bounds = laser.localToScene(singleShot.getBoundsInLocal());
+        	double btnCenterX = bounds.getMinX() + bounds.getWidth() / 2;
+        	double btnCenterY = bounds.getMinY() + bounds.getHeight() / 2;
+        	
             selectedTowerType = 2;
-            selectedTower = new LaserTower(0, 0, gameOverlay);
+            selectedTower = new LaserTower(btnCenterX, btnCenterY, gameOverlay);
             draggingTower = true;
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
@@ -658,8 +794,13 @@ public class Main extends Application {
             gameOverlay.getChildren().add((selectedTower).getHealthBar());
         });
         tripleShot.setOnAction(e -> {
+        	
+        	Bounds bounds = tripleShot.localToScene(singleShot.getBoundsInLocal());
+        	double btnCenterX = bounds.getMinX() + bounds.getWidth() / 2;
+        	double btnCenterY = bounds.getMinY() + bounds.getHeight() / 2;
+        	
             selectedTowerType = 3;
-            selectedTower = new TripleShotTower(0, 0, gameOverlay);
+            selectedTower = new TripleShotTower(btnCenterX, btnCenterY, gameOverlay);
             draggingTower = true;
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
@@ -669,8 +810,13 @@ public class Main extends Application {
             gameOverlay.getChildren().add((selectedTower).getHealthBar());
         });
         missile.setOnAction(e -> {
+        	
+        	Bounds bounds = tripleShot.localToScene(singleShot.getBoundsInLocal());
+        	double btnCenterX = bounds.getMinX() + bounds.getWidth() / 2;
+        	double btnCenterY = bounds.getMinY() + bounds.getHeight() / 2;
+        	
             selectedTowerType = 4;
-            selectedTower = new MissileLauncherTower(0, 0, gameOverlay);
+            selectedTower = new MissileLauncherTower(btnCenterX, btnCenterY, gameOverlay);
             draggingTower = true;
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
@@ -698,9 +844,10 @@ public class Main extends Application {
         livesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
         moneyLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
         debugLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #FFE09A;");
+        scoreLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #FFE09A;");
         waveCountdownLabel = new Label("Next wave: --");
         waveCountdownLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #FFE09A;");
-        hud.getChildren().addAll(livesLabel, moneyLabel, waveCountdownLabel, singleShot, laser, tripleShot, missile);
+        hud.getChildren().addAll(livesLabel, moneyLabel, waveCountdownLabel, scoreLabel, singleShot, laser, tripleShot, missile);
         return hud;
     }
 
@@ -808,6 +955,7 @@ public class Main extends Application {
 
                 // 3) gerçek kuleyi oyuna ekle
                 Game.addTower(selectedTower);
+                selectedTower.setPlaced(true);
 
                 Tower placed = selectedTower;
                 // Sağ tık satma ve sol tık sürükleme handler’ları:
@@ -911,7 +1059,9 @@ public class Main extends Application {
 
                         selectedTower = null;
                         selectedTowerType = 0;
+                        placed.setPlaced(true);
                     }
+                    
                 });
 
                 // 4) temizle
@@ -976,6 +1126,7 @@ public class Main extends Application {
                     if (ev.isPrimaryButtonDown()) {
                         draggingTower = true;
                         selectedTower = tower;
+                        selectedTower.setPlaced(false);
                         tower.getRangeCircle().setVisible(true);
                     }
 
@@ -1117,7 +1268,7 @@ public class Main extends Application {
     }
 
     public void spawnEnemyArcher() {
-        currentEnemy = new Archer(30, gameOverlay); // 100:health
+        currentEnemy = new Archer(30, gameOverlay);
         enemies.add(currentEnemy);
         Game.enemies.add(currentEnemy);
 
@@ -1125,7 +1276,14 @@ public class Main extends Application {
         currentEnemy.moveAlongPath(pathCoordinates);
     }
 
+    public void spawnEnemyGiant() {
+        currentEnemy = new Giant(60, gameOverlay);
+        enemies.add(currentEnemy);
+        Game.enemies.add(currentEnemy);
 
+        // Start enemy movement along the path
+        currentEnemy.moveAlongPath(pathCoordinates);
+    }
     /**
      * Static method to decrease player lives
      */
@@ -1134,11 +1292,17 @@ public class Main extends Application {
         livesLabel.setText("Lives: " + lives);
 
         // Game over condition
-        if (lives <= 0) {
+        if (lives <= 0 && !gameOverTriggered) {
+        	if (!gameOverTriggered) {
+                gameOverTriggered = true;
+                
+            }
             System.out.println("💀 Can 0 oldu, oyun bitti.");
             Game.enemies.clear(); // Düşmanları da sıfırla
             mainStage.getScene().getRoot().setDisable(true);
-            goEndScene();
+            
+            
+            
         }
     }
 
@@ -1163,12 +1327,7 @@ public class Main extends Application {
      */
     private static Button getStartButton() {
         Button startButton = new Button("Start Game");
-        Image bg = new Image(Main.class.getResource("/assets/background.png").toExternalForm());
-        ImageView bgView = new ImageView(bg);
-        bgView.setFitWidth(WIDTH);
-        bgView.setFitHeight(HEIGHT);
-        bgView.setPreserveRatio(false);
-        bgView.setEffect(new GaussianBlur(12));
+        
         startButton.setPrefWidth(300);
         startButton.setPrefHeight(150);
         startButton.setStyle(
@@ -1180,6 +1339,29 @@ public class Main extends Application {
         );
         return startButton;
     }
+    
+    private static Button getExitButton() {
+    	Button exitButton = new Button("Exit Game");
+    	exitButton.setAlignment(Pos.CENTER);
+        exitButton.setTranslateY(150);
+    	exitButton.setPrefWidth(200);
+    	exitButton.setPrefHeight(50);
+    	exitButton.setStyle(
+                "-fx-font-size: 32px;" +
+                        "-fx-background-color: #c29b57;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-background-radius: 40;" +
+                        "-fx-border-radius: 40;"
+        );
+    	
+    	exitButton.setOnAction(e -> {
+            Platform.exit();
+            
+        });
+    	
+    	return exitButton;
+    }
+    
     public void resetGame() {
         for (Enemy e : enemies) {
             e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
@@ -1211,6 +1393,7 @@ public class Main extends Application {
 
         if (waveTimeLine != null)    waveTimeLine.stop();
         if (countdownTimer != null)  countdownTimer.stop();
+        gameOverTriggered = false;
 
         // Yerleşim yerlerini sıfırla
         placedTowerCells.clear();
@@ -1218,6 +1401,9 @@ public class Main extends Application {
         // Oyun değişkenlerini sıfırla
         money = 100;
         lives = 5;
+        score = 0;
+        if (scoreLabel != null)
+            scoreLabel.setText("Score: " + score);
 
         if (Main.transitions != null) {
             Main.transitions.forEach(Animation::stop);
@@ -1269,6 +1455,7 @@ public class Main extends Application {
         // Oyun değişkenlerini sıfırla
         lives = 5;
         finishedWaveCount=0;
+        increaseScore((currentLevel - 1) * 100);
 
         if (Main.transitions != null) {
             Main.transitions.forEach(Animation::stop);
@@ -1328,23 +1515,43 @@ public class Main extends Application {
                             "-fx-background-radius: 40;" +
                             "-fx-border-radius: 40;"
             );
-            continueButton.setOnAction(e -> {
-                try {
-                    // build the new game scene for the next level
-                    StackPane nextRoot = new StackPane();
-                    Scene nextLevelScene = getGameScene(nextRoot);
-                    // swap it in
-                    mainStage.setScene(nextLevelScene);
-                    // re-play the tile drop animations
-                    transitions.forEach(Animation::play);
-                    // now add your tower buttons and begin spawning
-                    addGameButtons();
-                    setupTowerPlacement();
-                    scheduleWaves(currentLevel);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            });
+            continueButton.setOnAction(e->{ 
+        		try { 
+        			Scene nextLevelScene = getGameScene(new StackPane());
+        			mainStage.setScene(nextLevelScene); 
+        			transitions.forEach(Animation::play);//Start animation again from scratch
+        			
+        			if (currentLevel==4 || currentLevel==5) {
+                    	maxDelay=2688;
+                    }// from scratch start we 
+
+        	            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
+        	                addGameButtons();
+        	                setupTowerPlacement();
+        	                scheduleWaves(currentLevel);
+
+                            int[] spawnCell = pathCoordinates.get(0);
+                            double houseX = offsetX + spawnCell[1] * gridUnit;
+                            double houseY = offsetY + spawnCell[0] * gridUnit;
+
+                            Image houseImg = new Image(getClass().getResourceAsStream("/assets/base.png"));
+                            ImageView houseIcon = new ImageView(houseImg);
+                            houseIcon.setFitWidth(TILE_SIZE);
+                            houseIcon.setFitHeight(TILE_SIZE);
+                            houseIcon.setLayoutX(houseX);
+                            houseIcon.setLayoutY(houseY);
+                            gameOverlay.getChildren().add(houseIcon);
+
+
+        	            }));
+        	            delayTimeline.play();
+        			// Animasyonları yeniden başlat transitions.forEach(Animation::play); // Yeni leveli başlat scheduleWaves(currentLevel); } catch(Exception ex) { System.out.println("exception found"); } }); return continueButton;
+        		}
+        		catch(Exception ex) {
+        			System.out.println("continue exeption");
+        		}
+        		increaseMoney(100);
+     	});
         }
         return continueButton;
     }
@@ -1360,7 +1567,7 @@ public class Main extends Application {
                 clip.open(ais);
 
                 FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                gainControl.setValue(-10.0f); // desibel cinsinden → 0.0f = tam ses, -80f = sessiz
+                gainControl.setValue(-15.0f); // desibel cinsinden → 0.0f = tam ses, -80f = sessiz
 
                 clip.loop(Clip.LOOP_CONTINUOUSLY);
             } catch (Exception e) {
@@ -1425,6 +1632,10 @@ public class Main extends Application {
         Label nextLabel=new Label("You Won The Game!");
         nextLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 48));
         nextLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 4, 0.3, 0, 2);");
+        
+        Label scoreLabel = new Label("Score: " + score);
+        scoreLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 32));
+        scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.3, 0, 2);");
 
         Image bg = new Image(getClass().getResource("/assets/background.png").toExternalForm());
         ImageView bgView = new ImageView(bg);
@@ -1432,6 +1643,20 @@ public class Main extends Application {
         bgView.setFitHeight(HEIGHT);
         bgView.setPreserveRatio(false);
         bgView.setEffect(new GaussianBlur(12));
+        
+        VBox scoreList = new VBox(5);
+        scoreList.setAlignment(Pos.CENTER);
+        Label header = new Label("Top 5 Scores:");
+        header.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 20px;");
+        scoreList.getChildren().add(header);
+
+        List<ScoreManager.ScoreEntry> entries = ScoreManager.loadEntries();
+        for (int i = 0; i < entries.size(); i++) {
+            ScoreManager.ScoreEntry entry = entries.get(i);
+            Label l = new Label((i + 1) + ". " + entry.username + " " + entry.score + " pts (" + entry.timestamp + ")");
+            l.setStyle("-fx-text-fill: #FFE09A;");
+            scoreList.getChildren().add(l);
+        }
 
 
 
@@ -1444,16 +1669,58 @@ public class Main extends Application {
                         "-fx-background-radius: 12;" +
                         "-fx-padding: 20px;"
         );
-        won.getChildren().addAll(nextLabel,getWonButton());
+        won.getChildren().addAll(nextLabel, scoreLabel, scoreList, getWonButton(), getExitButton());
 
         StackPane paneWon=new StackPane();
         paneWon.getChildren().addAll(bgView, won); // önce arka plan, sonra UI
         StackPane.setAlignment(won, Pos.CENTER);
 
         Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);
+        
+        
 
         mainStage.setScene(wonScene);
+        Platform.runLater(() -> {
+            TextInputDialog dialog = new TextInputDialog("Oyuncu");
+            dialog.setTitle("İsim Gir");
+            dialog.setHeaderText("Skorun kaydedilecek. Lütfen ismini yaz:");
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(name -> {
+                ScoreManager.saveScore(name, score);
+            });
+        });
 
+    }
+    
+    public static void increaseScore(int amount) {
+        score += amount;
+        scoreLabel.setText("Score: " + score);
+    }
+    
+    public void showWaveStartAnimation(int waveNumber) {
+    	Label waveLabel = new Label(waveInLevel + ". Dalga"  + " Başlıyor!");
+        waveLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 48));
+        waveLabel.setTextFill(Color.web("#FFE09A"));
+        waveLabel.setStyle("-fx-effect: dropshadow(gaussian, black, 6, 0.4, 0, 2);");
+
+        
+        waveLabel.setLayoutY(200);
+        waveLabel.setLayoutX(755);
+        gameOverlay.getChildren().add(waveLabel);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.seconds(1), waveLabel);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+
+        PauseTransition stay = new PauseTransition(Duration.seconds(1.5));
+
+        FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), waveLabel);
+        fadeOut.setFromValue(1);
+        fadeOut.setToValue(0);
+
+        SequentialTransition seq = new SequentialTransition(fadeIn, stay, fadeOut);
+        seq.setOnFinished(e -> gameOverlay.getChildren().remove(waveLabel));
+        seq.play();
     }
 
 

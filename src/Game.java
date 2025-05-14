@@ -28,7 +28,7 @@ public class Game {
 	public static void update() {
 		// Kuleleri güncelle
 		for (Tower tower : towers) {
-			tower.update(Game.enemies);
+			tower.update(new ArrayList<>(Game.enemies));
 		}
 
 		// Düşmanları güncelle
@@ -78,6 +78,7 @@ public class Game {
 	public static void removeTower(Tower t) {
 		if (t != null) {
 			towers.remove(t);
+
 			Game.forceClearAllLaserBeams();
 
 		}

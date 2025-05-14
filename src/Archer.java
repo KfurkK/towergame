@@ -1,4 +1,5 @@
 import javafx.animation.FadeTransition;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
@@ -24,6 +25,7 @@ public class Archer extends Enemy {
     private final Pane gamePane;
     private long lastAttackTime = 0;
     private Timeline attackTimer;
+	private Image img;
 
     public static int damageValue = ATTACK_DAMAGE; // Using ATTACK_DAMAGE for consistency
 
@@ -254,7 +256,6 @@ public class Archer extends Enemy {
             attackTimer.stop(); //
         }
         super.die(); //
-        Game.enemies.remove(this);
     }
 
     /**
@@ -280,4 +281,9 @@ public class Archer extends Enemy {
     }
 
     // Removed the abstract findNearestTower() as it's now implemented by findNearestTowerInRange()
+    
+    @Override
+    public int getPointValue() {
+        return 20; // Okçular 2 kat puan
+    }
 }

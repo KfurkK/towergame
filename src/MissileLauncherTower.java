@@ -1,4 +1,3 @@
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +17,7 @@ import javafx.util.Duration;
 
 public class MissileLauncherTower extends Tower {
 	public long lastShotTime = 0;
-	public long shootInterval = 600; // 2 saniye
+	public long shootInterval = 1500; // 1,5 saniye
 	public int missileDamage = 100;
 	public double effectRadius = 50;
 
@@ -29,6 +28,7 @@ public class MissileLauncherTower extends Tower {
 	public static int maxTowerHealth = 30; // when enemy attacks to tower's health
 
 	public final Rectangle healthBar;
+	private boolean placed = false;
 
 
 	public MissileLauncherTower(double x, double y, Pane gameOverlay) {
@@ -43,8 +43,7 @@ public class MissileLauncherTower extends Tower {
 		imageView.setPickOnBounds(true);
 
 		this.body = imageView;
-
-
+		
 		healthBar = new Rectangle(Enemy.TILE_SIZE, 5);
 		healthBar.setFill(Color.GREEN);
 		healthBar.layoutXProperty().bind(
@@ -54,9 +53,12 @@ public class MissileLauncherTower extends Tower {
 				imageView.layoutYProperty().subtract(healthBar.getHeight() + 2)
 		);
 	}
+	
 
 	public void update(List<Enemy> enemies) {
 		long instanceTime = System.currentTimeMillis();
+		if (!placed) 
+			return;
 		if (instanceTime - lastShotTime >= shootInterval) {
 			Enemy closest = nearestEnemy(enemies);
 			if (closest != null && isRange(closest)) {
@@ -66,9 +68,7 @@ public class MissileLauncherTower extends Tower {
 			}
 		}
 	}
-
-
-	@Override
+	
 	public void damage(int damageValue) {
 		// decrease the healthbar displayd of the tower
 		this.towerHealth -= damageValue;
@@ -102,12 +102,17 @@ public class MissileLauncherTower extends Tower {
 		ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
+
+		// set damaged tower image
+		Image damagedTower = new Image("/assets/towers/missile_damaged.png");
+		imageView = new ImageView(damagedTower);
+		imageView.setFitWidth(40);
+		imageView.setFitHeight(40);
+		imageView.setLayoutX(x - imageView.getFitWidth() / 2);
+		imageView.setLayoutY(y - imageView.getFitHeight() / 2);
+		overlay.getChildren().add(imageView);
 	}
-
-
-	/**
-	 * Simple particle explosion
-	 */
+	
 	private void createExplosionEffect() {
 		double cx = imageView.getLayoutX() + imageView.getFitWidth() / 2;
 		double cy = imageView.getLayoutY() + imageView.getFitHeight() / 2;
@@ -154,10 +159,17 @@ public class MissileLauncherTower extends Tower {
 		}
 		return closest;
 	}
+	
 	public Node getHealthBar() {
 		return healthBar;
 	}
-
-
+	
+	public void setPlaced(boolean placed) {
+	    this.placed = placed;
+	}
+	
+	public boolean isPlaced() {
+	    return placed;
+	}
 
 }

@@ -17,10 +17,8 @@ import javafx.util.Duration;
 
 public class TripleShotTower extends Tower {
 	public long lastShotTime = 0;
-	public long shootInterval = 300;
+	public long shootInterval = 1000;   // 1 saniye
 	public int damage = 10;
-
-
 	public ImageView imageView;
 
 	public int towerHealth = 30; // when enemy attacks to tower's health
@@ -29,12 +27,15 @@ public class TripleShotTower extends Tower {
 	private Pane overlay;
 
 	public final Rectangle healthBar;
+	private boolean placed = false;
 
 
 
 	public TripleShotTower(double x, double y, Pane gameOverlay) {
 		super(x, y, 100, 150, Color.DEEPSKYBLUE);// 150$
 		this.overlay = gameOverlay;
+	
+
 		Image img = new Image("assets/towers/tripleshottower.png");
 		imageView = new ImageView(img);
 		imageView.setFitWidth(40);
@@ -44,8 +45,6 @@ public class TripleShotTower extends Tower {
 		imageView.setPickOnBounds(true);
 
 		this.body = imageView;
-
-
 		healthBar = new Rectangle(Enemy.TILE_SIZE, 5);
 		healthBar.setFill(Color.GREEN);
 		healthBar.layoutXProperty().bind(
@@ -54,13 +53,14 @@ public class TripleShotTower extends Tower {
 		healthBar.layoutYProperty().bind(
 				imageView.layoutYProperty().subtract(healthBar.getHeight() + 2)
 		);
-
 	}
 
 	@Override
 	public void update(List<Enemy> enemies) {
 
 		long instanceTime = System.currentTimeMillis();
+		if (!placed) 
+			return;
 		if (instanceTime - lastShotTime >= shootInterval) {
 			List<Enemy> targets = nearestEnemies(enemies, 3);
 			for (Enemy e : targets) {
@@ -74,8 +74,7 @@ public class TripleShotTower extends Tower {
 			lastShotTime = instanceTime;
 		}
 	}
-
-
+	
 	@Override
 	public void damage(int damageValue) {
 		// decrease the healthbar displayd of the tower
@@ -110,6 +109,16 @@ public class TripleShotTower extends Tower {
 		ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
+
+		// set damaged tower image
+		Image damagedTower = new Image("/assets/towers/triple_damaged.png");
+		imageView = new ImageView(damagedTower);
+		imageView.setFitWidth(40);
+		imageView.setFitHeight(40);
+		imageView.setLayoutX(x - imageView.getFitWidth() / 2);
+		imageView.setLayoutY(y - imageView.getFitHeight() / 2);
+		overlay.getChildren().add(imageView);
+
 	}
 
 	/**
@@ -173,10 +182,17 @@ public class TripleShotTower extends Tower {
 
 		return result;
 	}
-
+	
 	public Node getHealthBar() {
 		return healthBar;
 	}
-
+	
+	public void setPlaced(boolean placed) {
+	    this.placed = placed;
+	}
+	
+	public boolean isPlaced() {
+	    return placed;
+	}
 
 }
