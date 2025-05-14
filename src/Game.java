@@ -78,6 +78,7 @@ public class Game {
 	public static void removeTower(Tower t) {
 		if (t != null) {
 			towers.remove(t);
+
 			Game.forceClearAllLaserBeams();
 
 		}

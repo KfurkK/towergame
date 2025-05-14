@@ -20,7 +20,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
 public class LaserTower extends Tower {
-	double damagePerSecond = 1.0;
+	double damagePerSecond = 0.25;
 	Map<Enemy, Double> targetTimers = new HashMap<>();
 	public Line laserBeam = new Line();
 	private List<Line> laserBeams = new ArrayList<>();
@@ -149,6 +149,15 @@ public class LaserTower extends Tower {
 		ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
+
+		// set damaged tower image
+		Image damagedTower = new Image("/assets/towers/laser_damaged.png");
+		imageView = new ImageView(damagedTower);
+		imageView.setFitWidth(40);
+		imageView.setFitHeight(40);
+		imageView.setLayoutX(x - imageView.getFitWidth() / 2);
+		imageView.setLayoutY(y - imageView.getFitHeight() / 2);
+		overlay.getChildren().add(imageView);
 	}
 
 	/**

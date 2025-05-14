@@ -109,6 +109,16 @@ public class TripleShotTower extends Tower {
 		ParallelTransition deathAnim = new ParallelTransition(fadeSprite, fadeBar);
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
+
+		// set damaged tower image
+		Image damagedTower = new Image("/assets/towers/triple_damaged.png");
+		imageView = new ImageView(damagedTower);
+		imageView.setFitWidth(40);
+		imageView.setFitHeight(40);
+		imageView.setLayoutX(x - imageView.getFitWidth() / 2);
+		imageView.setLayoutY(y - imageView.getFitHeight() / 2);
+		overlay.getChildren().add(imageView);
+
 	}
 
 	/**

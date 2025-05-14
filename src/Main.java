@@ -135,7 +135,7 @@ public class Main extends Application {
         gameRoot = new StackPane();
         gameScene = getGameScene(gameRoot);
         initialGameOverlay = gameOverlay;
-        
+
         Button exitButton = getExitButton();
         
         
@@ -390,8 +390,10 @@ public class Main extends Application {
                 // Check if the random value is less than 0.3 (30% chance)
                 if (randomValue < 0.3) {
                     spawnEnemyArcher();
-                }else {
-                	spawnEnemy();
+                }else if (randomValue>=0.3 && randomValue< 0.4) {
+                    spawnEnemyGiant();
+                } else {
+                    spawnEnemy();
                 }
             }));
         }
@@ -469,6 +471,31 @@ public class Main extends Application {
 
         offsetX = (WIDTH - gridWidth) / 2;
         offsetY = (HEIGHT - gridHeight) / 2;
+
+        Label levelLabel = new Label("Level: " + currentLevel + "/5");
+        levelLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 24));
+        levelLabel.setTextFill(Color.web("#FFE09A"));
+        // position it flush to the top-left corner of your grid:
+        levelLabel.setLayoutX(offsetX);
+        levelLabel.setLayoutY(offsetY -  50);  // e.g. 30px above the grid
+        gameOverlay.getChildren().add(levelLabel);
+
+
+        int[] spawnCell = pathCoordinates.get(0);        // row, col of start
+        double houseX  = offsetX + spawnCell[1] * gridUnit;
+        double houseY  = offsetY + spawnCell[0] * gridUnit;
+
+        Image houseImg = new Image(
+                getClass().getResourceAsStream("/assets/base.png")
+        );
+        ImageView houseIcon = new ImageView(houseImg);
+        houseIcon.setFitWidth(TILE_SIZE);
+        houseIcon.setFitHeight(TILE_SIZE);
+        houseIcon.setLayoutX(houseX);
+        houseIcon.setLayoutY(houseY);
+
+        gameOverlay.getChildren().add(houseIcon);
+
 
         // Setup tower placement on click
         setupTowerPlacement();
@@ -1241,7 +1268,7 @@ public class Main extends Application {
     }
 
     public void spawnEnemyArcher() {
-        currentEnemy = new Archer(30, gameOverlay); // 100:health
+        currentEnemy = new Archer(30, gameOverlay);
         enemies.add(currentEnemy);
         Game.enemies.add(currentEnemy);
 
@@ -1249,7 +1276,14 @@ public class Main extends Application {
         currentEnemy.moveAlongPath(pathCoordinates);
     }
 
+    public void spawnEnemyGiant() {
+        currentEnemy = new Giant(60, gameOverlay);
+        enemies.add(currentEnemy);
+        Game.enemies.add(currentEnemy);
 
+        // Start enemy movement along the path
+        currentEnemy.moveAlongPath(pathCoordinates);
+    }
     /**
      * Static method to decrease player lives
      */
@@ -1483,7 +1517,7 @@ public class Main extends Application {
             );
             continueButton.setOnAction(e->{ 
         		try { 
-        			Scene nextLevelScene = getGameScene(new StackPane()); 
+        			Scene nextLevelScene = getGameScene(new StackPane());
         			mainStage.setScene(nextLevelScene); 
         			transitions.forEach(Animation::play);//Start animation again from scratch
         			
@@ -1495,6 +1529,20 @@ public class Main extends Application {
         	                addGameButtons();
         	                setupTowerPlacement();
         	                scheduleWaves(currentLevel);
+
+                            int[] spawnCell = pathCoordinates.get(0);
+                            double houseX = offsetX + spawnCell[1] * gridUnit;
+                            double houseY = offsetY + spawnCell[0] * gridUnit;
+
+                            Image houseImg = new Image(getClass().getResourceAsStream("/assets/base.png"));
+                            ImageView houseIcon = new ImageView(houseImg);
+                            houseIcon.setFitWidth(TILE_SIZE);
+                            houseIcon.setFitHeight(TILE_SIZE);
+                            houseIcon.setLayoutX(houseX);
+                            houseIcon.setLayoutY(houseY);
+                            gameOverlay.getChildren().add(houseIcon);
+
+
         	            }));
         	            delayTimeline.play();
         			// Animasyonları yeniden başlat transitions.forEach(Animation::play); // Yeni leveli başlat scheduleWaves(currentLevel); } catch(Exception ex) { System.out.println("exception found"); } }); return continueButton;
@@ -1650,7 +1698,7 @@ public class Main extends Application {
     }
     
     public void showWaveStartAnimation(int waveNumber) {
-    	Label waveLabel = new Label("Dalga " + waveInLevel + " Başlıyor!");
+    	Label waveLabel = new Label(waveInLevel + ". Wave"  + " Begins!");
         waveLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 48));
         waveLabel.setTextFill(Color.web("#FFE09A"));
         waveLabel.setStyle("-fx-effect: dropshadow(gaussian, black, 6, 0.4, 0, 2);");
