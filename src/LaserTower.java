@@ -32,6 +32,7 @@ public class LaserTower extends Tower {
 
 	public final Rectangle healthBar;
 	public ImageView imageView;
+	private boolean placed = false;
 
 
 
@@ -64,6 +65,8 @@ public class LaserTower extends Tower {
 	@Override
 	public void update(List<Enemy> enemies) {
 		long instanceTime = System.currentTimeMillis();
+		if (!placed) 
+			return;
 
 		for (Line beam : laserBeams) {
 
@@ -185,6 +188,14 @@ public class LaserTower extends Tower {
 
 	public Node getHealthBar() {
 		return healthBar;
+	}
+	
+	public void setPlaced(boolean placed) {
+	    this.placed = placed;
+	}
+	
+	public boolean isPlaced() {
+	    return placed;
 	}
 
 }

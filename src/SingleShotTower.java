@@ -24,6 +24,7 @@ public class SingleShotTower extends Tower {
 	public int towerHealth = 30; // when enemy attacks to tower's health
 	public static int maxTowerHealth = 30; // when enemy attacks to tower's health
 	public final Rectangle healthBar;
+	private boolean placed = false;
 
 	
 	public SingleShotTower(double x, double y, Pane gameOverlay) {
@@ -72,6 +73,8 @@ public class SingleShotTower extends Tower {
 	public void update(List<Enemy> enemies) {
 
 		long instantTime = System.currentTimeMillis();
+		if (!placed) 
+			return;
 		if (instantTime - lastShotTime >= shootInterval) {
 			Enemy closest = nearestEnemy(enemies);
 			if (closest != null && isRange(closest)) {
@@ -164,5 +167,14 @@ public class SingleShotTower extends Tower {
 	public Node getHealthBar() {
 		return healthBar;
 	}
+	
+	public void setPlaced(boolean placed) {
+	    this.placed = placed;
+	}
+	
+	public boolean isPlaced() {
+	    return placed;
+	}
+
 
 }

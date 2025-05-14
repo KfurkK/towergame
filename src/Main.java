@@ -14,7 +14,9 @@ import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -37,6 +39,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.util.Duration;
 import java.util.Random;
@@ -86,6 +89,7 @@ public class Main extends Application {
     private static int money = 100;
     private static int lives = 5;
     private static int score = 0;
+    private static int waveInLevel = 0;
     
     private ArrayList<Enemy> enemies = new ArrayList<>();
     private ArrayList<int[]> pathCoordinates;
@@ -295,6 +299,7 @@ public class Main extends Application {
      * Schedule enemy waves to spawn at specific intervals
      */
     private void scheduleWaves(int level) {
+    	waveInLevel = 0;
         if (waveTimeLine != null) {
             waveTimeLine.stop();
         }
@@ -323,6 +328,15 @@ public class Main extends Application {
                         )
                 );
             }
+            
+            waveTimeLine.getKeyFrames().add(
+            	    new KeyFrame(Duration.seconds(delay - 0.5),
+            	        e -> {
+            	        	waveInLevel++;
+            	        	showWaveStartAnimation(currentLevel + waveInLevel);
+            	        	}
+            	    )
+            	);
 
             // Asıl wave başlatma
             waveTimeLine.getKeyFrames().add(
@@ -718,8 +732,13 @@ public class Main extends Application {
 
 
         singleShot.setOnAction(e -> {
+        	
+        	Bounds bounds = singleShot.localToScene(singleShot.getBoundsInLocal());
+        	double btnCenterX = bounds.getMinX() + bounds.getWidth() / 2;
+        	double btnCenterY = bounds.getMinY() + bounds.getHeight() / 2;
+        	
             selectedTowerType = 1;
-            selectedTower = new SingleShotTower(0, 0, gameOverlay);
+            selectedTower = new SingleShotTower(btnCenterX, btnCenterY, gameOverlay);
             draggingTower = true;
 
             Circle circle = selectedTower.getRangeCircle();
@@ -732,8 +751,13 @@ public class Main extends Application {
 
         });
         laser.setOnAction(e -> {
+        	
+        	Bounds bounds = laser.localToScene(singleShot.getBoundsInLocal());
+        	double btnCenterX = bounds.getMinX() + bounds.getWidth() / 2;
+        	double btnCenterY = bounds.getMinY() + bounds.getHeight() / 2;
+        	
             selectedTowerType = 2;
-            selectedTower = new LaserTower(0, 0, gameOverlay);
+            selectedTower = new LaserTower(btnCenterX, btnCenterY, gameOverlay);
             draggingTower = true;
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
@@ -743,8 +767,13 @@ public class Main extends Application {
             gameOverlay.getChildren().add((selectedTower).getHealthBar());
         });
         tripleShot.setOnAction(e -> {
+        	
+        	Bounds bounds = tripleShot.localToScene(singleShot.getBoundsInLocal());
+        	double btnCenterX = bounds.getMinX() + bounds.getWidth() / 2;
+        	double btnCenterY = bounds.getMinY() + bounds.getHeight() / 2;
+        	
             selectedTowerType = 3;
-            selectedTower = new TripleShotTower(0, 0, gameOverlay);
+            selectedTower = new TripleShotTower(btnCenterX, btnCenterY, gameOverlay);
             draggingTower = true;
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
@@ -754,8 +783,13 @@ public class Main extends Application {
             gameOverlay.getChildren().add((selectedTower).getHealthBar());
         });
         missile.setOnAction(e -> {
+        	
+        	Bounds bounds = tripleShot.localToScene(singleShot.getBoundsInLocal());
+        	double btnCenterX = bounds.getMinX() + bounds.getWidth() / 2;
+        	double btnCenterY = bounds.getMinY() + bounds.getHeight() / 2;
+        	
             selectedTowerType = 4;
-            selectedTower = new MissileLauncherTower(0, 0, gameOverlay);
+            selectedTower = new MissileLauncherTower(btnCenterX, btnCenterY, gameOverlay);
             draggingTower = true;
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
@@ -894,6 +928,7 @@ public class Main extends Application {
 
                 // 3) gerçek kuleyi oyuna ekle
                 Game.addTower(selectedTower);
+                selectedTower.setPlaced(true);
 
                 Tower placed = selectedTower;
                 // Sağ tık satma ve sol tık sürükleme handler’ları:
@@ -997,7 +1032,9 @@ public class Main extends Application {
 
                         selectedTower = null;
                         selectedTowerType = 0;
+                        placed.setPlaced(true);
                     }
+                    
                 });
 
                 // 4) temizle
@@ -1062,6 +1099,7 @@ public class Main extends Application {
                     if (ev.isPrimaryButtonDown()) {
                         draggingTower = true;
                         selectedTower = tower;
+                        selectedTower.setPlaced(false);
                         tower.getRangeCircle().setVisible(true);
                     }
 
@@ -1609,6 +1647,32 @@ public class Main extends Application {
     public static void increaseScore(int amount) {
         score += amount;
         scoreLabel.setText("Score: " + score);
+    }
+    
+    public void showWaveStartAnimation(int waveNumber) {
+    	Label waveLabel = new Label("Dalga " + waveInLevel + " Başlıyor!");
+        waveLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 48));
+        waveLabel.setTextFill(Color.web("#FFE09A"));
+        waveLabel.setStyle("-fx-effect: dropshadow(gaussian, black, 6, 0.4, 0, 2);");
+
+        
+        waveLabel.setLayoutY(200);
+        waveLabel.setLayoutX(755);
+        gameOverlay.getChildren().add(waveLabel);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.seconds(1), waveLabel);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+
+        PauseTransition stay = new PauseTransition(Duration.seconds(1.5));
+
+        FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), waveLabel);
+        fadeOut.setFromValue(1);
+        fadeOut.setToValue(0);
+
+        SequentialTransition seq = new SequentialTransition(fadeIn, stay, fadeOut);
+        seq.setOnFinished(e -> gameOverlay.getChildren().remove(waveLabel));
+        seq.play();
     }
 
 
