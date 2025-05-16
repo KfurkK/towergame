@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import java.util.List;
 
 import javafx.scene.Node;
@@ -13,11 +14,13 @@ import javafx.util.Duration;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.layout.Pane;
 
-
+/*The main class of the towers keeps all the properties of the towers and inherits them to the subclasses. 
+ * In this way, all towers get the same properties directly.
+ */
 public abstract class Tower {
-	public double x, y; // Kule konumu
-	public double range; // Mesafe
-	public double price; // kule fiyatı
+	public double x, y; 
+	public double range; 
+	public double price;
 	public Enemy target;
 	public boolean selected;
 	public Node body;
@@ -28,11 +31,12 @@ public abstract class Tower {
 	public final Rectangle healthBar = null;
 	private boolean placed = false;
 
-	public Tower() {
+	public Tower() { // Base Constructor
 
 	}
 
-	public Tower(double x, double y, double range, double price, Color color) { // Base Constructor
+	public Tower(double x, double y, double range, double price, Color color) { 
+		//General features and structures of towers
 		this.x = x;
 		this.y = y;
 		this.range = range;
@@ -42,7 +46,7 @@ public abstract class Tower {
 		body.setLayoutX(x - 10);
 		body.setLayoutY(y - 10);
 
-		rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.5)); // yarı saydam kırmızı
+		rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.5)); 
 		rangeCircle.setStroke(Color.RED);
 		rangeCircle.setFill(Color.rgb(255, 0, 0, 0.5));
 		rangeCircle.setLayoutX(x);
@@ -59,6 +63,7 @@ public abstract class Tower {
 	}
 
 	public void setPosition(double newX, double newY) {
+		//Sets the location of the tower on the map.
 		this.x = newX;
 		this.y = newY;
 		body.setLayoutX(x - 20);
@@ -73,7 +78,7 @@ public abstract class Tower {
 	}
 
 	public void remove() {
-		// Varsayılan: sadece sahneden görseli siler
+		
 		Game.gameOverlay.getChildren().remove(getNode());
 		Game.gameOverlay.getChildren().remove(rangeCircle);
 	}
@@ -83,6 +88,7 @@ public abstract class Tower {
 	}
 
 	public boolean isRange(Enemy e) {
+		//Checks if the enemy is alive.
 		double dx = e.getX() - x;
 		double dy = e.getY() - y;
 
@@ -104,8 +110,8 @@ public abstract class Tower {
 		return new int[] { currentRow, currentCol };
 	}
 
-	public abstract void update(List<Enemy> enemies); // her karede ne yapacak?
-	public abstract void damage(int damageValue);
+	public abstract void update(List<Enemy> enemies);  //Keeps enemies together
+	public abstract void damage(int damageValue);    //damage function
 	
 	public Node getHealthBar() {
 		return healthBar;

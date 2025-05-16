@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import java.util.List;
 
 import javafx.animation.FadeTransition;
@@ -16,7 +17,7 @@ import javafx.util.Duration;
 
 public class SingleShotTower extends Tower {
 	private long lastShotTime = 0;
-	private long shootInterval = 750;  // 0.75 saniye
+	private long shootInterval = 750;  
 	public int damage = 10;
 	public ImageView image;
 
@@ -28,6 +29,7 @@ public class SingleShotTower extends Tower {
 
 	
 	public SingleShotTower(double x, double y, Pane gameOverlay) {
+		// Includes the tower's features and positioning.
 		super(x, y, 100, 50, Color.BLUE);
 		this.damage = 10;
 		this.overlay = gameOverlay;
@@ -55,6 +57,7 @@ public class SingleShotTower extends Tower {
 	
 
 	public Enemy nearestEnemy(List<Enemy> enemies) {
+		//Selects the nearest enemy and marks it.
 		Enemy closest = null;
 		double minDistance = Double.MAX_VALUE;
 		for (Enemy e : enemies) {
@@ -71,6 +74,7 @@ public class SingleShotTower extends Tower {
 	}
 
 	public void update(List<Enemy> enemies) {
+		//Add fire and bullet function
 
 		long instantTime = System.currentTimeMillis();
 		if (!placed) 
@@ -82,10 +86,7 @@ public class SingleShotTower extends Tower {
 				Bullet b = new Bullet(x, y, closest, 10);
 
 				Game.addBullet(b);
-				/*
-				 * if (Bullet.shootClip != null) { Bullet.shootClip.stop();
-				 * Bullet.shootClip.setFramePosition(0); Bullet.shootClip.start(); }
-				 */
+				
 				lastShotTime = instantTime;
 			}
 		}

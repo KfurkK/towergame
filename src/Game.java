@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import java.util.ArrayList;
 import java.util.List;
 
@@ -5,6 +6,8 @@ import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
+
+// It stores common structures that are kept during the game and allows them to change.
 
 public class Game {
 	public static List<Tower> towers = new ArrayList<>();
@@ -26,15 +29,12 @@ public class Game {
 	private int lives = 5;
 
 	public static void update() {
-		// Kuleleri güncelle
+		
 		for (Tower tower : towers) {
 			tower.update(new ArrayList<>(Game.enemies));
 		}
 
-		// Düşmanları güncelle
-		/*
-		 * for (Enemy e : enemies) { e.update(); }
-		 */
+		
 
 		List<Bullet> toRemove = new ArrayList<>();
 		for (Bullet b : bullets) {
@@ -77,7 +77,7 @@ public class Game {
 
 	public static void removeTower(Tower t) {
 		if (t != null) {
-			towers.remove(t);
+			towers.remove(t);// delete from logic
 
 			Game.forceClearAllLaserBeams();
 
@@ -94,7 +94,7 @@ public class Game {
 	}
 
 	public static void removeBullet(Bullet b) {
-		bullets.remove(b); // logic'ten sil
+		bullets.remove(b); // delete from logic
 		gameOverlay.getChildren().remove(b.getNode());
 	}
 
@@ -104,7 +104,7 @@ public class Game {
 	}
 
 	public static void removeMissile(Bullet b) {
-		bullets.remove(b); // logic'ten sil
+		bullets.remove(b); // delete from logic
 		gameOverlay.getChildren().remove(b.getNode());
 	}
 

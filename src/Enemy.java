@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
@@ -110,7 +111,7 @@ public class Enemy {
             }
         });
         
-        this.currentTransition = move; // 🌟 Burada referansı saklıyoruz
+        this.currentTransition = move; 
         move.play();
     }
 
@@ -220,6 +221,6 @@ public class Enemy {
     }
     
     public int getPointValue() {
-        return 10; // Normal düşmanlar 10 puan
+        return 10; 
     }
 }

@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import java.util.ArrayList;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -40,7 +41,7 @@ public class LaserTower extends Tower {
 		super(x, y, 100, 120, Color.ORANGERED); // 120$
 		this.overlay = gameOverlay;
 
-	
+	    //Contains the tower image and its features.
 
 		Image img = new Image("assets/towers/lasertower.png");
 		imageView = new ImageView(img);
@@ -61,9 +62,13 @@ public class LaserTower extends Tower {
 				imageView.layoutYProperty().subtract(healthBar.getHeight() + 2)
 		);
 	}
-
+     
+	
+	
+	
 	@Override
 	public void update(List<Enemy> enemies) {
+		//Checks if there are enemies and provides continuity and visual of the laser beam.
 		long instanceTime = System.currentTimeMillis();
 		if (!placed) 
 			return;
@@ -82,7 +87,7 @@ public class LaserTower extends Tower {
 				double lastHitTime = targetTimers.get(e);
 				double elapsedSeconds = (instanceTime - lastHitTime) / 1000.0;
 
-				// Zaman geçtiyse hasar ver
+				
 				if (elapsedSeconds >= 0.1) {
 					e.damage(damagePerSecond * elapsedSeconds);
 					targetTimers.put(e, instanceTime * 1.0);

@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.image.Image;
@@ -20,6 +21,7 @@ public class Missile {
 			Missile.class.getResource("/assets/bullets/missile.png").toExternalForm());
 
 	public Missile(double x, double y, Enemy target, int damage, double effectRadius) {
+		//Contains the picture and specifications of the rocket.
 		this.x = x;
 		this.y = y;
 		this.target = target;
@@ -40,7 +42,9 @@ public class Missile {
 	}
 
 	public void update(List<Enemy> enemies) {
-
+        
+		//Controls enemies and rotates the tip of the missile relative to where they came from.
+		
 		if (!active)
 			return;
 
@@ -51,7 +55,7 @@ public class Missile {
 			Game.gameOverlay.getChildren().remove(shape);
 			return;
 		}
-
+        
 		double dx = target.getX() - x;
 		double dy = target.getY() - y;
 		double enemyDistance = Math.sqrt((dx * dx) + (dy * dy));
@@ -59,7 +63,7 @@ public class Missile {
 		double angleDeg = Math.toDegrees(Math.atan2(dy, dx));
 		shape.setRotate(angleDeg);
 
-		// Hedefe ulaştıysa → patla
+		// explode if it reaches the target
 		if (enemyDistance < 5) {
 			explode(enemies);
 			active = false;
@@ -78,6 +82,7 @@ public class Missile {
 	}
 
 	private void explode(List<Enemy> enemies) {
+		//Function to deal damage to enemies
 		 List<Enemy> toDamage = new ArrayList<>();
 		for (Enemy e : enemies) {
 			if (e.isAlive()) {

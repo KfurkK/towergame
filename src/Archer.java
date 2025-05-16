@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import javafx.animation.FadeTransition;
 
 import javafx.animation.KeyFrame;
@@ -97,16 +98,7 @@ public class Archer extends Enemy {
         double minDistanceSq = ATTACK_RANGE * ATTACK_RANGE; // Use squared distance to avoid sqrt
 
         for (Tower tower : towers) {
-            // Calculate distance from archer to tower
-            // Note: Tower x, y are grid positions, convert to screen coordinates if necessary
-            // Assuming Tower.getX() and Tower.getY() in Tower.java return screen coordinates or are compatible.
-            // If Tower.getX()/getY() return grid indices, you need to convert them like in Main.java:
-            // double towerScreenX = offsetX + tower.getGridPosition()[1] * gridUnit + TILE_SIZE / 2;
-            // double towerScreenY = offsetY + tower.getGridPosition()[0] * gridUnit + TILE_SIZE / 2;
-            // For simplicity, I'll assume tower.getX() and tower.getY() are screen coordinates.
-            // If they are grid coordinates, they would need to be public fields or have public getters
-            // for their screen coordinates or grid positions to perform the conversion.
-            // The Tower class has public double x, y fields which seem to be screen coordinates.
+            
 
             double dx = tower.x - this.getX(); //
             double dy = tower.y - this.getY(); //
@@ -117,26 +109,7 @@ public class Archer extends Enemy {
                 closestTower = tower;
             }
         }
-        // To ensure we are strictly within ATTACK_RANGE (not just <= ATTACK_RANGE)
-        // and to pick the absolute closest if multiple are at the exact ATTACK_RANGE boundary,
-        // an alternative approach is to filter first, then find the minimum.
-        // However, the current approach is generally fine.
-
-        // If you need the exact closest and then check range:
-        /*
-        return towers.stream()
-                .filter(tower -> {
-                    double dx = tower.x - this.getX();
-                    double dy = tower.y - this.getY();
-                    return (dx * dx + dy * dy) <= (ATTACK_RANGE * ATTACK_RANGE);
-                })
-                .min(Comparator.comparingDouble(tower -> {
-                    double dx = tower.x - this.getX();
-                    double dy = tower.y - this.getY();
-                    return dx * dx + dy * dy;
-                }))
-                .orElse(null);
-        */
+        
         return closestTower; // Return the closest tower found within range
     }
 

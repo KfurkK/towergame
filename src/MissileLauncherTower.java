@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ import javafx.util.Duration;
 
 public class MissileLauncherTower extends Tower {
 	public long lastShotTime = 0;
-	public long shootInterval = 1500; // 1,5 saniye
+	public long shootInterval = 1500; 
 	public int missileDamage = 100;
 	public double effectRadius = 50;
 
@@ -32,6 +33,7 @@ public class MissileLauncherTower extends Tower {
 
 
 	public MissileLauncherTower(double x, double y, Pane gameOverlay) {
+		// Includes the tower's features and positioning.
 		super(x, y, 100, 200, Color.ORANGE); // 200$
 		this.overlay = gameOverlay;
 		Image img = new Image("/assets/towers/missilelaunchtower.png");
@@ -56,6 +58,7 @@ public class MissileLauncherTower extends Tower {
 	
 
 	public void update(List<Enemy> enemies) {
+		//Controls the enemies and adds the missile to the game.
 		long instanceTime = System.currentTimeMillis();
 		if (!placed) 
 			return;

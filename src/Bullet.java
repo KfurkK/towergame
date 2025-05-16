@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import javafx.scene.media.AudioClip;
 import javax.sound.sampled.*;
 
@@ -12,19 +13,13 @@ import javafx.scene.shape.Circle;
 public class Bullet {
 	public double x, y;
 	public Enemy target;
-	public double speed = 5.0; // Sonra dolduralım.
+	public double speed = 5.0;
 	public int damage = 10;
 	public boolean active = true;
 	public ImageView shape;
 	private static final Image BULLET_IMG = new Image(
 			Bullet.class.getResource("/assets/bullets/cannonball.png").toExternalForm());
-	/*
-	 * public static Clip shootClip; static { try (AudioInputStream ais =
-	 * AudioSystem.getAudioInputStream(
-	 * Bullet.class.getResource("/assets/sounds/Cannonball.wav"))) { shootClip =
-	 * AudioSystem.getClip(); shootClip.open(ais); } catch (Exception e) {
-	 * e.printStackTrace(); } }
-	 */
+	
 
 	public Bullet(double x, double y, Enemy target, int damage) {
 		this.x = x;

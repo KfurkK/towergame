@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ import javafx.util.Duration;
 
 public class TripleShotTower extends Tower {
 	public long lastShotTime = 0;
-	public long shootInterval = 1000;   // 1 saniye
+	public long shootInterval = 1000;   
 	public int damage = 10;
 	public ImageView imageView;
 
@@ -32,6 +33,7 @@ public class TripleShotTower extends Tower {
 
 
 	public TripleShotTower(double x, double y, Pane gameOverlay) {
+		// Includes the tower's features and positioning.
 		super(x, y, 100, 150, Color.DEEPSKYBLUE);// 150$
 		this.overlay = gameOverlay;
 	
@@ -57,6 +59,7 @@ public class TripleShotTower extends Tower {
 
 	@Override
 	public void update(List<Enemy> enemies) {
+		//Add fire and bullet function
 
 		long instanceTime = System.currentTimeMillis();
 		if (!placed) 
@@ -157,23 +160,24 @@ public class TripleShotTower extends Tower {
 	}
 
 	public List<Enemy> nearestEnemies(List<Enemy> enemies, int count) {
+		// Identifies the nearest enemy.
 		List<Enemy> inRangeEnemies = new ArrayList<>();
 
-		// 1. Menzildeki ve canlı düşmanları bul
+		
 		for (Enemy e : enemies) {
 			if (isRange(e) && e.isAlive()) {
 				inRangeEnemies.add(e);
 			}
 		}
 
-		// 2. Yakınlığa göre sırala (merkezden olan uzaklığa göre)
+		// Selects the 3 closest enemies and specifically hits them.
 		inRangeEnemies.sort((e1, e2) -> {
 			double d1 = Math.sqrt((e1.getX() - x) * (e1.getX() - x) + (e1.getY() - y) * (e1.getY() - y));
 			double d2 = Math.sqrt((e2.getX() - x) * (e2.getX() - x) + (e2.getY() - y) * (e2.getY() - y));
 			return Double.compare(d1, d2);
 		});
 
-		// 3. İlk 'count' tanesini al (mesela 3)
+		
 		List<Enemy> result = new ArrayList<>();
 		for (int i = 0; i < count && i < inRangeEnemies.size(); i++) {
 			result.add(inRangeEnemies.get(i));

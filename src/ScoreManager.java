@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.text.SimpleDateFormat;
 
+ // It allows keeping scores and keeps track of the time and day the user made.
 public class ScoreManager {
     private static final String FILE_PATH = "scores.txt";
     private static final int MAX_SCORES = 5;
@@ -20,18 +22,20 @@ public class ScoreManager {
         
         for (ScoreEntry entry : entries) {
             if (entry.username.equals(username) && entry.score == score) {
-                return; // Aynı kullanıcıdan aynı skor zaten var
+                return; 
             }
         }
         
         boolean duplicate = entries.stream().anyMatch(e -> e.score == score);
         if (duplicate) return;
 
-        // Şu anki zamanı ekle
+        // Add the time.
         String time = formatter.format(new Date());
         entries.add(new ScoreEntry(username, score, time));
+        
+        // Sorts and lists scores
 
-        // Skorları büyükten küçüğe sırala
+        
         entries.sort((a, b) -> Integer.compare(b.score, a.score));
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
@@ -52,6 +56,7 @@ public class ScoreManager {
         if (!file.exists()) return entries;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        	//writes scores to a file
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("@");
@@ -69,7 +74,7 @@ public class ScoreManager {
         return entries;
     }
 
-    // Nested class for skor nesnesi
+    
     public static class ScoreEntry {
     	public String username;
         public int score;

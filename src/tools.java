@@ -1,3 +1,4 @@
+//150123005 Ayberk SARAÇ / 150124035 Kamil Furkan KUNT / 150124075 Eren VURAL
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Array;
@@ -7,7 +8,7 @@ import java.util.Scanner;
 public class tools {
 
     public static void main(String[] args) throws FileNotFoundException {
-        //readCoordinates("C:/Users/kamil/IdeaProjects/towergame/src/levels/level2.txt");
+        
     }
 
     public static ArrayList<int[]> readCoordinates(String filePath) throws FileNotFoundException {
