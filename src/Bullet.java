@@ -1,9 +1,4 @@
-import javafx.scene.media.AudioClip;
-import javax.sound.sampled.*;
-
 import javafx.scene.Node;
-
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
@@ -18,13 +13,7 @@ public class Bullet {
 	public ImageView shape;
 	private static final Image BULLET_IMG = new Image(
 			Bullet.class.getResource("/assets/bullets/cannonball.png").toExternalForm());
-	/*
-	 * public static Clip shootClip; static { try (AudioInputStream ais =
-	 * AudioSystem.getAudioInputStream(
-	 * Bullet.class.getResource("/assets/sounds/Cannonball.wav"))) { shootClip =
-	 * AudioSystem.getClip(); shootClip.open(ais); } catch (Exception e) {
-	 * e.printStackTrace(); } }
-	 */
+    // Optional: hook up an AudioClip for bullet firing if desired
 
 	public Bullet(double x, double y, Enemy target, int damage) {
 		this.x = x;

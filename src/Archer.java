@@ -40,44 +40,44 @@ public class Archer extends Enemy {
         this.gamePane = gamePane;
 
         // Load archer-specific image
-        this.img = new Image(getClass().getResource("/assets/archer.png").toExternalForm()); //
-        this.getView().setImage(this.img); //
+        this.img = new Image(getClass().getResource("/assets/archer.png").toExternalForm());
+        this.getView().setImage(this.img);
 
         // Start attacking towers periodically
-        startAttackLoop(); //
+        startAttackLoop();
     }
 
     /**
      * Start a loop to check for towers in range and attack them
      */
     private void startAttackLoop() {
-        attackTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> checkAndAttackTowers())); //
-        attackTimer.setCycleCount(Timeline.INDEFINITE); //
-        attackTimer.play(); //
+        attackTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> checkAndAttackTowers()));
+        attackTimer.setCycleCount(Timeline.INDEFINITE);
+        attackTimer.play();
     }
 
     /**
      * Check for towers in range and attack if possible
      */
     private void checkAndAttackTowers() {
-        if (!isAlive()) { //
-            if (attackTimer != null) { //
-                attackTimer.stop(); //
+        if (!isAlive()) {
+            if (attackTimer != null) {
+                attackTimer.stop();
             }
-            return; //
+            return;
         }
 
         // Check cooldown
-        long currentTime = System.currentTimeMillis(); //
-        if (currentTime - lastAttackTime < ATTACK_COOLDOWN) { //
-            return; //
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastAttackTime < ATTACK_COOLDOWN) {
+            return;
         }
 
         // Get the nearest tower in range
-        Tower nearestTower = findNearestTowerInRange(); //
-        if (nearestTower != null) { //
-            attackTower(nearestTower); //
-            lastAttackTime = currentTime; //
+        Tower nearestTower = findNearestTowerInRange();
+        if (nearestTower != null) {
+            attackTower(nearestTower);
+            lastAttackTime = currentTime;
         }
     }
 
@@ -88,7 +88,7 @@ public class Archer extends Enemy {
      */
     private Tower findNearestTowerInRange() {
         // Get towers from the Game class
-        List<Tower> towers = Game.getTowers(); //
+        List<Tower> towers = Game.getTowers();
         if (towers == null || towers.isEmpty()) {
             return null;
         }
@@ -108,8 +108,8 @@ public class Archer extends Enemy {
             // for their screen coordinates or grid positions to perform the conversion.
             // The Tower class has public double x, y fields which seem to be screen coordinates.
 
-            double dx = tower.x - this.getX(); //
-            double dy = tower.y - this.getY(); //
+            double dx = tower.x - this.getX();
+            double dy = tower.y - this.getY();
             double distanceSq = dx * dx + dy * dy;
 
             if (distanceSq <= minDistanceSq) {
@@ -147,54 +147,54 @@ public class Archer extends Enemy {
      */
     private void attackTower(Tower tower) {
         // Calculate direction to tower
-        double targetX = tower.x; // Assuming tower.x is the screen coordinate //
-        double targetY = tower.y; // Assuming tower.y is the screen coordinate //
-        double startX = this.getX(); //
-        double startY = this.getY(); //
+        double targetX = tower.x; // Assuming tower.x is the screen coordinate
+        double targetY = tower.y; // Assuming tower.y is the screen coordinate
+        double startX = this.getX();
+        double startY = this.getY();
 
         // Create arrow
-        Line arrow = new Line(startX, startY, startX, startY); //
-        arrow.setStrokeWidth(2); //
-        arrow.setStroke(Color.BROWN); //
-        gamePane.getChildren().add(arrow); //
+        Line arrow = new Line(startX, startY, startX, startY);
+        arrow.setStrokeWidth(2);
+        arrow.setStroke(Color.BROWN);
+        gamePane.getChildren().add(arrow);
 
         // Create arrowhead
-        Circle arrowHead = new Circle(3, Color.DARKGRAY); //
-        arrowHead.setCenterX(startX); //
-        arrowHead.setCenterY(startY); //
-        gamePane.getChildren().add(arrowHead); //
+        Circle arrowHead = new Circle(3, Color.DARKGRAY);
+        arrowHead.setCenterX(startX);
+        arrowHead.setCenterY(startY);
+        gamePane.getChildren().add(arrowHead);
 
         // Animate arrow
-        Timeline arrowAnimation = new Timeline(); //
-        double animationDuration = 500; // ms //
+        Timeline arrowAnimation = new Timeline();
+        double animationDuration = 500; // ms
 
-        for (int i = 0; i <= 10; i++) { //
-            double t = i / 10.0; //
-            double x = startX + (targetX - startX) * t; //
-            double y = startY + (targetY - startY) * t; //
+        for (int i = 0; i <= 10; i++) {
+            double t = i / 10.0;
+            double x = startX + (targetX - startX) * t;
+            double y = startY + (targetY - startY) * t;
 
-            KeyFrame frame = new KeyFrame(Duration.millis(animationDuration * t), //
+            KeyFrame frame = new KeyFrame(Duration.millis(animationDuration * t),
                     e -> {
-                        arrow.setEndX(x); //
-                        arrow.setEndY(y); //
-                        arrowHead.setCenterX(x); //
-                        arrowHead.setCenterY(y); //
+                        arrow.setEndX(x);
+                        arrow.setEndY(y);
+                        arrowHead.setCenterX(x);
+                        arrowHead.setCenterY(y);
                     });
-            arrowAnimation.getKeyFrames().add(frame); //
+            arrowAnimation.getKeyFrames().add(frame);
         }
 
-        arrowAnimation.setOnFinished(e -> { //
+        arrowAnimation.setOnFinished(e -> {
             // Clean up arrow
-            gamePane.getChildren().removeAll(arrow, arrowHead); //
+            gamePane.getChildren().removeAll(arrow, arrowHead);
 
             // Deal damage to tower
-            damageTower(tower, ATTACK_DAMAGE); //
+            damageTower(tower, ATTACK_DAMAGE);
 
             // Create hit effect
-            createHitEffect(targetX, targetY); //
+            createHitEffect(targetX, targetY);
         });
 
-        arrowAnimation.play(); //
+        arrowAnimation.play();
     }
 
     /**
@@ -210,7 +210,7 @@ public class Archer extends Enemy {
             // We need to ensure Archer.damageValue is correctly used or pass ATTACK_DAMAGE
             Archer.damageValue = damage; // Set the static damageValue before calling damage
             // This is how SingleShotTower expects to receive damage from an Archer
-            tower.damage(damageValue); // Call the tower's own damage method //
+            tower.damage(damageValue); // Call the tower's own damage method
         }
     }
 
@@ -220,30 +220,30 @@ public class Archer extends Enemy {
      * @param x X coordinate of hit
      * @param y Y coordinate of hit
      */
-    private void createHitEffect(double x, double y) { //
+    private void createHitEffect(double x, double y) {
         // Create small explosion effect
-        for (int i = 0; i < 8; i++) { //
-            Circle particle = new Circle(2, Color.ORANGE); //
-            particle.setCenterX(x); //
-            particle.setCenterY(y); //
-            gamePane.getChildren().add(particle); //
+        for (int i = 0; i < 8; i++) {
+            Circle particle = new Circle(2, Color.ORANGE);
+            particle.setCenterX(x);
+            particle.setCenterY(y);
+            gamePane.getChildren().add(particle);
 
             // Random direction
-            double angle = Math.random() * 2 * Math.PI; //
-            double distance = Math.random() * 15; //
+            double angle = Math.random() * 2 * Math.PI;
+            double distance = Math.random() * 15;
 
-            TranslateTransition move = new TranslateTransition(Duration.millis(300), particle); //
-            move.setByX(Math.cos(angle) * distance); //
-            move.setByY(Math.sin(angle) * distance); //
+            TranslateTransition move = new TranslateTransition(Duration.millis(300), particle);
+            move.setByX(Math.cos(angle) * distance);
+            move.setByY(Math.sin(angle) * distance);
 
-            FadeTransition fade = new FadeTransition(Duration.millis(300), particle); //
-            fade.setFromValue(1.0); //
-            fade.setToValue(0.0); //
+            FadeTransition fade = new FadeTransition(Duration.millis(300), particle);
+            fade.setFromValue(1.0);
+            fade.setToValue(0.0);
 
-            fade.setOnFinished(e -> gamePane.getChildren().remove(particle)); //
+            fade.setOnFinished(e -> gamePane.getChildren().remove(particle));
 
-            move.play(); //
-            fade.play(); //
+            move.play();
+            fade.play();
         }
     }
 
@@ -251,22 +251,22 @@ public class Archer extends Enemy {
      * Clean up resources when archer dies or is removed
      */
     @Override
-    public void die() { //
-        if (attackTimer != null) { //
-            attackTimer.stop(); //
+    public void die() {
+        if (attackTimer != null) {
+            attackTimer.stop();
         }
-        super.die(); //
+        super.die();
     }
 
     /**
      * Override stop method to also stop the attack timer
      */
     @Override
-    public void stop() { //
-        if (attackTimer != null) { //
-            attackTimer.stop(); //
+    public void stop() {
+        if (attackTimer != null) {
+            attackTimer.stop();
         }
-        super.stop(); //
+        super.stop();
     }
 
 
@@ -274,10 +274,10 @@ public class Archer extends Enemy {
     protected void removeFromGame() {
         // 1. Stop Archer-specific activities
         if (attackTimer != null) {
-            attackTimer.stop(); //
+            attackTimer.stop();
         }
 
-        super.removeFromGame(); //
+        super.removeFromGame();
     }
 
     // Removed the abstract findNearestTower() as it's now implemented by findNearestTowerInRange()

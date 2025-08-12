@@ -19,8 +19,8 @@ public class Giant extends Enemy {
         this.gamePane = gamePane;
 
         // Load archer-specific image
-        this.img = new Image(getClass().getResource("/assets/giant.png").toExternalForm()); //
-        this.getView().setImage(this.img); //
+        this.img = new Image(getClass().getResource("/assets/giant.png").toExternalForm());
+        this.getView().setImage(this.img);
 
         // Start attacking towers periodically
 
@@ -33,7 +33,7 @@ public class Giant extends Enemy {
 
     @Override
     protected void removeFromGame() {
-        super.removeFromGame(); //
+        super.removeFromGame();
     }
 
     @Override

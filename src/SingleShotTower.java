@@ -82,10 +82,7 @@ public class SingleShotTower extends Tower {
 				Bullet b = new Bullet(x, y, closest, 10);
 
 				Game.addBullet(b);
-				/*
-				 * if (Bullet.shootClip != null) { Bullet.shootClip.stop();
-				 * Bullet.shootClip.setFramePosition(0); Bullet.shootClip.start(); }
-				 */
+                // Optional: play shoot sound effect here if enabled
 				lastShotTime = instantTime;
 			}
 		}

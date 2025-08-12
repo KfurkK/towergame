@@ -90,20 +90,20 @@ public class Game {
 		gameOverlay.getChildren().add(b.getNode());
 	}
 
-	public static void removeBullet(Bullet b) {
-		bullets.remove(b); // logic'ten sil
-		gameOverlay.getChildren().remove(b.getNode());
-	}
+    public static void removeBullet(Bullet b) {
+        bullets.remove(b);
+        gameOverlay.getChildren().remove(b.getNode());
+    }
 
 	public static void addMissile(Missile m) {
 		missiles.add(m);
 		gameOverlay.getChildren().add(m.getNode());
 	}
 
-	public static void removeMissile(Bullet b) {
-		bullets.remove(b); // logic'ten sil
-		gameOverlay.getChildren().remove(b.getNode());
-	}
+    public static void removeMissile(Bullet b) {
+        bullets.remove(b);
+        gameOverlay.getChildren().remove(b.getNode());
+    }
 
 	public static List<Tower> getTowers() {
 		return towers;

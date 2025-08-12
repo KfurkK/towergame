@@ -192,23 +192,17 @@ public class Main extends Application {
                 if (tools.getWaveData(currentLevel).length == finishedWaveCount
                         && Game.enemies.isEmpty()
                         && lives > 0) {
-                    System.out.println("🎉 Tüm wave'ler tamamlandı! Level: " + currentLevel);
                     if (currentLevel == 5) {
                         this.stop();
                         goWonScene();
                     } else {
 
                         waveCountdownLabel.setText("Next wave: 0s");
-                        System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
 
                         finishedWaveCount = 0;
                         currentLevel++;
-                        System.out.println("BURDA");
                         OtherResetGame();
-                        System.out.println("BURDA2");
                         goContinueScene();
-                        System.out.println("BURDA3");
-                        System.out.println(currentLevel);
                     }
 
 
@@ -294,7 +288,7 @@ public class Main extends Application {
             int count = (int) waveData[i][0];
             double rate = waveData[i][1];
 
-            // Yeni wave başlamadan 5 saniye önce geri sayımı başlat
+            // Start a countdown 5 seconds before the new wave begins
             if (delay >= 5) {
                 int seconds = 5;
                 waveTimeLine.getKeyFrames().add(
@@ -313,7 +307,7 @@ public class Main extends Application {
             	    )
             	);
 
-            // Asıl wave başlatma
+            // Start the actual wave
             waveTimeLine.getKeyFrames().add(
                     new KeyFrame(Duration.seconds(delay),
                             e -> spawnWave(count, rate)
@@ -326,11 +320,10 @@ public class Main extends Application {
         }
 
         waveTimeLine.play();
-        System.out.printf("Next wave scheduled at t=%.3fs%n", delay);
     }
 
     private void startWaveCountdown(int seconds) {
-        // Mevcut timer varsa durdur
+        // Stop existing timer if present
         if (countdownTimer != null) {
             countdownTimer.stop();
         }
@@ -376,7 +369,6 @@ public class Main extends Application {
 
         timeline.setOnFinished(e -> {
             ++finishedWaveCount;
-            System.out.println(finishedWaveCount);
         });
 
     }
@@ -497,7 +489,7 @@ public class Main extends Application {
         scoreLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 32));
         scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.3, 0, 2);");
 
-        VBox bL=new VBox(20);//ButtonAndLabel
+        VBox bL=new VBox(20);
         bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +
                 "-fx-background-radius: 12;" +
                 "-fx-padding: 16px;");
@@ -551,7 +543,7 @@ public class Main extends Application {
         
         
 
-        VBox bL=new VBox(20);//ButtonAndLabel
+        VBox bL=new VBox(20)
         bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +
                 "-fx-background-radius: 12;" +
                 "-fx-padding: 16px;");
@@ -565,9 +557,9 @@ public class Main extends Application {
         StackPane.setAlignment(bL, Pos.CENTER);
         
         Platform.runLater(() -> {
-            TextInputDialog dialog = new TextInputDialog("Oyuncu");
-            dialog.setTitle("İsim Gir");
-            dialog.setHeaderText("Skorun kaydedilecek. Lütfen ismini yaz:");
+            TextInputDialog dialog = new TextInputDialog("Player");
+            dialog.setTitle("Enter Name");
+            dialog.setHeaderText("Your score will be saved. Please enter your name:");
             Optional<String> result = dialog.showAndWait();
             result.ifPresent(name -> {
                 ScoreManager.saveScore(name, score);
@@ -842,8 +834,7 @@ public class Main extends Application {
             if (draggingTower && selectedTower != null) {
 
                 int price = (int) selectedTower.getPrice();
-                if (money < price) {
-                    System.out.println("❌ Yetersiz para! Kule elden gitti.");
+                        if (money < price) {
                     gameOverlay.getChildren().remove(selectedTower.getNode());
                     gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
                     gameOverlay.getChildren().remove(selectedTower.getHealthBar());
@@ -1233,8 +1224,7 @@ public class Main extends Application {
                 gameOverTriggered = true;
                 
             }
-            System.out.println("💀 Can 0 oldu, oyun bitti.");
-            Game.enemies.clear(); // Düşmanları da sıfırla
+            Game.enemies.clear(); // Also clear enemies
             mainStage.getScene().getRoot().setDisable(true);
             
             
@@ -1478,10 +1468,10 @@ public class Main extends Application {
         	            }));
         	            delayTimeline.play();
 
-        		}
-        		catch(Exception ex) {
-        			System.out.println("continue exeption");
-        		}
+        }
+        catch(Exception ex) {
+            ex.printStackTrace();
+        }
         		increaseMoney(100);
      	});
         }
@@ -1613,9 +1603,9 @@ public class Main extends Application {
 
         mainStage.setScene(wonScene);
         Platform.runLater(() -> {
-            TextInputDialog dialog = new TextInputDialog("Oyuncu");
-            dialog.setTitle("İsim Gir");
-            dialog.setHeaderText("Skorun kaydedilecek. Lütfen ismini yaz:");
+            TextInputDialog dialog = new TextInputDialog("Player");
+            dialog.setTitle("Enter Name");
+            dialog.setHeaderText("Your score will be saved. Please enter your name:");
             Optional<String> result = dialog.showAndWait();
             result.ifPresent(name -> {
                 ScoreManager.saveScore(name, score);
@@ -1630,7 +1620,7 @@ public class Main extends Application {
     }
     
     public void showWaveStartAnimation(int waveNumber) {
-    	Label waveLabel = new Label(waveInLevel + ". Dalga"  + " Başlıyor!");
+    	Label waveLabel = new Label("Wave " + waveInLevel + " starting!");
         waveLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 48));
         waveLabel.setTextFill(Color.web("#FFE09A"));
         waveLabel.setStyle("-fx-effect: dropshadow(gaussian, black, 6, 0.4, 0, 2);");
