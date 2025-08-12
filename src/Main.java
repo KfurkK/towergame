@@ -1,4 +1,3 @@
-//restart yapınca animasyon bozuk
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -153,8 +152,8 @@ public class Main extends Application {
         topScoreBox.setStyle("-fx-background-color: rgba(0,0,0,0.0); -fx-background-radius: 10;");
         topScoreBox.setAlignment(Pos.TOP_LEFT);
         topScoreBox.setMaxWidth(300);
-        topScoreBox.setTranslateX(700); // sağa
-        topScoreBox.setTranslateY(50);  // yukarı
+        topScoreBox.setTranslateX(700);
+        topScoreBox.setTranslateY(50);
         
         Label title = new Label("Top Scores:");
         title.setStyle("-fx-text-fill: #FFE09A; -fx-font-size: 18px;");
@@ -186,8 +185,8 @@ public class Main extends Application {
                 Game.update();
 
                 if (lives <= 0) {
-                    this.stop(); // timer durdurulmalı
-                    goEndScene(); // sahneye geçilmeli
+                    this.stop();
+                    goEndScene();
                     return;
                 }
                 if (tools.getWaveData(currentLevel).length == finishedWaveCount
@@ -195,10 +194,10 @@ public class Main extends Application {
                         && lives > 0) {
                     System.out.println("🎉 Tüm wave'ler tamamlandı! Level: " + currentLevel);
                     if (currentLevel == 5) {
-                        this.stop();// 🎉 5. level bitti, oyun kazanıldı
+                        this.stop();
                         goWonScene();
                     } else {
-                        // ⏭ Diğer levellere geçiş
+
                         waveCountdownLabel.setText("Next wave: 0s");
                         System.out.println("✔ Level tamamlandı. Yeni levele geçiliyor...");
 
@@ -227,16 +226,16 @@ public class Main extends Application {
             gameRoot = new StackPane();
 
             try {
-                gameScene = getGameScene(gameRoot); // yeniden yarat!
+                gameScene = getGameScene(gameRoot);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
                 return;
             }
-            primaryStage.setScene(gameScene); // yeni sahneyi göster
+            primaryStage.setScene(gameScene);
             transitions.forEach(Animation::play);
 
             Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
-                addGameButtons();
+
                 setupTowerPlacement();
                 scheduleWaves(currentLevel);
             }));
@@ -272,30 +271,6 @@ public class Main extends Application {
     }
 
     /**
-     * Add game control buttons to the overlay
-     */
-    private void addGameButtons() {
-        // Spawn Enemy button
-        /*Button spawnEnemyButton = createGameButton("Spawn Enemy", 520, 500);
-        spawnEnemyButton.setOnAction(event -> spawnEnemyArcher());
-        gameOverlay.getChildren().add(spawnEnemyButton); */
-
-        // Debug Path button
-        /*Button debugButton = createGameButton("Debug Path", 520, 550);
-        debugButton.setOnAction(we -> {
-            try {
-                visualizePathPoints();
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
-        });
-        gameOverlay.getChildren().add(debugButton);
-
-        // Damage Enemy button */
-
-    }
-
-    /**
      * Schedule enemy waves to spawn at specific intervals
      */
     private void scheduleWaves(int level) {
@@ -307,13 +282,13 @@ public class Main extends Application {
         double[][] waveData = tools.getWaveData(level);
         waveTimeLine = new Timeline();
 
-        // İlk wave'in buffer'ına göre ilk countdown
+
         if (waveData.length > 0) {
             int firstBuffer = (int) waveData[0][2];
             startWaveCountdown(firstBuffer);
         }
 
-        double delay = waveData[0][2];  // ilk wave başlamadan önceki bekleme
+        double delay = waveData[0][2];  // stoppage before first wave
 
         for (int i = 0; i < waveData.length; i++) {
             int count = (int) waveData[i][0];
@@ -441,7 +416,7 @@ public class Main extends Application {
         bgView.setFitWidth(WIDTH);
         bgView.setFitHeight(HEIGHT);
         bgView.setPreserveRatio(false);
-        bgView.setEffect(new GaussianBlur(12));  // 8–15 arası radius deneyebilirsiniz
+        bgView.setEffect(new GaussianBlur(12));
         gameRoot.getChildren().add(0, bgView);
 
         // Update debug label with path info
@@ -523,7 +498,7 @@ public class Main extends Application {
         scoreLabel.setStyle("-fx-text-fill: #FFE09A; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.3, 0, 2);");
 
         VBox bL=new VBox(20);//ButtonAndLabel
-        bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" + // şeffaf amber tonu
+        bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +
                 "-fx-background-radius: 12;" +
                 "-fx-padding: 16px;");
         bL.setPrefWidth(240);
@@ -577,7 +552,7 @@ public class Main extends Application {
         
 
         VBox bL=new VBox(20);//ButtonAndLabel
-        bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +  // Şeffaf amber tonu
+        bL.setStyle("-fx-background-color: rgba(251,209,139,0.0);" +
                 "-fx-background-radius: 12;" +
                 "-fx-padding: 16px;");
         bL.setPrefWidth(400);
@@ -771,7 +746,7 @@ public class Main extends Application {
             Circle circle = selectedTower.getRangeCircle();
             circle.setVisible(true);
 
-            // Menzil ve kule sahneye ekleniyor
+            // Add range and tower
             gameOverlay.getChildren().add(selectedTower.getRangeCircle());
             gameOverlay.getChildren().add(selectedTower.getNode());
             gameOverlay.getChildren().add((selectedTower).getHealthBar());
@@ -832,7 +807,7 @@ public class Main extends Application {
             b.setPrefHeight(90);
             b.setStyle(
                     "-fx-font-size: 16px;" +
-                            "-fx-background-color: rgba(251,209,139,0.1);" +  // FBD18B'nin %80 saydam hali
+                            "-fx-background-color: rgba(251,209,139,0.1);" +
                             "-fx-border-radius: 12;" +
                             "-fx-background-radius: 12;" +
                             "-fx-text-fill: #3E2F20;"
@@ -857,7 +832,7 @@ public class Main extends Application {
     public void setupTowerPlacement() {
         gameOverlay.setOnMouseMoved(e -> {
             if (draggingTower && selectedTower != null) {
-                // Sahne koordinatlarıyla güncelle
+
                 selectedTower.setPosition(e.getSceneX(), e.getSceneY());
 
 
@@ -877,12 +852,12 @@ public class Main extends Application {
                     selectedTowerType = 0;
                     return;
                 }
-                // col,row hesaplamanı buraya al
+
                 double clickX = e.getSceneX();
                 double clickY = e.getSceneY();
                 int col = (int)((clickX - offsetX) / gridUnit);
                 int row = (int)((clickY - offsetY) / gridUnit);
-                // (istersen path ve placedTowerCells kontrolü yap)
+
 
                 boolean invalid = false;
                 if (clickX < offsetX || clickY < offsetY
@@ -897,11 +872,11 @@ public class Main extends Application {
                     if (p[0]==row && p[1]==col) { invalid = true; break; }
                 }
                 if (invalid) {
-                    // Preview’u sahneden kaldır
+
                     gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
                     gameOverlay.getChildren().remove(selectedTower.getNode());
                     gameOverlay.getChildren().remove(selectedTower.getHealthBar());
-                    // Dragging bitir
+
                     draggingTower = false;
                     selectedTower = null;
                     selectedTowerType = 0;
@@ -912,7 +887,7 @@ public class Main extends Application {
                 if (clickX >= 1520)
                     return;
 
-                // Prevent tower placement outside grid
+
                 if (clickX < offsetX || clickY < offsetY)
                     return;
 
@@ -920,14 +895,12 @@ public class Main extends Application {
                     return;
                 }
 
-                // Check if path tile
                 for (int[] coord : pathCoordinates) {
                     if (coord[0] == row && coord[1] == col) {
                         return;
                     }
                 }
 
-                // Check if tower already placed
                 for (int[] placed : placedTowerCells) {
                     if (placed[0] == row && placed[1] == col) {
                         return;
@@ -937,14 +910,12 @@ public class Main extends Application {
 
                 decreaseMoney(price);
 
-                // 1) preview zaten sahnede: artık final pozisyona al
                 double centerX = offsetX + col * gridUnit + TILE_SIZE / 2;
                 double centerY = offsetY + row * gridUnit + TILE_SIZE / 2;
                 selectedTower.setPosition(centerX, centerY);
                 selectedTower.setGridPosition(row, col);
                 placedTowerCells.add(new int[]{row, col});
 
-                // 2) preview node’larını sahneden temizle
                 gameOverlay.getChildren().remove(selectedTower.getRangeCircle());
                 gameOverlay.getChildren().remove(selectedTower.getNode());
 
@@ -953,22 +924,18 @@ public class Main extends Application {
                 gameOverlay.getChildren().add(placedCircle);
                 placedCircle.setVisible(false);
 
-                // 3) gerçek kuleyi oyuna ekle
                 Game.addTower(selectedTower);
                 selectedTower.setPlaced(true);
 
                 Tower placed = selectedTower;
-                // Sağ tık satma ve sol tık sürükleme handler’ları:
                 placed.getNode().setOnMousePressed(ev -> {
                     if (ev.isSecondaryButtonDown()) {
-                        // sat
                         increaseMoney(placed.getPrice());
                         gameOverlay.getChildren().removeAll(placed.getNode(), placed.getRangeCircle(), placed.getHealthBar());
                         int[] g = placed.getGridPosition();
                         placedTowerCells.removeIf(p -> p[0]==g[0] && p[1]==g[1]);
                         Game.removeTower(placed);
                     } else {
-                        // sol tıkla hareket başlat
                         draggingTower = true;
                         selectedTower = placed;
                         placed.getRangeCircle().setVisible(true);
@@ -984,21 +951,15 @@ public class Main extends Application {
                         draggingTower = false;
                         placed.getRangeCircle().setVisible(false);
 
-                        // 2) Sahne koordinatlarını al
                         double mouseX = ev.getSceneX();
                         double mouseY = ev.getSceneY();
 
                         int col1 = (int)((mouseX - offsetX) / gridUnit);
                         int row1 = (int)((mouseY - offsetY) / gridUnit);
 
-                        // 3) Hücre indeksine dönüştür
-
-
-                        // 4) Geçersiz mi kontrol et?
                         boolean invalid1 = false;
                         if (row1 < 0 || row1 >= gridSize || col1 < 0 || col1 >= gridSize) {
                             increaseMoney(placed.getPrice());
-                            // görselleri sahneden kaldır
                             gameOverlay.getChildren().removeAll(placed.getNode(), placed.getRangeCircle(), selectedTower.getHealthBar());
 
                             placedTowerCells.removeIf(p ->
@@ -1006,7 +967,6 @@ public class Main extends Application {
                                             && p[1] == placed.getGridPosition()[1]
                             );
                             Game.removeTower(placed);
-                            // seçimi temizle
                             selectedTower = null;
                             selectedTowerType = 0;
                             return;
@@ -1031,7 +991,6 @@ public class Main extends Application {
                         }
 
                         if (invalidPlacement) {
-                            // 5a) Hatalıysa orijinal hücresine dön
                             double origX = offsetX
                                     + placed.getGridPosition()[1] * gridUnit
                                     + TILE_SIZE/2;
@@ -1040,8 +999,6 @@ public class Main extends Application {
                                     + TILE_SIZE/2;
                             placed.setPosition(origX, origY);
                         } else {
-                            // 6) geçerli yeni hücreye taşı
-                            // önce eski kaydı sil
                             placedTowerCells.removeIf(p ->
                                     p[0] == placed.getGridPosition()[0]
                                             && p[1] == placed.getGridPosition()[1]
@@ -1064,19 +1021,13 @@ public class Main extends Application {
                     
                 });
 
-                // 4) temizle
                 draggingTower = false;
                 selectedTower = null;
                 selectedTowerType = 0;
-                return;  // buradan çık, alt kod çalışmasın
+                return;
             }
 
 
-
-            // Convert click coordinates to grid position
-
-
-            // Check if grid position is valid
 
 
             if (selectedTowerType < 1 || selectedTowerType > 4) return;
@@ -1104,18 +1055,6 @@ public class Main extends Application {
                 if (money < tower.getPrice()) {
                     return;
                 }
-
-                // Deduct tower cost
-
-
-                // Add tower to game
-
-
-
-
-
-
-
 
                 // Set tower grid position
                 tower.setGridPosition(row, col);
@@ -1188,7 +1127,7 @@ public class Main extends Application {
                     }
 
                     if (invalid) {
-                        // geri koy
+                        // de-place
                         double origX = offsetX + tower.getGridPosition()[1] * gridUnit + TILE_SIZE/2;
                         double origY = offsetY + tower.getGridPosition()[0] * gridUnit + TILE_SIZE/2;
                         tower.setPosition(origX, origY);
@@ -1256,10 +1195,7 @@ public class Main extends Application {
     private void spawnEnemy() {
         currentEnemy = new Enemy(30, gameOverlay); // 100:health
         double randn = Math.random();
-        //if (randn < 0.4) {
-        //    spawnEnemyArcher();
-//
-        //}
+
         enemies.add(currentEnemy);
         Game.enemies.add(currentEnemy);
 
@@ -1364,7 +1300,7 @@ public class Main extends Application {
     
     public void resetGame() {
         for (Enemy e : enemies) {
-            e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
+            e.stop();
             gameOverlay.getChildren().remove(e.getView());
             gameOverlay.getChildren().remove(e.getHealthBar());
         }
@@ -1372,7 +1308,7 @@ public class Main extends Application {
         Game.enemies.clear();
         enemies.clear();
 
-        // Kuleleri sahneden kaldır
+        // Remove the towers from scene
         for (Tower t : Game.getTowers()) {
             gameOverlay.getChildren().remove(t.getNode());
             gameOverlay.getChildren().remove(t.getRangeCircle());
@@ -1380,7 +1316,7 @@ public class Main extends Application {
         }
         Game.getTowers().clear();
 
-        // Mermileri sahneden kaldır
+        // Remove bullets
         for (Bullet b : Game.getBullets()) {
             gameOverlay.getChildren().remove(b.getNode());
         }
@@ -1395,10 +1331,10 @@ public class Main extends Application {
         if (countdownTimer != null)  countdownTimer.stop();
         gameOverTriggered = false;
 
-        // Yerleşim yerlerini sıfırla
+
         placedTowerCells.clear();
 
-        // Oyun değişkenlerini sıfırla
+
         money = 100;
         lives = 5;
         score = 0;
@@ -1420,9 +1356,9 @@ public class Main extends Application {
 
     }
     public void OtherResetGame() {
-        System.out.println("BURAYA GİRİYO!");
+
         for (Enemy e : enemies) {
-            e.stop();  // Enemy sınıfında stop() metodunu yazmalısın
+            e.stop();
             gameOverlay.getChildren().remove(e.getView());
             gameOverlay.getChildren().remove(e.getHealthBar());
         }
@@ -1430,7 +1366,7 @@ public class Main extends Application {
         Game.enemies.clear();
         enemies.clear();
 
-        // Kuleleri sahneden kaldır
+        // Remove towers
         for (Tower t : Game.getTowers()) {
             gameOverlay.getChildren().remove(t.getNode());
             gameOverlay.getChildren().remove(t.getRangeCircle());
@@ -1438,7 +1374,7 @@ public class Main extends Application {
         }
         Game.getTowers().clear();
 
-        // Mermileri sahneden kaldır
+        // Remove bullets
         for (Bullet b : Game.getBullets()) {
             gameOverlay.getChildren().remove(b.getNode());
         }
@@ -1449,10 +1385,9 @@ public class Main extends Application {
         }
         Game.getMissiles().clear();
 
-        // Yerleşim yerlerini sıfırla
+        // Reset
         placedTowerCells.clear();
 
-        // Oyun değişkenlerini sıfırla
         lives = 5;
         finishedWaveCount=0;
         increaseScore((currentLevel - 1) * 100);
@@ -1468,9 +1403,6 @@ public class Main extends Application {
             livesLabel.setText("Lives: " + lives);
         }
         gameLoop.start();
-   	/* if (waveTimeline != null) {
-   		 waveTimeline.stop();
-   	 }*/
 
 
     }
@@ -1519,14 +1451,14 @@ public class Main extends Application {
         		try { 
         			Scene nextLevelScene = getGameScene(new StackPane());
         			mainStage.setScene(nextLevelScene); 
-        			transitions.forEach(Animation::play);//Start animation again from scratch
+        			transitions.forEach(Animation::play); // Start animation again from scratch
         			
         			if (currentLevel==4 || currentLevel==5) {
                     	maxDelay=2688;
-                    }// from scratch start we 
+                    }
 
         	            Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(maxDelay), ev -> {
-        	                addGameButtons();
+
         	                setupTowerPlacement();
         	                scheduleWaves(currentLevel);
 
@@ -1545,7 +1477,7 @@ public class Main extends Application {
 
         	            }));
         	            delayTimeline.play();
-        			// Animasyonları yeniden başlat transitions.forEach(Animation::play); // Yeni leveli başlat scheduleWaves(currentLevel); } catch(Exception ex) { System.out.println("exception found"); } }); return continueButton;
+
         		}
         		catch(Exception ex) {
         			System.out.println("continue exeption");
@@ -1567,7 +1499,7 @@ public class Main extends Application {
                 clip.open(ais);
 
                 FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                gainControl.setValue(-15.0f); // desibel cinsinden → 0.0f = tam ses, -80f = sessiz
+                gainControl.setValue(-15.0f); // in terms of DB
 
                 clip.loop(Clip.LOOP_CONTINUOUSLY);
             } catch (Exception e) {
@@ -1618,7 +1550,7 @@ public class Main extends Application {
 
             mainStage.setScene(newGameScene);
             transitions.forEach(Animation::play);
-            addGameButtons();
+
             setupTowerPlacement();
             scheduleWaves(currentLevel);
         });
@@ -1672,7 +1604,7 @@ public class Main extends Application {
         won.getChildren().addAll(nextLabel, scoreLabel, scoreList, getWonButton(), getExitButton());
 
         StackPane paneWon=new StackPane();
-        paneWon.getChildren().addAll(bgView, won); // önce arka plan, sonra UI
+        paneWon.getChildren().addAll(bgView, won);
         StackPane.setAlignment(won, Pos.CENTER);
 
         Scene wonScene=new Scene(paneWon,WIDTH,HEIGHT);

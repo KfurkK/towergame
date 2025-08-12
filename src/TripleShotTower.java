@@ -17,7 +17,7 @@ import javafx.util.Duration;
 
 public class TripleShotTower extends Tower {
 	public long lastShotTime = 0;
-	public long shootInterval = 1000;   // 1 saniye
+    public long shootInterval = 1000;   // 1 second
 	public int damage = 10;
 	public ImageView imageView;
 
@@ -77,7 +77,7 @@ public class TripleShotTower extends Tower {
 	
 	@Override
 	public void damage(int damageValue) {
-		// decrease the healthbar displayd of the tower
+		// Decrease the displayed health bar of the tower
 		this.towerHealth -= damageValue;
 		double percent = (double) this.towerHealth / maxTowerHealth;
 		healthBar.setWidth(Enemy.TILE_SIZE * percent);
@@ -110,7 +110,7 @@ public class TripleShotTower extends Tower {
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
 
-		// set damaged tower image
+		// Set damaged tower image
 		Image damagedTower = new Image("/assets/towers/triple_damaged.png");
 		imageView = new ImageView(damagedTower);
 		imageView.setFitWidth(40);
@@ -159,21 +159,21 @@ public class TripleShotTower extends Tower {
 	public List<Enemy> nearestEnemies(List<Enemy> enemies, int count) {
 		List<Enemy> inRangeEnemies = new ArrayList<>();
 
-		// 1. Menzildeki ve canlı düşmanları bul
+		// 1. Find alive enemies within range
 		for (Enemy e : enemies) {
 			if (isRange(e) && e.isAlive()) {
 				inRangeEnemies.add(e);
 			}
 		}
 
-		// 2. Yakınlığa göre sırala (merkezden olan uzaklığa göre)
+		// 2. Sort by proximity (distance from tower center)
 		inRangeEnemies.sort((e1, e2) -> {
 			double d1 = Math.sqrt((e1.getX() - x) * (e1.getX() - x) + (e1.getY() - y) * (e1.getY() - y));
 			double d2 = Math.sqrt((e2.getX() - x) * (e2.getX() - x) + (e2.getY() - y) * (e2.getY() - y));
 			return Double.compare(d1, d2);
 		});
 
-		// 3. İlk 'count' tanesini al (mesela 3)
+		// 3. Take the first 'count' enemies (e.g., 3)
 		List<Enemy> result = new ArrayList<>();
 		for (int i = 0; i < count && i < inRangeEnemies.size(); i++) {
 			result.add(inRangeEnemies.get(i));

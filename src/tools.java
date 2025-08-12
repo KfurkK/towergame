@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class tools {
 
     public static void main(String[] args) throws FileNotFoundException {
-        //readCoordinates("C:/Users/kamil/IdeaProjects/towergame/src/levels/level2.txt");
+        // Example usage: readCoordinates("path/to/level2.txt");
     }
 
     public static ArrayList<int[]> readCoordinates(String filePath) throws FileNotFoundException {
@@ -19,7 +19,7 @@ public class tools {
                 String line = scanner.nextLine().trim();
 
                 if (line.startsWith("HEIGHT:")) {
-                    // start reading
+                    // Start reading coordinates after HEIGHT marker
                     startReading = true;
                     continue;
                 }
@@ -38,9 +38,7 @@ public class tools {
             }
 
         }
-        //for (int[] duo: coordinates) {
-        //    System.out.println("|" + duo[0] + "," + duo[1]);
-        //}
+        // Debug print loop removed
 
         return coordinates;
     }
@@ -48,7 +46,7 @@ public class tools {
     public static double[][] getWaveData(int level) {
         if (level == 1) {
             return new double[][] {
-                    {5, 1, 2}, // 4*1 + 2 + 5
+                    {5, 1, 2},
                     {8, 0.5, 5},
                     {12, 0.3, 5}
             };

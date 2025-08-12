@@ -284,6 +284,6 @@ public class Archer extends Enemy {
     
     @Override
     public int getPointValue() {
-        return 20; // Okçular 2 kat puan
+        return 20; // Archers are worth double points
     }
 }

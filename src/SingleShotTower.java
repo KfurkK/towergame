@@ -16,7 +16,7 @@ import javafx.util.Duration;
 
 public class SingleShotTower extends Tower {
 	private long lastShotTime = 0;
-	private long shootInterval = 750;  // 0.75 saniye
+    private long shootInterval = 750;  // 0.75 seconds
 	public int damage = 10;
 	public ImageView image;
 
@@ -93,7 +93,7 @@ public class SingleShotTower extends Tower {
 	
 	@Override
 	public void damage(int damageValue) {
-		// decrease the healthbar displayed of the tower
+        // Decrease the displayed health bar of the tower
 		this.towerHealth -= damageValue;
 		double percent = (double) this.towerHealth / maxTowerHealth;
 		healthBar.setWidth(Enemy.TILE_SIZE * percent);

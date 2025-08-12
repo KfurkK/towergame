@@ -15,9 +15,9 @@ import javafx.scene.layout.Pane;
 
 
 public abstract class Tower {
-	public double x, y; // Kule konumu
-	public double range; // Mesafe
-	public double price; // kule fiyatı
+    public double x, y; // Tower position
+    public double range; // Attack range
+    public double price; // Tower price
 	public Enemy target;
 	public boolean selected;
 	public Node body;
@@ -42,7 +42,7 @@ public abstract class Tower {
 		body.setLayoutX(x - 10);
 		body.setLayoutY(y - 10);
 
-		rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.5)); // yarı saydam kırmızı
+        rangeCircle = new Circle(range, Color.rgb(255, 0, 0, 0.5)); // semi-transparent red
 		rangeCircle.setStroke(Color.RED);
 		rangeCircle.setFill(Color.rgb(255, 0, 0, 0.5));
 		rangeCircle.setLayoutX(x);
@@ -72,8 +72,8 @@ public abstract class Tower {
 		return rangeCircle;
 	}
 
-	public void remove() {
-		// Varsayılan: sadece sahneden görseli siler
+    public void remove() {
+        // Default: only remove visuals from the scene
 		Game.gameOverlay.getChildren().remove(getNode());
 		Game.gameOverlay.getChildren().remove(rangeCircle);
 	}
@@ -104,7 +104,7 @@ public abstract class Tower {
 		return new int[] { currentRow, currentCol };
 	}
 
-	public abstract void update(List<Enemy> enemies); // her karede ne yapacak?
+    public abstract void update(List<Enemy> enemies); // Per-frame tower logic
 	public abstract void damage(int damageValue);
 	
 	public Node getHealthBar() {

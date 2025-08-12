@@ -20,18 +20,18 @@ public class ScoreManager {
         
         for (ScoreEntry entry : entries) {
             if (entry.username.equals(username) && entry.score == score) {
-                return; // Aynı kullanıcıdan aynı skor zaten var
+                return; // Same user with the same score already exists
             }
         }
         
         boolean duplicate = entries.stream().anyMatch(e -> e.score == score);
         if (duplicate) return;
 
-        // Şu anki zamanı ekle
+        // Add current timestamp
         String time = formatter.format(new Date());
         entries.add(new ScoreEntry(username, score, time));
 
-        // Skorları büyükten küçüğe sırala
+        // Sort scores in descending order
         entries.sort((a, b) -> Integer.compare(b.score, a.score));
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
@@ -69,7 +69,7 @@ public class ScoreManager {
         return entries;
     }
 
-    // Nested class for skor nesnesi
+    // Nested class representing a score entry
     public static class ScoreEntry {
     	public String username;
         public int score;

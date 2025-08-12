@@ -17,7 +17,7 @@ import javafx.util.Duration;
 
 public class MissileLauncherTower extends Tower {
 	public long lastShotTime = 0;
-	public long shootInterval = 1500; // 1,5 saniye
+    public long shootInterval = 1500; // 1.5 seconds
 	public int missileDamage = 100;
 	public double effectRadius = 50;
 
@@ -70,7 +70,7 @@ public class MissileLauncherTower extends Tower {
 	}
 	
 	public void damage(int damageValue) {
-		// decrease the healthbar displayd of the tower
+        // Decrease the displayed health bar of the tower
 		this.towerHealth -= damageValue;
 		double percent = (double) this.towerHealth / maxTowerHealth;
 		healthBar.setWidth(Enemy.TILE_SIZE * percent);
@@ -103,7 +103,7 @@ public class MissileLauncherTower extends Tower {
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
 
-		// set damaged tower image
+        // Set damaged tower image
 		Image damagedTower = new Image("/assets/towers/missile_damaged.png");
 		imageView = new ImageView(damagedTower);
 		imageView.setFitWidth(40);

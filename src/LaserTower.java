@@ -82,7 +82,7 @@ public class LaserTower extends Tower {
 				double lastHitTime = targetTimers.get(e);
 				double elapsedSeconds = (instanceTime - lastHitTime) / 1000.0;
 
-				// Zaman geçtiyse hasar ver
+				// Deal damage if enough time has passed
 				if (elapsedSeconds >= 0.1) {
 					e.damage(damagePerSecond * elapsedSeconds);
 					targetTimers.put(e, instanceTime * 1.0);
@@ -103,7 +103,7 @@ public class LaserTower extends Tower {
 	}
 	
 	public void damage(int damageValue) {
-		// decrease the healthbar displayd of the tower
+		// Decrease the displayed health bar of the tower
 		this.towerHealth -= damageValue;
 		double percent = (double) this.towerHealth / maxTowerHealth;
 		healthBar.setWidth(Enemy.TILE_SIZE * percent);
@@ -150,7 +150,7 @@ public class LaserTower extends Tower {
 		deathAnim.setOnFinished(e -> Game.removeTower(this));
 		deathAnim.play();
 
-		// set damaged tower image
+		// Set damaged tower image
 		Image damagedTower = new Image("/assets/towers/laser_damaged.png");
 		imageView = new ImageView(damagedTower);
 		imageView.setFitWidth(40);

@@ -110,7 +110,7 @@ public class Enemy {
             }
         });
         
-        this.currentTransition = move; // 🌟 Burada referansı saklıyoruz
+        this.currentTransition = move; // Store a reference to the transition
         move.play();
     }
 
@@ -220,6 +220,6 @@ public class Enemy {
     }
     
     public int getPointValue() {
-        return 10; // Normal düşmanlar 10 puan
+        return 10; // Normal enemies are worth 10 points
     }
 }

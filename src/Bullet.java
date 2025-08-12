@@ -12,7 +12,7 @@ import javafx.scene.shape.Circle;
 public class Bullet {
 	public double x, y;
 	public Enemy target;
-	public double speed = 5.0; // Sonra dolduralım.
+    public double speed = 5.0; // To be tuned if needed
 	public int damage = 10;
 	public boolean active = true;
 	public ImageView shape;

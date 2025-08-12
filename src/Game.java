@@ -25,16 +25,13 @@ public class Game {
 	private int money = 100;
 	private int lives = 5;
 
-	public static void update() {
-		// Kuleleri güncelle
+    public static void update() {
+        // Update towers
 		for (Tower tower : towers) {
 			tower.update(new ArrayList<>(Game.enemies));
 		}
 
-		// Düşmanları güncelle
-		/*
-		 * for (Enemy e : enemies) { e.update(); }
-		 */
+        // Update enemies (logic handled within Enemy movement/animations)
 
 		List<Bullet> toRemove = new ArrayList<>();
 		for (Bullet b : bullets) {

@@ -59,7 +59,7 @@ public class Missile {
 		double angleDeg = Math.toDegrees(Math.atan2(dy, dx));
 		shape.setRotate(angleDeg);
 
-		// Hedefe ulaştıysa → patla
+		// If missile reached the target → explode
 		if (enemyDistance < 5) {
 			explode(enemies);
 			active = false;
